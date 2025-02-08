@@ -39,8 +39,15 @@ public static class MathUtils
     /// </summary>
     public static double MathBezier(double x, double x1, double y1, double x2, double y2, double acc = 0.01)
     {
-        if (x <= 0 || double.IsNaN(x)) return 0;
-        if (x >= 1) return 1;
+        switch (x)
+        {
+            case <= 0:
+            case double.NaN:
+                return 0;
+            case >= 1:
+                return 1;
+        }
+
         var a = x;
         double b;
         do

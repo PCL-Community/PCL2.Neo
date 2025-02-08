@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using static PCL2.Neo.Const;
@@ -162,7 +163,7 @@ public class Logger
 #if DEBUG
         Debug.Write(logText);
 #endif
-        string msg = Regex.Replace(text, @"\[[^\]]+?\] ", "");
+        string msg = Regex.Replace(text, @"\[[^\]]+?\] ", string.Empty);
         switch (level)
         {
 #if DEBUG

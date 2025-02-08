@@ -7,9 +7,9 @@ namespace PCL2.Neo.Models.Minecraft
 {
     internal record JavaExist
     {
-        public required bool IsExist { get; set; }
+        public  bool IsExist { get; set; }
 
-        public required string Path { get; set; }
+        public  string Path { get; set; }
     }
     public class JavaEntity(string path)
     {

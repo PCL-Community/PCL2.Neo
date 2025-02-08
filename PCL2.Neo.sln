@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PCL2.Neo", "PCL2.Neo\PCL2.Neo.csproj", "{AF527853-D92E-44CE-A3EB-1E308C4FBFE2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PCL2.NeoTests", "PCL2.NeoTests\PCL2.NeoTests.csproj", "{41B478FE-8F3D-4611-8C5F-5396FF8DF6AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{AF527853-D92E-44CE-A3EB-1E308C4FBFE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF527853-D92E-44CE-A3EB-1E308C4FBFE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF527853-D92E-44CE-A3EB-1E308C4FBFE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41B478FE-8F3D-4611-8C5F-5396FF8DF6AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41B478FE-8F3D-4611-8C5F-5396FF8DF6AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41B478FE-8F3D-4611-8C5F-5396FF8DF6AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41B478FE-8F3D-4611-8C5F-5396FF8DF6AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -18,8 +18,8 @@ namespace PCL2.Neo.Models.Audio
 
     public class AudioData
     {
-        public required string Name { get; set; }
-        public required string Path { get; set; }
-        public required FileType Type { get; set; }
+        public  string Name { get; set; }
+        public  string Path { get; set; }
+        public  FileType Type { get; set; }
     }
 }
