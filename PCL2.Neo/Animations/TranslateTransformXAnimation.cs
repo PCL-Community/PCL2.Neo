@@ -3,12 +3,14 @@ using Avalonia.Animation.Easings;
 using Avalonia.Media;
 using Avalonia.Styling;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Animations
 {
     public class TranslateTransformXAnimation : IAnimation
     {
+        private CancellationTokenSource _cancellationTokenSource;
         public Animatable Control { get; set; }
         public TimeSpan Duration { get; set; }
         public TimeSpan Delay { get; set; }
@@ -68,6 +70,7 @@ namespace PCL2.Neo.Animations
             ValueBefore = valueBefore;
             ValueAfter = valueAfter;
             Easing = easing;
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async Task RunAsync()
@@ -98,7 +101,11 @@ namespace PCL2.Neo.Animations
                     }
                 }
             };
-            await animation.RunAsync(Control);
+            await animation.RunAsync(Control, _cancellationTokenSource.Token);
+        }
+        public void Cancel()
+        {
+            _cancellationTokenSource.Cancel();
         }
     }
 }

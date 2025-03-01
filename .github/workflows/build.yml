@@ -1,0 +1,127 @@
+name: Build
+
+on:
+    workflow_dispatch:
+    push:
+        branches: ["master"]
+    pull_request:
+        branches: ["master"]
+
+jobs:
+    time:
+        runs-on: ubuntu-latest
+        outputs:
+            v: ${{ steps.date.outputs.time }}
+            y: ${{ steps.date.outputs.y }}
+            md: ${{ steps.date.outputs.md }}
+            hm: ${{ steps.date.outputs.hm }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Time
+              id: date
+              run: |
+                  echo "::set-output name=time::$(date +'%Y.%m.%d.%H.%M')"
+                  echo "::set-output name=y::$(date +'%Y')"
+                  echo "::set-output name=md::$(date +'%m%d')"
+                  echo "::set-output name=hm::$(date +'%H%M')"
+            - name: EchoTime
+              run: |
+                  echo "The current time is: ${{ steps.date.outputs.time }}"
+
+    build:
+        runs-on: ubuntu-20.04
+        needs: time
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            - name: Dependency
+              run: |
+                  dotnet tool install -g KuiperZone.PupNet
+                  sudo apt-get update
+                  sudo apt-get install fuse
+            - name: Build-AppImage
+              run: |
+                  cd ./PCL2.Neo
+                  sudo su
+                  pupnet --runtime linux-x64 --kind appimage -o PCL2.Neo.linux.x64.AppImage -y --app-version ${{ needs.time.outputs.y }}.${{ needs.time.outputs.md }}.${{ needs.time.outputs.hm }}
+                  pupnet --runtime linux-arm64 --kind appimage -o PCL2.Neo.linux.arm64.AppImage -y --app-version ${{ needs.time.outputs.y }}.${{ needs.time.outputs.md }}.${{ needs.time.outputs.hm }}
+            - name: Build-MacOsApp
+              run: |
+                  cd ./PCL2.Neo
+                  sudo su
+                  dotnet restore -r osx-x64
+                  dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-x64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
+                  dotnet restore -r osx-arm64
+                  dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-arm64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
+                  cd ./bin/Release/net9.0/
+                  cd ./osx-x64/publish/
+                  zip -9 -r ../../PCL2.Neo.osx.mac.x64.app.zip ./PCL2.Neo.app
+                  cd ../../
+                  cd ./osx-arm64/publish/
+                  zip -9 -r ../../PCL2.Neo.osx.mac.arm64.app.zip ./PCL2.Neo.app
+            - name: Build-WinExe
+              run: |
+                  cd ./PCL2.Neo
+                  sudo su
+                  dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
+                  dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
+                  dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
+                  mv ./bin/Release/net9.0/win-x86/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL2.Neo.win.x86.exe
+                  mv ./bin/Release/net9.0/win-x64/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL2.Neo.win.x64.exe
+                  mv ./bin/Release/net9.0/win-arm64/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL2.Neo.win.arm64.exe
+                  cd ./bin/Release/net9.0/
+                  cd ./win-x86/
+                  zip -9 -r "../PCL2.Neo.win.x86.zip" "./publish"
+                  cd ../
+                  cd ./win-x64/
+                  zip -9 -r "../PCL2.Neo.win.x64.zip" "./publish"
+                  cd ../
+                  cd ./win-arm64/
+                  zip -9 -r "../PCL2.Neo.win.arm64.zip" "./publish"
+            - name: UploadArtifacts linux.arm64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: linux.arm64
+                  path: |
+                      PCL2.Neo/Deploy/OUT/PCL2.Neo.linux.arm64.AppImage
+            - name: UploadArtifacts linux.x64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: linux.x64
+                  path: |
+                      PCL2.Neo/Deploy/OUT/PCL2.Neo.linux.x64.AppImage
+            - name: UploadArtifacts win.x64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: win.x64
+                  path: |
+                      PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.x64.zip
+            - name: UploadArtifacts win.x86
+              uses: actions/upload-artifact@v4
+              with:
+                  name: win.x86
+                  path: |
+                      PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.x86.zip
+            - name: UploadArtifacts win.arm64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: win.arm64
+                  path: |
+                      PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.arm64.zip
+            - name: UploadArtifacts osx.mac.arm64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: osx.mac.arm64
+                  path: |
+                      PCL2.Neo/bin/Release/net9.0/PCL2.Neo.osx.mac.arm64.app.zip
+            - name: UploadArtifacts osx.mac.x64
+              uses: actions/upload-artifact@v4
+              with:
+                  name: osx.mac.x64
+                  path: |
+                      PCL2.Neo/bin/Release/net9.0/PCL2.Neo.osx.mac.x64.app.zip

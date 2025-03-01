@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -17,7 +18,7 @@ public partial class MainWindow : Window
 
         NavBackgroundBorder.PointerPressed += OnNavPointerPressed;
 
-        new ThemeHelper(this).Refresh();
+        new ThemeHelper(this).Refresh(Application.Current!.ActualThemeVariant);
 
         BtnTitleClose.Click += async (_, _) =>
         {
@@ -58,8 +59,8 @@ public partial class MainWindow : Window
                 new OpacityAnimation(this.MainBorder, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
                 new ScaleTransformScaleXAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 0.88d),
                 new ScaleTransformScaleYAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 0.88d),
-                new TranslateTransformYAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 20, new QuadraticEaseOut()),
-                new RotateTransformAngleAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 0.6, new QuadraticEaseInOut())
+                new TranslateTransformYAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
+                new RotateTransformAngleAnimation(this.MainBorder, TimeSpan.FromMilliseconds(180), 0.6d, new QuadraticEaseInOut())
             ]);
             await animation.RunAsync();
         }

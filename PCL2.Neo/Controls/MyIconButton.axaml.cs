@@ -21,6 +21,7 @@ public class MyIconButton : Button
 {
     private Path? _pathIcon;
     private Border? _panBack;
+    private readonly AnimationHelper _animation = new AnimationHelper();
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -42,12 +43,13 @@ public class MyIconButton : Button
         base.OnPointerPressed(e);
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            var animation = new AnimationHelper(
+            _animation.CancelAndClear();
+            _animation.Animations.AddRange(
             [
                 new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut()),
                 new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut())
             ]);
-            await animation.RunAsync();
+            await _animation.RunAsync();
         }
     }
 
@@ -56,13 +58,13 @@ public class MyIconButton : Button
         base.OnPointerReleased(e);
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
-            await Task.Delay(1000);
-            var animation = new AnimationHelper(
+            _animation.CancelAndClear();
+            _animation.Animations.AddRange(
             [
-                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 1d, new BackEaseOut()),
-                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 1d, new BackEaseOut())
+                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut()),
+                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut())
             ]);
-            await animation.RunAsync();
+            await _animation.RunAsync();
         }
     }
 

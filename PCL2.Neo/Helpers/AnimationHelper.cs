@@ -7,26 +7,35 @@ namespace PCL2.Neo.Helpers;
 /// <summary>
 /// 动画帮助类，用来同时执行不同动画。
 /// </summary>
-public class AnimationHelper
+public class AnimationHelper(List<IAnimation> animations)
 {
-    public List<IAnimation> Animations { get; set; }
-    public List<Task> Tasks { get; }
+    public List<IAnimation> Animations { get; set; } = animations;
+    public List<Task> Tasks { get; } = new List<Task>();
 
-    public AnimationHelper() : this(new List<IAnimation>())
+    public AnimationHelper() : this([]){}
+
+    public async Task RunAsync()
     {
-    }
-    public AnimationHelper(List<IAnimation> animations)
-    {
-        Animations = animations;
-        Tasks = new List<Task>();
+        Tasks.Clear();
         foreach (IAnimation animation in Animations)
         {
             Tasks.Add(animation.RunAsync());
         }
+
+        await Task.WhenAll(Tasks);
     }
 
-    public async Task RunAsync()
+    public void Cancel()
     {
-        await Task.WhenAll(Tasks);
+        foreach (IAnimation animation in Animations)
+        {
+            animation.Cancel();
+        }
+    }
+
+    public void CancelAndClear()
+    {
+        Cancel();
+        Animations.Clear();
     }
 }

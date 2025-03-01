@@ -1,0 +1,17 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:controls="using:PCL2.Neo.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <controls:MyCard />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|MyCard">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <TextBlock Text="1" />
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>
+

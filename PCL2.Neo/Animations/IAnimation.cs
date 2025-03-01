@@ -27,4 +27,8 @@ public interface IAnimation
     /// 异步形式执行动画。
     /// </summary>
     Task RunAsync();
+    /// <summary>
+    /// 取消动画。
+    /// </summary>
+    void Cancel();
 }
