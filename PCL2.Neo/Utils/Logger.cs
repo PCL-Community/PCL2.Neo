@@ -171,12 +171,22 @@ public class Logger
             case LogLevel.Debug: _debugLogDelegate.Invoke(msg); break;
 #else
             case LogLevel.Developer: break;
-            case LogLevel.Debug: debugLogDelegate.Invoke(msg); break; // TODO modedebug
+            case LogLevel.Debug:
+                _debugLogDelegate.Invoke(msg);
+                break; // TODO modedebug
 #endif
-            case LogLevel.Hint: _hintLogDelegate.Invoke(msg); break;
-            case LogLevel.Msgbox: _msgboxLogDelegate.Invoke(msg); break;
-            case LogLevel.Feedback: _feedbackLogDelegate.Invoke(msg); break;
-            case LogLevel.Assert: _assertLogDelegate.Invoke(msg); break;
+            case LogLevel.Hint:
+                _hintLogDelegate.Invoke(msg);
+                break;
+            case LogLevel.Msgbox:
+                _msgboxLogDelegate.Invoke(msg);
+                break;
+            case LogLevel.Feedback:
+                _feedbackLogDelegate.Invoke(msg);
+                break;
+            case LogLevel.Assert:
+                _assertLogDelegate.Invoke(msg);
+                break;
         }
     }
 

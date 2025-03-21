@@ -13,7 +13,7 @@ namespace PCL2.Neo.Models.Minecraft
     }
     public class JavaEntity(string path)
     {
-        public string Path = path.EndsWith('\\') ? path : path + '\\';
+        public string Path = path;
 
         public bool IsUseable = true;
 
@@ -46,8 +46,9 @@ namespace PCL2.Neo.Models.Minecraft
                 return _version.Value;
             }
         }
-        public string JavaExe => Path + "java.exe";
-        public string JavaWExe => Path + "javaw.exe";
+
+        public string JavaExe => System.IO.Path.Combine(Path, "java.exe");
+        public string JavaWExe => System.IO.Path.Combine(Path, "javaw.exe");
 
         private string? _output;
 
@@ -100,7 +101,7 @@ namespace PCL2.Neo.Models.Minecraft
             javaProcess.Start();
             javaProcess.WaitForExit();
 
-            var output = javaProcess.StandardError.ReadToEnd(); // check stderr have content
+            var output = javaProcess.StandardError.ReadToEnd();
             return output != string.Empty ? output : javaProcess.StandardOutput.ReadToEnd(); // 就是tmd stderr
         }
     }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 #pragma warning disable CA1416
 
@@ -13,7 +14,9 @@ namespace PCL2.Neo.Models.Minecraft.JavaSearcher;
 internal class Windows
 {
     private static Task<JavaExist> PathEnvSearchAsync(string path) => Task.Run(() => new JavaExist
-        { IsExist = File.Exists(Path.Combine(path, "javaw.exe")), Path = path });
+    {
+        IsExist = File.Exists(Path.Combine(path, "javaw.exe")), Path = path
+    });
 
     private static async Task<List<JavaEntity>> EnvionmentJavaEntities()
     {
@@ -123,7 +126,7 @@ internal class Windows
         return javaList;
     }
 
-    public static async Task<List<JavaEntity>> SearchJava(bool fullSearch = false, int maxDeep = MaxDeep)
+    public static async Task<List<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = MaxDeep)
     {
         var javaEntities = new List<JavaEntity>();
         javaEntities.AddRange(RegisterSearch()); // search register
@@ -153,12 +156,74 @@ internal class Windows
 /// </summary>
 internal class Unix
 {
-    public static List<JavaEntity> SerachJava()
+    public static async Task<List<JavaEntity>> SearchJavaAsync(PlatformID platform)
     {
+        string[] searchPath;
+
+        switch (platform)
+        {
+            case PlatformID.Unix:
+                searchPath =
+                [
+                    "/usr/lib/jvm",
+                    "/usr/java",
+                    "/opt"
+                ];
+                break;
+            case PlatformID.MacOSX:
+                searchPath =
+                [
+                    "/Library/Java/JavaVirtualMachines",
+                    "/usr/local/Caskroom",
+                    "/usr/local/opt/openjdk",
+                    "/opt"
+                ];
+                break;
+            default:
+                return [];
+        }
+
         var javaList = new List<JavaEntity>();
 
-        // TODO: Add code
+        foreach (var item in searchPath)
+        {
+            if (!Directory.Exists(item))
+            {
+                continue;
+            }
+
+            try
+            {
+                javaList.AddRange(Directory.EnumerateDirectories(item)
+                    .Select(jvmDir => new { jvmDir, javaExecutable = FindJavaExecuteable(jvmDir) })
+                    .Where(@t => !string.IsNullOrEmpty(@t.javaExecutable))
+                    .Select(@t => new JavaEntity(@t.jvmDir)));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // ignore
+            }
+        }
 
         return javaList;
+    }
+
+    private static string? FindJavaExecuteable(string jvmPath)
+    {
+        string[] possiblePaths =
+        [
+            Path.Combine(jvmPath, "bin", "java"),
+            Path.Combine(jvmPath, "Contents", "Home", "bin", "java")
+        ];
+
+        foreach (var possiblePath in possiblePaths)
+        {
+            if (File.Exists(possiblePath))
+            {
+                return possiblePath;
+            }
+        }
+
+        return null;
     }
 }
