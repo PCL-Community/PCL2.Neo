@@ -37,15 +37,15 @@ namespace PCL2.Neo.Models.Minecraft
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                javaList.AddRange(await JavaSearcher.Windows.SearchJavaAsync());
+                javaList.AddRange(await JavaSearcher.Windows.SearchJavaAsync(false, MaxDeep));
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                javaList.AddRange(await Unix.SearchJavaAsync(PlatformID.Unix));
+                javaList.AddRange(Unix.SearchJavaAsync(PlatformID.Unix));
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                javaList.AddRange(await Unix.SearchJavaAsync(PlatformID.MacOSX));
+                javaList.AddRange(Unix.SearchJavaAsync(PlatformID.MacOSX));
             }
             else
             {

@@ -28,8 +28,10 @@ internal class Windows
         if (javaHomePath != null || Directory.Exists(javaHomePath)) // if not exist then return
             if (Directory.Exists(javaHomePath))
             {
-                var filePath = javaHomePath.EndsWith(@"\bin\") ? javaHomePath : Path.Combine(javaHomePath, "bin");
-                javaList.Add(new JavaEntity(filePath));
+                //var filePath = javaHomePath.EndsWith(@"\bin\") ? javaHomePath : Path.Combine(javaHomePath, "bin");
+                //javaList.Add(new JavaEntity(filePath));
+
+                javaList.Add(new JavaEntity(Path.Combine(javaHomePath, "bin")));
             }
 
         // PATH multi-thread
@@ -57,9 +59,10 @@ internal class Windows
 
     private static List<JavaEntity> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
     {
-        var entities = new List<JavaEntity>();
         // if too deep then return
-        if (deep >= maxDeep) return entities;
+        if (deep >= maxDeep) return [];
+
+        var entities = new List<JavaEntity>();
 
         try
         {
@@ -102,7 +105,7 @@ internal class Windows
         return javaList.ToList();
     }
 
-    public static List<JavaEntity> RegisterSearch()
+    private static List<JavaEntity> RegisterSearch()
     {
         // JavaSoft
         using var javaSoftKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\JavaSoft");
@@ -129,22 +132,24 @@ internal class Windows
     public static async Task<List<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = MaxDeep)
     {
         var javaEntities = new List<JavaEntity>();
+
         javaEntities.AddRange(RegisterSearch()); // search register
         javaEntities.AddRange(await EnvionmentJavaEntities()); // search environment
+
         if (fullSearch) javaEntities.AddRange(await DriveJavaEntities(maxDeep)); // full search
         else
         {
-            var programFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java");
-            var programFileX86 =
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java");
-            javaEntities.AddRange(await SearchFoldersAsync( // search minecraf launcher runtime folder
+            string[] searchPath =
+            [
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java"),
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime"),
-                maxDeep: 6));
-            if (Directory.Exists(programFile)) // search program java
-                javaEntities.AddRange(await SearchFoldersAsync(programFile, maxDeep: 4));
-            if (Directory.Exists(programFileX86)) // search program x86 java
-                javaEntities.AddRange(await SearchFoldersAsync(programFileX86, maxDeep: 4));
+                    @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
+            ];
+
+            foreach (var item in searchPath)
+                if (Directory.Exists(item))
+                    javaEntities.AddRange(await SearchFoldersAsync(item, maxDeep: 6));
         }
 
         return javaEntities;
@@ -156,10 +161,11 @@ internal class Windows
 /// </summary>
 internal class Unix
 {
-    public static async Task<List<JavaEntity>> SearchJavaAsync(PlatformID platform)
+    public static List<JavaEntity> SearchJavaAsync(PlatformID platform)
     {
         string[] searchPath;
 
+        // make search path by platform
         switch (platform)
         {
             case PlatformID.Unix:
@@ -187,10 +193,8 @@ internal class Unix
 
         foreach (var item in searchPath)
         {
-            if (!Directory.Exists(item))
-            {
-                continue;
-            }
+            // ignore if not exist
+            if (!Directory.Exists(item)) continue;
 
             try
             {
@@ -216,14 +220,6 @@ internal class Unix
             Path.Combine(jvmPath, "Contents", "Home", "bin", "java")
         ];
 
-        foreach (var possiblePath in possiblePaths)
-        {
-            if (File.Exists(possiblePath))
-            {
-                return possiblePath;
-            }
-        }
-
-        return null;
+        return possiblePaths.FirstOrDefault(File.Exists);
     }
 }
