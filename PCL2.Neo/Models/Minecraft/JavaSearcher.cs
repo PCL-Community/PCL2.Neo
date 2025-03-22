@@ -1,3 +1,4 @@
+using Avalonia.Styling;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -18,30 +19,26 @@ internal class Windows
         IsExist = File.Exists(Path.Combine(path, "javaw.exe")), Path = path
     });
 
-    private static async Task<List<JavaEntity>> EnvionmentJavaEntities()
+    private static Task<List<JavaEntity>> EnvionmentJavaEntities()
     {
         var javaList = new List<JavaEntity>();
 
-        // find by environment path
+        // search from environment path
         // JAVA_HOME
         var javaHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-        if (javaHomePath != null || Directory.Exists(javaHomePath)) // if not exist then return
-            if (Directory.Exists(javaHomePath))
-            {
-                //var filePath = javaHomePath.EndsWith(@"\bin\") ? javaHomePath : Path.Combine(javaHomePath, "bin");
-                //javaList.Add(new JavaEntity(filePath));
+        if (Directory.Exists(javaHomePath))
+        {
+            javaList.Add(new JavaEntity(Path.Combine(javaHomePath, "bin")));
+        }
 
-                javaList.Add(new JavaEntity(Path.Combine(javaHomePath, "bin")));
-            }
+        // PATH
+        var result = Environment.GetEnvironmentVariable("Path")!.Split(';')
+            .Select(async item => await PathEnvSearchAsync(item)).Select(it => it.Result).Where(it => it.IsExist)
+            .Select(it => new JavaEntity(it.Path));
 
-        // PATH multi-thread
-        var pathList = new ConcurrentBag<JavaExist>();
-        foreach (var item in Environment.GetEnvironmentVariable("Path")!.Split(';'))
-            pathList.Add(await PathEnvSearchAsync(item));
+        javaList.AddRange(result);
 
-        javaList.AddRange(pathList.Where(j => j.IsExist).Select(j => new JavaEntity(j.Path)));
-
-        return javaList;
+        return Task.FromResult(javaList);
     }
 
     private static readonly string[] KeySubFolderWrods =
@@ -50,30 +47,28 @@ internal class Windows
         "soft", "cache", "temp", "corretto", "roaming", "users", "craft", "program", "世界", "net",
         "游戏", "oracle", "game", "file", "data", "jvm", "服务", "server", "客户", "client", "整合",
         "应用", "运行", "前置", "mojang", "官启", "新建文件夹", "eclipse", "microsoft", "hotspot",
-        "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod", "高清",
-        "download", "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages",
-        "4297127d64ec6", "国服", "网易", "ext", "netease", "1.", "启动"
+        "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod",
+        "download", "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages", "国服", "网易", "ext",
+        "netease", "启动"
     ];
 
     public const int MaxDeep = 7;
 
-    private static List<JavaEntity> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
+    private static IEnumerable<JavaEntity> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
     {
         // if too deep then return
         if (deep >= maxDeep) return [];
 
         var entities = new List<JavaEntity>();
 
+        if (File.Exists(Path.Combine(folderPath, "javaw.exe"))) entities.Add(new JavaEntity(folderPath));
+
         try
         {
-            if (File.Exists(Path.Combine(folderPath, "javaw.exe"))) entities.Add(new JavaEntity(folderPath));
+            var targetFolders = Directory.GetDirectories(folderPath)
+                .Where(f => KeySubFolderWrods.Any(w => f.Contains(w.ToLower())));
 
-            var subFolder = Directory.GetDirectories(folderPath);
-
-            var selectFolder = subFolder.Where(f => KeySubFolderWrods.Any(w => f.ToLower().Contains(w.ToLower())));
-            //entities.AddRange(selectFolder.Select(SearchFolders).SelectMany(i => i).ToList());
-            foreach (var folder in selectFolder)
-                entities.AddRange(SearchFolders(folder, deep + 1)); // search sub folders
+            entities.AddRange(targetFolders.Select(it => SearchFolders(it, deep + 1)).SelectMany(it => it));
         }
         catch (UnauthorizedAccessException)
         {
@@ -83,29 +78,23 @@ internal class Windows
         return entities;
     }
 
-    private static Task<List<JavaEntity>> SearchFoldersAsync(string folderPath, int deep = 0, int maxDeep = MaxDeep) =>
+    private static Task<IEnumerable<JavaEntity>> SearchFoldersAsync(string folderPath, int deep = 0,
+        int maxDeep = MaxDeep) =>
         Task.Run(() => SearchFolders(folderPath, deep, maxDeep));
 
-    private static async Task<List<JavaEntity>> DriveJavaEntities(int maxDeep)
+    private static Task<IEnumerable<JavaEntity>> DriveJavaEntities(int maxDeep)
     {
-        var javaList = new ConcurrentBag<JavaEntity>();
-
         var readyDrive = DriveInfo.GetDrives().Where(d => d is { IsReady: true, DriveType: DriveType.Fixed });
         var readyRootFolders = readyDrive.Select(d => d.RootDirectory)
             .Where(f => !f.Attributes.HasFlag(FileAttributes.ReparsePoint));
 
         // search java start at root folders
-        // multi-thread
-        foreach (var item in readyRootFolders)
-        {
-            var entities = await SearchFoldersAsync(item.ToString(), maxDeep: maxDeep);
-            foreach (var entity in entities) javaList.Add(entity);
-        }
-
-        return javaList.ToList();
+        return Task.FromResult(readyRootFolders
+            .Select(async item => await SearchFoldersAsync(item.FullName, 0, maxDeep))
+            .SelectMany(it => it.Result));
     }
 
-    private static List<JavaEntity> RegisterSearch()
+    private static IEnumerable<JavaEntity> RegisterSearch()
     {
         // JavaSoft
         using var javaSoftKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\JavaSoft");
@@ -117,9 +106,7 @@ internal class Windows
         {
             using var subKey = javaSoftKey.OpenSubKey(subKeyName, RegistryKeyPermissionCheck.ReadSubTree);
 
-            var javaHome = subKey?.GetValue("JavaHome");
-
-            var javaHoemPath = javaHome?.ToString();
+            var javaHoemPath = subKey?.GetValue("JavaHome")?.ToString();
             if (javaHoemPath == null) continue;
 
             var exePath = Path.Combine(javaHoemPath, "bin", "javaw.exe");

@@ -37,7 +37,7 @@ namespace PCL2.Neo.Models.Minecraft
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                javaList.AddRange(await JavaSearcher.Windows.SearchJavaAsync(false, MaxDeep));
+                javaList.AddRange(await JavaSearcher.Windows.SearchJavaAsync(false));
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
