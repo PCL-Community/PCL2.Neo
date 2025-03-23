@@ -14,10 +14,7 @@ namespace PCL2.Neo.Models.Minecraft.JavaSearcher;
 
 internal class Windows
 {
-    private static Task<JavaExist> PathEnvSearchAsync(string path) => Task.Run(() => new JavaExist
-    {
-        IsExist = File.Exists(Path.Combine(path, "javaw.exe")), Path = path
-    });
+    private static bool IsExistJava(string path) => Path.Exists(path);
 
     private static Task<List<JavaEntity>> EnvionmentJavaEntities()
     {
@@ -33,15 +30,14 @@ internal class Windows
 
         // PATH
         var result = Environment.GetEnvironmentVariable("Path")!.Split(';')
-            .Select(async item => await PathEnvSearchAsync(item)).Select(it => it.Result).Where(it => it.IsExist)
-            .Select(it => new JavaEntity(it.Path));
+            .Where(IsExistJava).Select(it => new JavaEntity(it));
 
         javaList.AddRange(result);
 
         return Task.FromResult(javaList);
     }
 
-    private static readonly string[] KeySubFolderWrods =
+    private static readonly string[] TargetSubFolderWords =
     [
         "java", "jdk", "env", "环境", "run", "软件", "jre", "mc", "dragon",
         "soft", "cache", "temp", "corretto", "roaming", "users", "craft", "program", "世界", "net",
@@ -63,11 +59,10 @@ internal class Windows
 
         if (File.Exists(Path.Combine(folderPath, "javaw.exe"))) entities.Add(new JavaEntity(folderPath));
 
+        var targetFolders = Directory.GetDirectories(folderPath)
+            .Where(f => TargetSubFolderWords.Any(w => f.Contains(w.ToLower())));
         try
         {
-            var targetFolders = Directory.GetDirectories(folderPath)
-                .Where(f => KeySubFolderWrods.Any(w => f.Contains(w.ToLower())));
-
             entities.AddRange(targetFolders.Select(it => SearchFolders(it, deep + 1)).SelectMany(it => it));
         }
         catch (UnauthorizedAccessException)
@@ -78,13 +73,14 @@ internal class Windows
         return entities;
     }
 
-    private static Task<IEnumerable<JavaEntity>> SearchFoldersAsync(string folderPath, int deep = 0,
-        int maxDeep = MaxDeep) =>
+    private static Task<IEnumerable<JavaEntity>> SearchFoldersAsync(
+        string folderPath, int deep = 0, int maxDeep = MaxDeep) =>
         Task.Run(() => SearchFolders(folderPath, deep, maxDeep));
 
     private static Task<IEnumerable<JavaEntity>> DriveJavaEntities(int maxDeep)
     {
-        var readyDrive = DriveInfo.GetDrives().Where(d => d is { IsReady: true, DriveType: DriveType.Fixed });
+        var readyDrive = DriveInfo.GetDrives().Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
+            .Where(d => d.Name != "C:\\");
         var readyRootFolders = readyDrive.Select(d => d.RootDirectory)
             .Where(f => !f.Attributes.HasFlag(FileAttributes.ReparsePoint));
 
@@ -124,20 +120,19 @@ internal class Windows
         javaEntities.AddRange(await EnvionmentJavaEntities()); // search environment
 
         if (fullSearch) javaEntities.AddRange(await DriveJavaEntities(maxDeep)); // full search
-        else
-        {
-            string[] searchPath =
-            [
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java"),
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
-            ];
 
-            foreach (var item in searchPath)
-                if (Directory.Exists(item))
-                    javaEntities.AddRange(await SearchFoldersAsync(item, maxDeep: 6));
-        }
+        string[] searchPath =
+        [
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java"),
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
+        ];
+
+        var result = searchPath.Where(Path.Exists).Select(async item => await SearchFoldersAsync(item, maxDeep: 6))
+            .Select(it => it.Result).SelectMany(it => it).Select(it => new JavaEntity(it.Path));
+
+        javaEntities.AddRange(result);
 
         return javaEntities;
     }
