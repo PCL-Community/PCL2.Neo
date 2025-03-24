@@ -1,14 +1,11 @@
-using Avalonia.Styling;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using System.Runtime.InteropServices;
 
-#pragma warning disable CA1416
+#pragma warning disable CA1416 // Platform compatibility
 
 namespace PCL2.Neo.Models.Minecraft.JavaSearcher;
 
@@ -16,7 +13,7 @@ internal class Windows
 {
     private static bool IsExistJava(string path) => Path.Exists(path);
 
-    private static Task<List<JavaEntity>> EnvionmentJavaEntities()
+    private static Task<List<JavaEntity>> SearchEnvionment()
     {
         var javaList = new List<JavaEntity>();
 
@@ -77,7 +74,7 @@ internal class Windows
         string folderPath, int deep = 0, int maxDeep = MaxDeep) =>
         Task.Run(() => SearchFolders(folderPath, deep, maxDeep));
 
-    private static Task<IEnumerable<JavaEntity>> DriveJavaEntities(int maxDeep)
+    private static Task<IEnumerable<JavaEntity>> SearcDrive(int maxDeep)
     {
         var readyDrive = DriveInfo.GetDrives().Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
             .Where(d => d.Name != "C:\\");
@@ -90,7 +87,7 @@ internal class Windows
             .SelectMany(it => it.Result));
     }
 
-    private static IEnumerable<JavaEntity> RegisterSearch()
+    private static IEnumerable<JavaEntity> SearchRegister()
     {
         // JavaSoft
         using var javaSoftKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\JavaSoft");
@@ -116,10 +113,10 @@ internal class Windows
     {
         var javaEntities = new List<JavaEntity>();
 
-        javaEntities.AddRange(RegisterSearch()); // search register
-        javaEntities.AddRange(await EnvionmentJavaEntities()); // search environment
+        javaEntities.AddRange(SearchRegister()); // search register
+        javaEntities.AddRange(await SearchEnvionment()); // search environment
 
-        if (fullSearch) javaEntities.AddRange(await DriveJavaEntities(maxDeep)); // full search
+        if (fullSearch) javaEntities.AddRange(await SearcDrive(maxDeep)); // full search
 
         string[] searchPath =
         [
@@ -143,7 +140,7 @@ internal class Windows
 /// </summary>
 internal class Unix
 {
-    public static List<JavaEntity> SearchJavaAsync(PlatformID platform)
+    public static IEnumerable<JavaEntity> SearchJavaAsync(PlatformID platform)
     {
         string[] searchPath;
 
@@ -180,10 +177,15 @@ internal class Unix
 
             try
             {
+                // old way
+                //    javaList.AddRange(Directory.EnumerateDirectories(item)
+                //        .Select(jvmDir => new { jvmDir, javaEntity = FindJavaEntity(jvmDir) })
+                //        .Where(jvmDir => !string.IsNullOrEmpty(jvmDir.javaEntity))
+                //        .Select(entity => new JavaEntity(entity.jvmDir)));
+
                 javaList.AddRange(Directory.EnumerateDirectories(item)
-                    .Select(jvmDir => new { jvmDir, javaExecutable = FindJavaExecuteable(jvmDir) })
-                    .Where(@t => !string.IsNullOrEmpty(@t.javaExecutable))
-                    .Select(@t => new JavaEntity(@t.jvmDir)));
+                    .Where(dir => !string.IsNullOrEmpty(FindJavaEntity(dir)))
+                    .Select(javaEntityPath => new JavaEntity(javaEntityPath)));
             }
             catch (UnauthorizedAccessException)
             {
@@ -194,7 +196,7 @@ internal class Unix
         return javaList;
     }
 
-    private static string? FindJavaExecuteable(string jvmPath)
+    private static string? FindJavaEntity(string jvmPath)
     {
         string[] possiblePaths =
         [

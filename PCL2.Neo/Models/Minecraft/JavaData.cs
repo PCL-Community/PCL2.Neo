@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -11,6 +10,29 @@ namespace PCL2.Neo.Models.Minecraft
 
         public bool IsUseable = true;
 
+        private void JavaInfoInit()
+        {
+            // set version
+            var regexMatch = Regex.Match(Output, """version "([\d._]+)""");
+            var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty,
+                @"^(\d+)\.");
+            _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+
+            if (_version == 1)
+            {
+                // java version 8
+                match = Regex.Match(regexMatch.Groups[1].Value, @"^1\.(\d+)\.");
+                _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+            }
+
+            // set bit
+            regexMatch = Regex.Match(Output, @"\b(\d+)-Bit\b"); // get bit
+            _is64Bit = (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
+
+            // delete output
+            _output = null;
+        }
+
         private int? _version;
 
         public int Version
@@ -22,22 +44,10 @@ namespace PCL2.Neo.Models.Minecraft
                     return _version.Value;
                 }
 
-                // get java version code
-                var javaVersionMatch = Regex.Match(Output, """version "([\d._]+)""");
-                var match = Regex.Match(javaVersionMatch.Success ? javaVersionMatch.Groups[1].Value : string.Empty,
-                    @"^(\d+)\.");
-                _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+                // java info init
+                JavaInfoInit();
 
-                if (_version == 1)
-                {
-                    // java version 8
-                    match = Regex.Match(javaVersionMatch.Groups[1].Value, @"^1\.(\d+)\.");
-                    _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
-
-                    return _version.Value;
-                }
-
-                return _version.Value;
+                return _version!.Value;
             }
         }
 
@@ -60,7 +70,23 @@ namespace PCL2.Neo.Models.Minecraft
             }
         }
 
-        public bool IsJre => !File.Exists(Path + "\\javac.exe");
+        private bool? _isJre = null;
+
+        public bool IsJre
+        {
+            get
+            {
+                if (_isJre != null)
+                {
+                    return _isJre.Value;
+                }
+
+                var result = File.Exists(Path + "\\javac.exe");
+                _isJre = result;
+                return result;
+            }
+        }
+
         public bool IsUserImport { set; get; }
 
         private bool? _is64Bit;
@@ -74,9 +100,11 @@ namespace PCL2.Neo.Models.Minecraft
                     return _is64Bit.Value;
                 }
 
-                var javaBitMatch = Regex.Match(Output, @"\b(\d+)-Bit\b"); // get bit
-                _is64Bit = (javaBitMatch.Success ? javaBitMatch.Groups[1].Value : string.Empty) == "64";
-                return _is64Bit.Value;
+
+                // java info init
+                JavaInfoInit();
+
+                return _is64Bit!.Value;
             }
         }
 
