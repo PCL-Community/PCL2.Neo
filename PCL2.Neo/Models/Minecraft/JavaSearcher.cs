@@ -140,6 +140,7 @@ internal class Windows
 /// </summary>
 internal class Unix
 {
+#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJavaAsync"
     public static IEnumerable<JavaEntity> SearchJavaAsync(PlatformID platform)
     {
         string[] searchPath;
