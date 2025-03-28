@@ -7,6 +7,16 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/Icon.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <CFBundleName>PCL2.Neo</CFBundleName>
+    <CFBundleDisplayName>PCL2.Neo</CFBundleDisplayName>
+    <CFBundleIdentifier>github.com/PCL-Community/PCL2.Neo</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundlePackageType>AAPL</CFBundlePackageType>
+    <CFBundleSignature>PCL2.Neo</CFBundleSignature>
+    <CFBundleExecutable>PCL2.Neo</CFBundleExecutable>
+    <CFBundleIconFile>Assets/Icon.ico</CFBundleIconFile>
+    <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,6 +36,7 @@
     </PackageReference>
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.0.8" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
   </ItemGroup>
 
   <ItemGroup>

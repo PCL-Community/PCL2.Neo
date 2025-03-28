@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using PCL2.Neo.Controls.MyMsg;
 
 namespace PCL2.Neo.ViewModels
 {
@@ -24,6 +25,19 @@ namespace PCL2.Neo.ViewModels
         {
             if (_window is null) return;
             _window.WindowState = WindowState.Minimized;
+        }
+
+        public void ShowMessageBox(IMessageBox messageBox)
+        {
+
+        }
+
+        /// <summary>
+        /// 强制关闭正在窗口上展示的 MessageBox。
+        /// </summary>
+        public void CloseMessageBox()
+        {
+
         }
     }
 }

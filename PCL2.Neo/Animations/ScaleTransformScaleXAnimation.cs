@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Animations
 {
-    public class TranslateTransformYAnimation : IAnimation
+    public class ScaleTransformScaleXAnimation : IAnimation
     {
         private CancellationTokenSource _cancellationTokenSource;
         public Animatable Control { get; set; }
@@ -19,51 +19,51 @@ namespace PCL2.Neo.Animations
         public Easing Easing { get; set; }
         public bool Wait { get; set; } = false;
 
-        public TranslateTransformYAnimation(Animatable control, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, double valueAfter) : this(
             control, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, double valueAfter, Easing easing) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, double valueAfter, Easing easing) : this(
             control, TimeSpan.FromSeconds(1), valueAfter, easing)
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, double valueAfter) : this(
             control, duration, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double valueAfter) : this(
             control, duration, delay, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, double valueAfter, Easing easing) : this(
-            control, duration, control.GetValue(TranslateTransform.YProperty), valueAfter, easing)
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, double valueAfter, Easing easing) : this(
+            control, duration, control.GetValue(ScaleTransform.ScaleXProperty), valueAfter, easing)
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double valueAfter, Easing easing) : this(
-            control, duration, delay, control.GetValue(TranslateTransform.YProperty), valueAfter, easing)
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double valueAfter, Easing easing) : this(
+            control, duration, delay, control.GetValue(ScaleTransform.ScaleXProperty), valueAfter, easing)
         {
         }
-        public TranslateTransformYAnimation(Animatable control, double? valueBefore, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, double? valueBefore, double valueAfter) : this(
             control, valueBefore, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, double? valueBefore, double valueAfter, Easing easing) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, double? valueBefore, double valueAfter, Easing easing) : this(
             control, TimeSpan.FromSeconds(1), valueBefore, valueAfter, easing)
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, double? valueBefore, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, double? valueBefore, double valueAfter) : this(
             control, duration, valueBefore, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double? valueBefore, double valueAfter) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double? valueBefore, double valueAfter) : this(
             control, duration, delay, valueBefore, valueAfter, new LinearEasing())
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, double? valueBefore, double valueAfter, Easing easing) : this(
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, double? valueBefore, double valueAfter, Easing easing) : this(
             control, duration, TimeSpan.Zero, valueBefore, valueAfter, easing)
         {
         }
-        public TranslateTransformYAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double? valueBefore, double valueAfter, Easing easing)
+        public ScaleTransformScaleXAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double? valueBefore, double valueAfter, Easing easing)
         {
             Control = control;
             Duration = duration;
@@ -88,7 +88,7 @@ namespace PCL2.Neo.Animations
                     {
                         Setters =
                         {
-                            new Setter(TranslateTransform.YProperty, ValueBefore)
+                            new Setter(ScaleTransform.ScaleXProperty, ValueBefore)
                         },
                         Cue = new Cue(0d)
                     },
@@ -96,7 +96,7 @@ namespace PCL2.Neo.Animations
                     {
                         Setters =
                         {
-                            new Setter(TranslateTransform.YProperty, ValueAfter)
+                            new Setter(ScaleTransform.ScaleXProperty, ValueAfter)
                         },
                         Cue = new Cue(1d)
                     }

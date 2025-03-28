@@ -60,40 +60,62 @@ public static class TimeDateUtils
     /// </summary>
     public static string GetTimeSpanString(TimeSpan span, bool isShortForm)
     {
-        string result;
-        var endFix = span.TotalMilliseconds > 0 ? "后" : "前";
-        if (span.TotalMilliseconds < 0) span = -span;
-        var totalMonthes = Math.Floor((double)(span.Days / 30));
-        if (isShortForm)
-        {
-            if (totalMonthes >= 12) result = Math.Floor(totalMonthes / 12) + " 年";
-            else if (totalMonthes >= 2) result = totalMonthes + " 个月";
-            else if (span.TotalDays >= 2) result = span.Days + " 天";
-            else if (span.TotalHours >= 1) result = span.Hours + " 小时";
-            else if (span.TotalMinutes >= 1) result = span.Minutes + " 分钟";
-            else if (span.TotalSeconds >= 1) result = span.Seconds + " 秒";
-            else result = "1 秒";
-        }
-        else
-        {
-            if (totalMonthes >= 61) result = Math.Floor(totalMonthes / 12) + " 年";
-            else if (totalMonthes >= 12)
-                result = Math.Floor(totalMonthes / 12) + " 年" +
-                         ((totalMonthes % 12) > 0 ? " " + (totalMonthes % 12) + " 个月" : "");
-            else if (totalMonthes >= 4) result = totalMonthes + " 个月";
-            else if (totalMonthes >= 1)
-                result = totalMonthes + " 月" + ((span.Days % 30) > 0 ? " " + (span.Days % 30) + " 天" : "");
-            else if (span.TotalDays >= 4) result = span.Days + " 天";
-            else if (span.TotalDays >= 1) result = span.Days + " 天" + (span.Hours > 0 ? " " + span.Hours + " 小时" : "");
-            else if (span.TotalHours >= 10) result = span.Hours + " 小时";
-            else if (span.TotalHours >= 1)
-                result = span.Hours + " 小时" + (span.Minutes > 0 ? " " + span.Minutes + " 分钟" : "");
-            else if (span.TotalMinutes >= 10) result = span.Minutes + " 分钟";
-            else if (span.TotalMinutes >= 1)
-                result = span.Minutes + " 分" + (span.Seconds > 0 ? " " + span.Seconds + " 秒" : "");
-            else if (span.TotalSeconds >= 1) result = span.Seconds + " 秒";
-            else result = "1 秒";
-        }
-        return result + endFix;
+        bool isFuture = span.TotalMilliseconds > 0;
+        string suffix = isFuture ? "后" : "前";
+        TimeSpan absoluteSpan = span.Duration(); // 获取时间间隔的绝对值
+
+        return isShortForm
+            ? $"{GetShortFormTimeString(absoluteSpan)}{suffix}"
+            : $"{GetLongFormTimeString(absoluteSpan)}{suffix}";
+    }
+
+    /// <summary>
+    /// 处理简短格式的时间字符串。
+    /// </summary>
+    private static string GetShortFormTimeString(TimeSpan span)
+    {
+        int months = span.Days / 30;
+
+        // 按时间单位从长到短判断，优先显示更大单位
+        if (months >= 12) return $"{months / 12} 年";
+        if (months >= 2) return $"{months} 个月";
+        if (span.Days >= 2) return $"{span.Days} 天";
+        if (span.Hours >= 1) return $"{span.Hours} 小时";
+        if (span.Minutes >= 1) return $"{span.Minutes} 分钟";
+        if (span.Seconds >= 1) return $"{span.Seconds} 秒";
+        return "1 秒"; // 处理小于1秒的情况
+    }
+
+    /// <summary>
+    /// 处理详细格式的时间字符串。
+    /// </summary>
+    private static string GetLongFormTimeString(TimeSpan span)
+    {
+        int months = span.Days / 30;
+        int remainingDays = span.Days % 30;
+
+        // 复合时间单位拼接逻辑
+        if (months >= 61) return $"{months / 12} 年";
+        if (months >= 12) return CombineUnits(months / 12, "年", months % 12, "个月");
+        if (months >= 4) return $"{months} 个月";
+        if (months >= 1) return CombineUnits(months, "个月", remainingDays, "天");
+        if (span.Days >= 4) return $"{span.Days} 天";
+        if (span.Days >= 1) return CombineUnits(span.Days, "天", span.Hours, "小时");
+        if (span.Hours >= 10) return $"{span.Hours} 小时";
+        if (span.Hours >= 1) return CombineUnits(span.Hours, "小时", span.Minutes, "分钟");
+        if (span.Minutes >= 10) return $"{span.Minutes} 分钟";
+        if (span.Minutes >= 1) return CombineUnits(span.Minutes, "分", span.Seconds, "秒");
+        if (span.Seconds >= 1) return $"{span.Seconds} 秒";
+        return "1 秒";
+    }
+
+    /// <summary>
+    /// 时间单位拼接辅助方法。
+    /// </summary>
+    private static string CombineUnits(int mainValue, string mainUnit, int remainderValue, string remainderUnit)
+    {
+        return remainderValue > 0
+            ? $"{mainValue} {mainUnit} {remainderValue} {remainderUnit}"
+            : $"{mainValue} {mainUnit}";
     }
 }
