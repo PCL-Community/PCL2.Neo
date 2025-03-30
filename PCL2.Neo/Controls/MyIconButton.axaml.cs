@@ -1,5 +1,6 @@
 using System;
 using Avalonia;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
@@ -7,45 +8,68 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using PCL2.Neo.Animations;
+using PCL2.Neo.Helpers;
 using PCL2.Neo.Models;
 using PCL2.Neo.Utils;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo.Controls;
 
 [PseudoClasses(":color", ":white", ":black", ":red", ":custom")]
-public class MyIconButton : TemplatedControl
+public class MyIconButton : Button
 {
     private Path? _pathIcon;
     private Border? _panBack;
-    
+    private readonly AnimationHelper _animation = new AnimationHelper();
+
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
         base.OnApplyTemplate(e);
         _pathIcon = e.NameScope.Find<Path>("PathIcon")!;
         _panBack = e.NameScope.Find<Border>("PanBack")!;
-        
+
         this.Loaded += (_, _) => RefreshColor();
-        
+
         // 初始化
         _pathIcon.Data = Geometry.Parse(Logo);
         _pathIcon.RenderTransform = new ScaleTransform{ ScaleX = LogoScale, ScaleY = LogoScale };
-        
+
         SetPseudoClass();
     }
 
-    protected override void OnPointerReleased(PointerReleasedEventArgs e)
+    protected override async void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            _animation.CancelAndClear();
+            _animation.Animations.AddRange(
+            [
+                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut()),
+                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut())
+            ]);
+            await _animation.RunAsync();
+        }
+    }
+
+    protected override async void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
         if (e.InitialPressMouseButton == MouseButton.Left)
         {
-            OnClick();
-            // 这里缺少动画
-            // 这里缺少 PCL 的 Event
+            _animation.CancelAndClear();
+            _animation.Animations.AddRange(
+            [
+                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut()),
+                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut())
+            ]);
+            await _animation.RunAsync();
         }
     }
 
     public int Uuid = CoreUtils.GetUuid();
-    
+
     public static readonly StyledProperty<string> LogoProperty = AvaloniaProperty.Register<MyIconButton, string>(
         nameof(Logo));
     public string Logo
@@ -105,7 +129,7 @@ public class MyIconButton : TemplatedControl
         get => GetValue(ForegroundProperty);
         set => SetValue(ForegroundProperty, value);
     }
-    
+
     public static readonly StyledProperty<IBrush> ForegroundInnerProperty = AvaloniaProperty.Register<MyIconButton, IBrush>(
         nameof(ForegroundInner));
 
@@ -123,7 +147,7 @@ public class MyIconButton : TemplatedControl
         get => GetValue(BackgroundProperty);
         set => SetValue(BackgroundProperty, value);
     }
-    
+
     public static readonly StyledProperty<string> EventTypeProperty = AvaloniaProperty.Register<MyIconButton, string>(
         nameof(EventType));
 
@@ -141,22 +165,7 @@ public class MyIconButton : TemplatedControl
         get => GetValue(EventDataProperty);
         set => SetValue(EventDataProperty, value);
     }
-    
-    public static readonly RoutedEvent<RoutedEventArgs> ClickEvent = RoutedEvent.Register<MyIconButton, RoutedEventArgs>(
-        nameof(Click),
-        RoutingStrategies.Bubble);
-    
-    public event EventHandler<RoutedEventArgs> Click
-    {
-        add => AddHandler(ClickEvent, value);
-        remove => RemoveHandler(ClickEvent, value);
-    }
-    
-    protected virtual void OnClick()
-    {
-        RaiseEvent(new RoutedEventArgs(ClickEvent));
-    }
-    
+
     /// <summary>
     /// 初始化颜色。
     /// </summary>
@@ -166,7 +175,7 @@ public class MyIconButton : TemplatedControl
         switch (IconTheme)
         {
             case IconThemes.Color:
-                _pathIcon.Fill = Application.Current!.Resources["ColorBrush5"] as SolidColorBrush;
+                _pathIcon.Fill = (SolidColorBrush?)Application.Current!.Resources["ColorBrush5"];
                 break;
             case IconThemes.White:
                 _pathIcon.Fill = (SolidColorBrush)new MyColor(234, 242, 254);

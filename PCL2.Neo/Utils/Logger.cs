@@ -108,6 +108,7 @@ public class Logger
             isInitSuccess = false;
             Log(ex, "日志初始化失败", LogLevel.Developer);
         }
+        _logTimer.Start();
 
         if (!isInitSuccess) return;
         try
@@ -119,8 +120,6 @@ public class Logger
             _logStream = null;
             Log(ex, "日志写入失败", LogLevel.Hint);
         }
-
-        _logTimer.Start();
     }
 
     private void Flush()

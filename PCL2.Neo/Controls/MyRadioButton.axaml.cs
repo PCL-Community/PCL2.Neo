@@ -18,7 +18,7 @@ public class MyRadioButton : RadioButton
     private Path? _shapeLogo;
     private TextBlock? _labText;
     private Border? _panBack;
-    
+
     private bool _isMouseDown = false;
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
@@ -27,18 +27,18 @@ public class MyRadioButton : RadioButton
         _shapeLogo = e.NameScope.Find<Path>("ShapeLogo")!;
         _labText = e.NameScope.Find<TextBlock>("LabText")!;
         _panBack = e.NameScope.Find<Border>("PanBack")!;
-        
+
         this.Loaded += (_, _) => RefreshColor();
-        
+
         _shapeLogo.Data = Geometry.Parse(Logo);
         _shapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         _labText.Text = Text;
-        
+
         SetPseudoClass();
     }
 
     public int Uuid = CoreUtils.GetUuid();
-    
+
     public static readonly StyledProperty<string> LogoProperty = AvaloniaProperty.Register<MyRadioButton, string>(
         nameof(Logo));
 
@@ -71,7 +71,7 @@ public class MyRadioButton : RadioButton
             }
         }
     }
-    
+
     public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<MyRadioButton, string>(
         nameof(Text),
         string.Empty);
@@ -94,8 +94,8 @@ public class MyRadioButton : RadioButton
         White,
         HighLight
     }
-    
-    public static readonly StyledProperty<ColorState> ColorTypeProperty = 
+
+    public static readonly StyledProperty<ColorState> ColorTypeProperty =
         AvaloniaProperty.Register<MyRadioButton, ColorState>(nameof(ColorType));
 
     public ColorState ColorType
@@ -107,7 +107,7 @@ public class MyRadioButton : RadioButton
             SetPseudoClass();
         }
     }
-    
+
     [Obsolete]
     private void SetCheck()
     {
@@ -122,9 +122,9 @@ public class MyRadioButton : RadioButton
             }
         }
     }
-    
+
     private void SetPseudoClass()
-    {        
+    {
         switch (ColorType)
         {
             case ColorState.White:
@@ -135,14 +135,14 @@ public class MyRadioButton : RadioButton
                 break;
         }
     }
-    
+
     private void RefreshColor()
     {
         if (_shapeLogo is null || _labText is null) return;
         switch (ColorType)
         {
             case ColorState.White:
-                if (IsChecked.Value)
+                if (IsChecked!.Value)
                 {
                     _panBack!.Background = (SolidColorBrush)new MyColor(255, 255, 255);
                     _shapeLogo.Fill = (IBrush?)Application.Current!.Resources["ColorBrush3"];
@@ -156,7 +156,7 @@ public class MyRadioButton : RadioButton
                 }
                 break;
             case ColorState.HighLight:
-                if (IsChecked.Value)
+                if (IsChecked!.Value)
                 {
                     _panBack!.Background = (IBrush?)Application.Current!.Resources["ColorBrush3"];
                     _shapeLogo.Fill = (SolidColorBrush)new MyColor(255, 255, 255);

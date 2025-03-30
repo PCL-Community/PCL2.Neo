@@ -8,23 +8,19 @@ namespace PCL2.Neo.Animations;
 public interface IAnimation
 {
     /// <summary>
-    /// 要动画的控件。
+    /// 延迟。
     /// </summary>
-    Animatable Control { get; set; }
+    TimeSpan Delay { get; set; }
     /// <summary>
-    /// 动画类。
+    /// 指示动画是否要等待上一个动画完成后再执行。与 AnimationHelper 搭配使用。
     /// </summary>
-    Animation Animation { get; }
-    /// <summary>
-    /// 动画时间。
-    /// </summary>
-    TimeSpan Duration { get; set; }
-    /// <summary>
-    /// 缓动效果。
-    /// </summary>
-    Easing Easing { get; set; }
+    bool Wait { get; set; }
     /// <summary>
     /// 异步形式执行动画。
     /// </summary>
-    void RunAsync();
+    Task RunAsync();
+    /// <summary>
+    /// 取消动画。
+    /// </summary>
+    void Cancel();
 }
