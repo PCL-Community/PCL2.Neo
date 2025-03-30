@@ -43,6 +43,7 @@ public class ThemeHelper
             Refresh(themeVariant);
         };
     }
+
     public void Refresh(ThemeVariant themeVariant)
     {
         // 标题栏
@@ -71,14 +72,14 @@ public class ThemeHelper
 
         _mainWindow.NavBackgroundBorder.Background = brushTitle;
 
-        double lightAdjust = 1;
+        float lightAdjust = 1;
         if (themeVariant == ThemeVariant.Light)
         {
             lightAdjust = 1;
         }
         else if (themeVariant == ThemeVariant.Dark)
         {
-            lightAdjust = 0.1;
+            lightAdjust = 0.1f;
         }
 
         // 背景
@@ -91,16 +92,18 @@ public class ThemeHelper
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = -0.1,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue - 20, Math.Min(60, _colorSat) * 0.5f, 80)
+            Color = MyColor.FromHsl2(new MyColor(), _colorHue - 20, Math.Min(60, _colorSat) * 0.5f,
+                80 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
-            Offset = 0.4, Color = MyColor.FromHsl2(new MyColor(), _colorHue, _colorSat * 0.9f, 90)
+            Offset = 0.4, Color = MyColor.FromHsl2(new MyColor(), _colorHue, _colorSat * 0.9f, 90 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = 1.1,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue + 20, Math.Min(60, _colorSat) * 0.5f, 80)
+            Color = MyColor.FromHsl2(new MyColor(), _colorHue + 20, Math.Min(60, _colorSat) * 0.5f,
+                80 * lightAdjust)
         });
 
         _mainWindow.MainBorder.Background = brushBackground;
