@@ -5,7 +5,7 @@ using Color = Avalonia.Media.Color;
 
 namespace PCL2.Neo.Models;
 
-public class MyColor
+public class MyColor : IEquatable<MyColor>
 {
     public float A
     {
@@ -43,15 +43,9 @@ public class MyColor
     private float _b;
 
     // 类型转换
-    public static implicit operator MyColor(string str)
-    {
-        return new MyColor(str);
-    }
+    public static implicit operator MyColor(string str) => new(str);
 
-    public static implicit operator MyColor(Color col)
-    {
-        return new MyColor(col);
-    }
+    public static implicit operator MyColor(Color col) => new(col);
 
     public static implicit operator Color(MyColor conv)
     {
@@ -63,20 +57,14 @@ public class MyColor
         return System.Drawing.Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255));
     }
 
-    public static implicit operator MyColor(SolidColorBrush bru)
-    {
-        return new MyColor(bru.Color);
-    }
+    public static implicit operator MyColor(SolidColorBrush bru) => new(bru.Color);
 
     public static implicit operator SolidColorBrush(MyColor conv)
     {
         return new SolidColorBrush(Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255)));
     }
 
-    public static implicit operator MyColor(Brush bru)
-    {
-        return new MyColor(bru);
-    }
+    public static implicit operator MyColor(Brush bru) => new(bru);
 
     public static implicit operator Brush(MyColor conv)
     {
@@ -85,64 +73,27 @@ public class MyColor
 
     // 颜色运算
 
-    public static MyColor operator +(MyColor a, MyColor b)
-    {
-        return new MyColor { A = a.A + b.A, B = a.B + b.B, G = a.G + b.G, R = a.R + b.R };
-    }
+    public static MyColor operator +(MyColor a, MyColor b) =>
+        new() { A = a.A + b.A, B = a.B + b.B, G = a.G + b.G, R = a.R + b.R };
 
 
-    public static MyColor operator -(MyColor a, MyColor b)
-    {
-        return new MyColor { A = a.A - b.A, B = a.B - b.B, G = a.G - b.G, R = a.R - b.R };
-    }
+    public static MyColor operator -(MyColor a, MyColor b) =>
+        new() { A = a.A - b.A, B = a.B - b.B, G = a.G - b.G, R = a.R - b.R };
 
-    public static MyColor operator *(MyColor a, float b)
-    {
-        return new MyColor { A = a.A * b, B = a.B * b, G = a.G * b, R = a.R * b };
-    }
+    public static MyColor operator *(MyColor a, float b) =>
+        new() { A = a.A * b, B = a.B * b, G = a.G * b, R = a.R * b };
 
-    public static MyColor operator /(MyColor a, float b)
-    {
-        return new MyColor { A = a.A / b, B = a.B / b, G = a.G / b, R = a.R / b };
-    }
+    public static MyColor operator /(MyColor a, float b) =>
+        new() { A = a.A / b, B = a.B / b, G = a.G / b, R = a.R / b };
 
     public static bool operator ==(MyColor a, MyColor b) => a.Equals(b);
 
-    public static bool operator !=(MyColor a, MyColor b)
-    {
-        return !(a == b);
-    }
+    public static bool operator !=(MyColor a, MyColor b) => !(a == b);
 
     // 构造函数
 
     public MyColor()
     {
-    }
-
-    public MyColor(string hexString)
-    {
-        Color stringColor = Color.Parse(hexString);
-        A = stringColor.A;
-        R = stringColor.R;
-        G = stringColor.G;
-        B = stringColor.B;
-    }
-
-
-    public MyColor(float newA, MyColor col)
-    {
-        A = newA;
-        R = col.R;
-        G = col.G;
-        B = col.B;
-    }
-
-    public MyColor(float newR, float newG, float newB)
-    {
-        A = 255;
-        R = newR;
-        G = newG;
-        B = newB;
     }
 
     public MyColor(float newA, float newR, float newG, float newB)
@@ -153,36 +104,22 @@ public class MyColor
         B = newB;
     }
 
-    public MyColor(Color col)
-    {
-        A = col.A;
-        R = col.R;
-        G = col.G;
-        B = col.B;
-    }
+    public MyColor(string hexString) : this(Color.Parse(hexString)) { }
 
-    public MyColor(Brush brush)
-    {
-        var solidBrush = (SolidColorBrush)brush;
-        var color = solidBrush.Color;
-        A = color.A;
-        R = color.R;
-        G = color.G;
-        B = color.B;
-    }
 
-    public MyColor(SolidColorBrush brush)
-    {
-        var color = brush.Color;
-        A = color.A;
-        R = color.R;
-        G = color.G;
-        B = color.B;
-    }
+    public MyColor(float newA, MyColor from) : this(newA, from.R, from.G, from.B) { }
+
+    public MyColor(float newR, float newG, float newB) : this(255, newR, newG, newB) { }
+
+    public MyColor(Color col) : this(col.A, col.R, col.G, col.B) { }
+
+    public MyColor(Brush brush) : this(((SolidColorBrush)brush).Color) { }
+
+    public MyColor(SolidColorBrush brush) : this(brush.Color) { }
 
     // HSL转换
-
-    public float Hue(float v1, float v2, float vH)
+    [Obsolete("This method is obsolete. Use ConvertHslToRgb instead.")]
+    public static float Hue(float v1, float v2, float vH)
     {
         if (vH < 0) vH += 1;
         if (vH > 1) vH -= 1;
@@ -195,27 +132,46 @@ public class MyColor
         };
     }
 
-    public MyColor FromHsl(float sH, float sS, float sL)
+    public static float ConvertHslToRgb(float temp1, float temp2, float hue)
     {
-        if (sS == 0)
+        if (hue < 0.0f) hue += 1.0f;
+        if (hue > 1.0f) hue -= 1.0f;
+
+        return hue switch
         {
-            R = sL * 2.55f;
-            G = R;
-            B = R;
+            < 1.0f / 6.0f => temp1 + (temp2 - temp1) * 6.0f * hue,
+            < 1.0f / 2.0f => temp2,
+            < 2.0f / 3.0f => temp1 + (temp2 - temp1) * (2.0f / 3.0f - hue) * 6.0f,
+            _ => temp1
+        };
+    }
+
+    public static MyColor FromHsl(MyColor myColor, float hue, float saturation, float lightness)
+    {
+        hue = Clamp(hue, 0, 360) % 360;
+        saturation = Clamp(saturation, 0, 100);
+        lightness = Clamp(lightness, 0, 100);
+
+        if (Math.Abs(saturation) < 0.001f)
+        {
+            myColor.R = myColor.G = myColor.B = lightness / 100f;
         }
         else
         {
-            float h = sH / 360f;
-            float s = sS / 100f;
-            float l = sL / 100f;
-            s = l < 0.5f ? s * l + l : s * (1.0f - l) + l;
-            l = 2 * l - s;
-            R = 255f * Hue(l, s, h + 1f / 3.0f);
-            G = 255f * Hue(l, s, h);
-            B = 255f * Hue(l, s, h - 1f / 3.0f);
+            var h = hue / 360.0f;
+            var s = saturation / 100.0f;
+            var l = lightness / 100.0f;
+
+            var temp1 = l < 0.5f ? s * l + l : s * (1.0f - l) + l;
+            var temp2 = 2 * l - s;
+
+            myColor.R = ConvertHslToRgb(temp1, temp2, h + 1.0f / 3.0f);
+            myColor.G = ConvertHslToRgb(temp1, temp2, h);
+            myColor.B = ConvertHslToRgb(temp1, temp2, h - 1f / 3.0f);
         }
-        A = 255;
-        return this;
+
+        myColor.A = 255;
+        return myColor;
     }
 
     private static readonly float[] Cent =
@@ -227,29 +183,30 @@ public class MyColor
         +0.1f, -0.06f
     ]; // 最后两位与前两位一致，加是变亮，减是变暗
 
-    public MyColor FromHsl2(float sH, float sS, float sL)
+    public static MyColor FromHsl2(MyColor myColor, float sH, float sS, float sL)
     {
         if (sS == 0)
         {
-            R = sL * 2.55f;
-            G = R;
-            B = R;
+            myColor.R = sL * 2.55f;
+            myColor.G = myColor.R;
+            myColor.B = myColor.R;
         }
         else
         {
             sH = (sH + 3600000) % 360;
-            float center = sH / 30.0f;
-            int intCenter = (int)Math.Floor(center);  // 亮度片区编号
+            var center = sH / 30.0f;
+            var intCenter = (int)Math.Floor(center); // 亮度片区编号
             center = 50 - (
                 (1 - center + intCenter) * Cent[intCenter] + (center - intCenter) * Cent[intCenter + 1]
             ) * sS;
 
             sL = sL < center ? sL / center : 1 + (sL - center) / (100 - center);
             sL *= 50;
-            FromHsl(sH, sS, sL);
+            FromHsl(myColor, sH, sS, sL);
         }
-        A = 255;
-        return this;
+
+        myColor.A = 255;
+        return myColor;
     }
 
     /// <summary>
@@ -262,12 +219,13 @@ public class MyColor
     }
 
     /// <summary>
-    /// 判等
+    /// 判断两个颜色是否相等
     /// </summary>
     /// <param name="other">需要判等的<see cref="MyColor"/></param>
     /// <returns>如果相等返回<see langword="true"/>，否则返回<see langword="false"/></returns>
-    public bool Equals(MyColor other)
+    public bool Equals([NotNullWhen(true)] MyColor? other)
     {
+#pragma warning disable CS8602 // 可能返回 null 引用。Have used NotNullWhen(true)
         if (ReferenceEquals(this, other))
             return true;
 
@@ -275,13 +233,10 @@ public class MyColor
     }
 
     /// <summary>
-    /// 判等
+    /// 判断是否相等
     /// </summary>
-    /// <param name="fir">需要判等的<see cref="MyColor"/></param>
-    /// /// <param name="sec">需要判等的<see cref="MyColor"/></param>
+    /// <param name="obj">传入的Object<see cref="MyColor"/></param>
     /// <returns>如果相等返回<see langword="true"/>，否则返回<see langword="false"/></returns>
-    public static bool Equals(MyColor fir, MyColor sec) => fir.Equals(sec);
-
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
         if (ReferenceEquals(null, obj)) return false;

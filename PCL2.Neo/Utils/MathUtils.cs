@@ -69,10 +69,10 @@ public static class MathUtils
     {
         return new MyColor
         {
-            A = Math.Round(col.A, w),
-            R = Math.Round(col.R, w),
-            G = Math.Round(col.G, w),
-            B = Math.Round(col.B, w)
+            A = (float)Math.Round(col.A, w),
+            R = (float)Math.Round(col.R, w),
+            G = (float)Math.Round(col.G, w),
+            B = (float)Math.Round(col.B, w)
         };
     }
 
@@ -87,7 +87,7 @@ public static class MathUtils
     /// <summary>
     /// 获取两颜色间的百分比，根据 RGB 计算。小数点精确到 6 位。
     /// </summary>
-    public static MyColor MathPercent(MyColor valueA, MyColor valueB, double percent)
+    public static MyColor MathPercent(MyColor valueA, MyColor valueB, float percent)
     {
         return MathRound(valueA * (1 - percent) + valueB * percent, 6); // 解决 Double 计算错误
     }
