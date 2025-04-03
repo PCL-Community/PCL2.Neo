@@ -1,122 +1,19 @@
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 
 #pragma warning disable CA1416 // Platform compatibility
 
-namespace PCL2.Neo.Models.Minecraft.Java;
-
-internal class Windows
+namespace PCL2.Neo.Models.Minecraft.Java
 {
-    private static Task<List<JavaEntity>> SearchEnvionment()
+    public class Windows
     {
-        var javaList = new List<JavaEntity>();
+        private const int MaxDeep = 7;
 
-        // search from environment path
-        // JAVA_HOME
-        var javaHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-        if (Directory.Exists(javaHomePath))
-        {
-            javaList.Add(new JavaEntity(Path.Combine(javaHomePath, "bin")));
-        }
-
-        // PATH
-        var result = Environment.GetEnvironmentVariable("Path")!.Split(';')
-            .Where(Path.Exists).Select(it => new JavaEntity(it));
-
-        javaList.AddRange(result);
-
-        return Task.FromResult(javaList);
-    }
-
-    private static readonly string[] TargetSubFolderWords =
-    [
-        "java", "jdk", "env", "环境", "run", "软件", "jre", "mc", "dragon",
-        "soft", "cache", "temp", "corretto", "roaming", "users", "craft", "program", "世界", "net",
-        "游戏", "oracle", "game", "file", "data", "jvm", "服务", "server", "客户", "client", "整合",
-        "应用", "运行", "前置", "mojang", "官启", "新建文件夹", "eclipse", "microsoft", "hotspot",
-        "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod",
-        "download", "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages", "国服", "网易", "ext",
-        "netease", "启动"
-    ];
-
-    public const int MaxDeep = 7;
-
-    private static IEnumerable<JavaEntity> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
-    {
-        // if too deep then return
-        if (deep >= maxDeep) return [];
-
-        var entities = new List<JavaEntity>();
-
-        if (File.Exists(Path.Combine(folderPath, "javaw.exe"))) entities.Add(new JavaEntity(folderPath));
-
-        var targetFolders = Directory.GetDirectories(folderPath)
-            .Where(f => TargetSubFolderWords.Any(w => f.Contains(w.ToLower())));
-        try
-        {
-            entities.AddRange(targetFolders.Select(it => SearchFolders(it, deep + 1)).SelectMany(it => it));
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // ignore can not access folder
-        }
-
-        return entities;
-    }
-
-    private static Task<IEnumerable<JavaEntity>> SearchFoldersAsync(
-        string folderPath, int deep = 0, int maxDeep = MaxDeep) =>
-        Task.Run(() => SearchFolders(folderPath, deep, maxDeep));
-
-    private static Task<IEnumerable<JavaEntity>> SearcDrive(int maxDeep)
-    {
-        var readyDrive = DriveInfo.GetDrives().Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
-            .Where(d => d.Name != "C:\\");
-        var readyRootFolders = readyDrive.Select(d => d.RootDirectory)
-            .Where(f => !f.Attributes.HasFlag(FileAttributes.ReparsePoint));
-
-        // search java start at root folders
-        return Task.FromResult(readyRootFolders
-            .Select(async item => await SearchFoldersAsync(item.FullName, 0, maxDeep))
-            .SelectMany(it => it.Result));
-    }
-
-    private static IEnumerable<JavaEntity> SearchRegister()
-    {
-        // JavaSoft
-        using var javaSoftKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\JavaSoft");
-        if (javaSoftKey == null) return [];
-
-        var javaList = new List<JavaEntity>();
-
-        foreach (var subKeyName in javaSoftKey.GetSubKeyNames())
-        {
-            using var subKey = javaSoftKey.OpenSubKey(subKeyName, RegistryKeyPermissionCheck.ReadSubTree);
-
-            var javaHoemPath = subKey?.GetValue("JavaHome")?.ToString();
-            if (javaHoemPath == null) continue;
-
-            var exePath = Path.Combine(javaHoemPath, "bin", "javaw.exe");
-            if (File.Exists(exePath)) javaList.Add(new JavaEntity(Path.Combine(javaHoemPath, "bin")));
-        }
-
-        return javaList;
-    }
-
-    public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = MaxDeep)
-    {
-        var javaEntities = new List<JavaEntity>();
-
-        javaEntities.AddRange(SearchRegister()); // search register
-        javaEntities.AddRange(await SearchEnvionment()); // search environment
-
-        if (fullSearch) javaEntities.AddRange(await SearcDrive(maxDeep)); // full search
-
-        string[] searchPath =
+        private static readonly IEnumerable<string> TargetSearchFolders =
         [
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Java"),
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Java"),
@@ -124,15 +21,120 @@ internal class Windows
                 @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
         ];
 
-        var result = searchPath
-            .Where(Path.Exists)
-            .Select(async item => await SearchFoldersAsync(item, maxDeep: 6))
-            .Select(it => it.Result)
-            .SelectMany(it => it)
-            .Select(it => new JavaEntity(it.Path));
+        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
+        {
+            var javaEntities = new List<string>();
+            javaEntities.AddRange(SearchRegister());
+            javaEntities.AddRange(SearchEnvionment());
 
-        javaEntities.AddRange(result);
+            if (fullSearch) javaEntities.AddRange(await SearchDirves(maxDeep));
 
-        return javaEntities;
+            var result = TargetSearchFolders
+                .Where(Path.Exists)
+                .Select(async item => await SearchFolderAsync(item, maxDeep: 6))
+                .SelectMany(it => it.Result);
+            javaEntities.AddRange(result);
+
+            return javaEntities.Distinct().Select(it => new JavaEntity(it));
+        }
+
+        private static IEnumerable<string> SearchRegister()
+        {
+            using var javaSoftKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\JavaSoft");
+            if (javaSoftKey == null) return [];
+
+            var javaList = new List<string>();
+            foreach (var subKeyName in javaSoftKey.GetSubKeyNames())
+            {
+                using var subKey = javaSoftKey.OpenSubKey(subKeyName, RegistryKeyPermissionCheck.ReadSubTree);
+
+                // get java home path
+                var javaHomePath = subKey?.GetValue("JavaHome")?.ToString();
+                if (javaHomePath == null) continue;
+
+                // get java path
+                var javaPath = Path.Combine(javaHomePath, "bin");
+                if (File.Exists(Path.Combine(javaPath, "java.exe")))
+                    javaList.Add(javaPath);
+            }
+
+            return javaList;
+        }
+
+        private static IEnumerable<string> SearchEnvionment()
+        {
+            var javaList = new List<string>();
+
+            // search java home
+            var javaHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
+            if (javaHomePath != null
+                && File.Exists(Path.Combine(javaHomePath, "java.exe")))
+            {
+                javaList.Add(javaHomePath);
+            }
+
+            // path
+            Environment.GetEnvironmentVariable("Path")
+                !.Split(';')
+                .Where(Path.Exists)
+                .Where(it => File.Exists(Path.Combine(it, "java.exe")))
+                .ToList().ForEach(it => javaList.Add(it));
+
+            return javaList;
+        }
+
+        private static readonly string[] TargetSubFolderWords =
+        [
+            "java", "jdk", "env", "环境", "run", "软件", "jre", "mc", "dragon",
+            "soft", "cache", "temp", "corretto", "roaming", "users", "craft", "program", "世界", "net",
+            "游戏", "oracle", "game", "file", "data", "jvm", "服务", "server", "客户", "client", "整合",
+            "应用", "运行", "前置", "mojang", "官启", "新建文件夹", "eclipse", "microsoft", "hotspot",
+            "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod",
+            "download", "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages", "国服", "网易",
+            "ext",
+            "netease", "启动"
+        ];
+
+        private static IEnumerable<string> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
+        {
+            if (deep >= maxDeep) return [];
+
+            var javaList = new List<string>();
+
+            if (File.Exists(Path.Combine(folderPath, "java.exe"))) javaList.Add(folderPath);
+
+            var targetFolders = Directory.GetDirectories(folderPath)
+                .Where(f => TargetSubFolderWords.Any(w => f.Contains(w.ToLower())));
+            try
+            {
+                targetFolders
+                    .SelectMany(it => SearchFolders(it, maxDeep + 1))
+                    .ToList().ForEach(it => javaList.Add(it));
+            }
+            catch (UnauthorizedAccessException) { }
+
+            return javaList;
+        }
+
+        private static Task<IEnumerable<string>> SearchFolderAsync(
+            string folderPath, int deep = 0, int maxDeep = MaxDeep)
+            => Task.Run((() => SearchFolders(folderPath, deep, maxDeep)));
+
+        private static Task<IEnumerable<string>> SearchDirves(int maxDeep)
+        {
+            var readyDrive = DriveInfo.GetDrives()
+                .Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
+                .Where(d => d.Name != @"C:\");
+
+            var rootFolders = readyDrive
+                .Select(d => d.RootDirectory)
+                .Where(folder => !folder.Attributes.HasFlag(FileAttributes.ReparsePoint));
+
+            var result = rootFolders
+                .Select(async it => await SearchFolderAsync(it.FullName))
+                .SelectMany(it => it.Result);
+
+            return Task.FromResult(result);
+        }
     }
 }
