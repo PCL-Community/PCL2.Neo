@@ -132,7 +132,7 @@ public class MyColor : IEquatable<MyColor>
         };
     }
 
-    public static float ConvertHslToRgb(float temp1, float temp2, float hue)
+    private static float ConvertHslToRgb(float temp1, float temp2, float hue)
     {
         if (hue < 0.0f) hue += 1.0f;
         if (hue > 1.0f) hue -= 1.0f;
@@ -212,7 +212,7 @@ public class MyColor : IEquatable<MyColor>
     /// <summary>
     /// 将颜色转换为字符串
     /// </summary>
-    /// <returns></returns>
+    /// <returns>转换后的 <see cref="string"/> 字符串</returns>
     public override string ToString()
     {
         return $"({A},{R},{G},{B})";
@@ -257,7 +257,7 @@ public class MyColor : IEquatable<MyColor>
     /// <param name="min">最大值</param>
     /// <param name="max">最小值</param>
     /// <returns>限制后的<see langword="float"/>值</returns>
-    public static float Clamp(float value, float min, float max)
+    private static float Clamp(float value, float min, float max)
     {
         return Math.Min(Math.Max(value, min), max);
     }

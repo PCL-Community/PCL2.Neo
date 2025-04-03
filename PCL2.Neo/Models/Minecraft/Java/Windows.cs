@@ -7,12 +7,10 @@ using Microsoft.Win32;
 
 #pragma warning disable CA1416 // Platform compatibility
 
-namespace PCL2.Neo.Models.Minecraft.JavaSearcher;
+namespace PCL2.Neo.Models.Minecraft.Java;
 
 internal class Windows
 {
-    private static bool IsExistJava(string path) => Path.Exists(path);
-
     private static Task<List<JavaEntity>> SearchEnvionment()
     {
         var javaList = new List<JavaEntity>();
@@ -27,7 +25,7 @@ internal class Windows
 
         // PATH
         var result = Environment.GetEnvironmentVariable("Path")!.Split(';')
-            .Where(IsExistJava).Select(it => new JavaEntity(it));
+            .Where(Path.Exists).Select(it => new JavaEntity(it));
 
         javaList.AddRange(result);
 
@@ -109,7 +107,7 @@ internal class Windows
         return javaList;
     }
 
-    public static async Task<List<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = MaxDeep)
+    public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = MaxDeep)
     {
         var javaEntities = new List<JavaEntity>();
 
@@ -126,85 +124,15 @@ internal class Windows
                 @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
         ];
 
-        var result = searchPath.Where(Path.Exists).Select(async item => await SearchFoldersAsync(item, maxDeep: 6))
-            .Select(it => it.Result).SelectMany(it => it).Select(it => new JavaEntity(it.Path));
+        var result = searchPath
+            .Where(Path.Exists)
+            .Select(async item => await SearchFoldersAsync(item, maxDeep: 6))
+            .Select(it => it.Result)
+            .SelectMany(it => it)
+            .Select(it => new JavaEntity(it.Path));
 
         javaEntities.AddRange(result);
 
         return javaEntities;
-    }
-}
-
-/// <summary>
-/// 处理Unix系统下的java
-/// </summary>
-internal class Unix
-{
-#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJavaAsync"
-    public static IEnumerable<JavaEntity> SearchJavaAsync(PlatformID platform)
-    {
-        string[] searchPath;
-
-        // make search path by platform
-        switch (platform)
-        {
-            case PlatformID.Unix:
-                searchPath =
-                [
-                    "/usr/lib/jvm",
-                    "/usr/java",
-                    "/opt"
-                ];
-                break;
-            case PlatformID.MacOSX:
-                searchPath =
-                [
-                    "/Library/Java/JavaVirtualMachines",
-                    "/usr/local/Caskroom",
-                    "/usr/local/opt/openjdk",
-                    "/opt"
-                ];
-                break;
-            default:
-                return [];
-        }
-
-        var javaList = new List<JavaEntity>();
-
-        foreach (var item in searchPath)
-        {
-            // ignore if not exist
-            if (!Directory.Exists(item)) continue;
-
-            try
-            {
-                // old way
-                //    javaList.AddRange(Directory.EnumerateDirectories(item)
-                //        .Select(jvmDir => new { jvmDir, javaEntity = FindJavaEntity(jvmDir) })
-                //        .Where(jvmDir => !string.IsNullOrEmpty(jvmDir.javaEntity))
-                //        .Select(entity => new JavaEntity(entity.jvmDir)));
-
-                javaList.AddRange(Directory.EnumerateDirectories(item)
-                    .Where(dir => !string.IsNullOrEmpty(FindJavaEntity(dir)))
-                    .Select(javaEntityPath => new JavaEntity(javaEntityPath)));
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // ignore
-            }
-        }
-
-        return javaList;
-    }
-
-    private static string? FindJavaEntity(string jvmPath)
-    {
-        string[] possiblePaths =
-        [
-            Path.Combine(jvmPath, "bin", "java"),
-            Path.Combine(jvmPath, "Contents", "Home", "bin", "java")
-        ];
-
-        return possiblePaths.FirstOrDefault(File.Exists);
     }
 }
