@@ -46,10 +46,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                     .Where(IsValidJavaExecutable)
                     .ToList().ForEach(it => foundJava.Add(it));
             }
-            catch (UnauthorizedAccessException)
-            {
-                // ignore exception
-            }
+            catch (UnauthorizedAccessException) { }
         }
 
         private static IEnumerable<string> GetPontentialJavaDir()

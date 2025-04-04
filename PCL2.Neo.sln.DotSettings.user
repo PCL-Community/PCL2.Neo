@@ -36,7 +36,7 @@
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d0ef7641_002D239c_002D4bff_002Da782_002Dc0a706747836/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ConvertHslToRgbTest #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;MSTest::04D722EF-BBE3-4572-AF9E-1E692F850C12::net9.0::PCL2.Neo.Models.Tests.MyColorTests.ConvertHslToRgbTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;MSTest::04D722EF-BBE3-4572-AF9E-1E692F850C12::net9.0::PCL2.Neo.Models.Tests.MainTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	</wpf:ResourceDictionary>

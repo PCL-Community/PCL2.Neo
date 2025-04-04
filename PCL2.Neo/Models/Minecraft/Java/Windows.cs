@@ -24,10 +24,11 @@ namespace PCL2.Neo.Models.Minecraft.Java
         public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
         {
             var javaEntities = new List<string>();
-            javaEntities.AddRange(SearchRegister());
-            javaEntities.AddRange(SearchEnvionment());
 
-            if (fullSearch) javaEntities.AddRange(await SearchDirves(maxDeep));
+            javaEntities.AddRange(SearchRegister()); // search registies
+            javaEntities.AddRange(SearchEnvionment()); // search path
+
+            if (fullSearch) javaEntities.AddRange(await SearchDirves(maxDeep)); // full search mode
 
             var result = TargetSearchFolders
                 .Where(Path.Exists)
@@ -44,17 +45,17 @@ namespace PCL2.Neo.Models.Minecraft.Java
             if (javaSoftKey == null) return [];
 
             var javaList = new List<string>();
-            foreach (var subKeyName in javaSoftKey.GetSubKeyNames())
+            foreach (var subKeyName in javaSoftKey.GetSubKeyNames()) // iterate through all subkeys
             {
                 using var subKey = javaSoftKey.OpenSubKey(subKeyName, RegistryKeyPermissionCheck.ReadSubTree);
 
                 // get java home path
                 var javaHomePath = subKey?.GetValue("JavaHome")?.ToString();
-                if (javaHomePath == null) continue;
+                if (javaHomePath == null) continue; // ignore not exist
 
                 // get java path
                 var javaPath = Path.Combine(javaHomePath, "bin");
-                if (File.Exists(Path.Combine(javaPath, "java.exe")))
+                if (File.Exists(Path.Combine(javaPath, "java.exe"))) // select have java
                     javaList.Add(javaPath);
             }
 
@@ -67,8 +68,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
             // search java home
             var javaHomePath = Environment.GetEnvironmentVariable("JAVA_HOME");
-            if (javaHomePath != null
-                && File.Exists(Path.Combine(javaHomePath, "java.exe")))
+            if (javaHomePath != null && File.Exists(Path.Combine(javaHomePath, "java.exe"))) // select have java
             {
                 javaList.Add(javaHomePath);
             }
@@ -85,14 +85,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         private static readonly string[] TargetSubFolderWords =
         [
-            "java", "jdk", "env", "环境", "run", "软件", "jre", "mc", "dragon",
-            "soft", "cache", "temp", "corretto", "roaming", "users", "craft", "program", "世界", "net",
-            "游戏", "oracle", "game", "file", "data", "jvm", "服务", "server", "客户", "client", "整合",
-            "应用", "运行", "前置", "mojang", "官启", "新建文件夹", "eclipse", "microsoft", "hotspot",
-            "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod",
-            "download", "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages", "国服", "网易",
-            "ext",
-            "netease", "启动"
+            "java", "jdk", "env", "环境", "run", "软件", "jre", "mc", "dragon", "soft", "cache", "temp", "corretto",
+            "roaming", "users", "craft", "program", "世界", "net", "游戏", "oracle", "game", "file", "data", "jvm", "服务",
+            "server", "客户", "client", "整合", "应用", "运行", "前置", "mojang", "官启", "新建文件夹", "eclipse", "microsoft",
+            "hotspot", "runtime", "x86", "x64", "forge", "原版", "optifine", "官方", "启动", "hmcl", "mod", "download",
+            "launch", "程序", "path", "version", "baka", "pcl", "zulu", "local", "packages", "国服", "网易", "ext", "netease",
+            "启动"
         ];
 
         private static IEnumerable<string> SearchFolders(string folderPath, int deep, int maxDeep = MaxDeep)
@@ -107,9 +105,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 .Where(f => TargetSubFolderWords.Any(w => f.Contains(w.ToLower())));
             try
             {
-                targetFolders
-                    .SelectMany(it => SearchFolders(it, maxDeep + 1))
-                    .ToList().ForEach(it => javaList.Add(it));
+                foreach (var folder in targetFolders)
+                {
+                    javaList.AddRange(SearchFolders(folder, deep + 1));
+                }
             }
             catch (UnauthorizedAccessException) { }
 
@@ -131,7 +130,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 .Where(folder => !folder.Attributes.HasFlag(FileAttributes.ReparsePoint));
 
             var result = rootFolders
-                .Select(async it => await SearchFolderAsync(it.FullName))
+                .Select(async it => await SearchFolderAsync(it.FullName, maxDeep: maxDeep))
                 .SelectMany(it => it.Result);
 
             return Task.FromResult(result);
