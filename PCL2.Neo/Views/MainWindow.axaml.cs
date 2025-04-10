@@ -17,6 +17,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        
+        TransparencyLevelHint = [WindowTransparencyLevel.Transparent];
+        Background = Brushes.Transparent;
 
         NavBackgroundBorder.PointerPressed += OnNavPointerPressed;
 
