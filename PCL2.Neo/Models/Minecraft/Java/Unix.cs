@@ -41,8 +41,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             {
                 var binDirs = Directory.EnumerateDirectories(basePath, "bin", SearchOption.AllDirectories);
                 binDirs
-                    .SelectMany(binDir =>
-                        Directory.EnumerateDirectories(binDir, "java", SearchOption.TopDirectoryOnly))
+                    .SelectMany(binDir => Directory.EnumerateFiles(binDir, "java", SearchOption.TopDirectoryOnly))
                     .Where(IsValidJavaExecutable)
                     .ToList().ForEach(it => foundJava.Add(it));
             }
