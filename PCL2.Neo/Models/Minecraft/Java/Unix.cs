@@ -11,7 +11,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     internal class Unix
     {
-#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJava"
+#warning "该方法未在 Linux 上测试，可能无法正常工作 Unix/SearchJava"
         public static IEnumerable<JavaEntity> SearchJava() =>
             FindJavaExecutablePath().Select(it => new JavaEntity(it));
 
