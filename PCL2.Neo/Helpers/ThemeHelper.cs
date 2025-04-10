@@ -43,7 +43,6 @@ public class ThemeHelper
             Refresh(themeVariant);
         };
     }
-
     public void Refresh(ThemeVariant themeVariant)
     {
         // 标题栏
@@ -56,30 +55,29 @@ public class ThemeHelper
         brushTitle.GradientStops.Add(new GradientStop
         {
             Offset = 0,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue - _colorHueTopbarDelta, _colorSat,
-                48 + _colorLightAdjust)
+            Color = new MyColor().FromHsl2(_colorHue - _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
         });
         brushTitle.GradientStops.Add(new GradientStop
         {
-            Offset = 0.5, Color = MyColor.FromHsl2(new MyColor(), _colorHue, _colorSat, 54 + _colorLightAdjust)
+            Offset = 0.5,
+            Color = new MyColor().FromHsl2(_colorHue, _colorSat, 54 + _colorLightAdjust)
         });
         brushTitle.GradientStops.Add(new GradientStop
         {
             Offset = 1,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue + _colorHueTopbarDelta, _colorSat,
-                48 + _colorLightAdjust)
+            Color = new MyColor().FromHsl2(_colorHue + _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
         });
 
         _mainWindow.NavBackgroundBorder.Background = brushTitle;
 
-        float lightAdjust = 1;
+        double lightAdjust = 1;
         if (themeVariant == ThemeVariant.Light)
         {
             lightAdjust = 1;
         }
         else if (themeVariant == ThemeVariant.Dark)
         {
-            lightAdjust = 0.1f;
+            lightAdjust = 0.1;
         }
 
         // 背景
@@ -92,18 +90,17 @@ public class ThemeHelper
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = -0.1,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue - 20, Math.Min(60, _colorSat) * 0.5f,
-                80 * lightAdjust)
+            Color = new MyColor().FromHsl2(_colorHue - 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
-            Offset = 0.4, Color = MyColor.FromHsl2(new MyColor(), _colorHue, _colorSat * 0.9f, 90 * lightAdjust)
+            Offset = 0.4,
+            Color = new MyColor().FromHsl2(_colorHue, _colorSat * 0.9, 90 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = 1.1,
-            Color = MyColor.FromHsl2(new MyColor(), _colorHue + 20, Math.Min(60, _colorSat) * 0.5f,
-                80 * lightAdjust)
+            Color = new MyColor().FromHsl2(_colorHue + 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
         });
 
         _mainWindow.MainBorder.Background = brushBackground;
