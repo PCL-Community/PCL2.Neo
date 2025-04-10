@@ -1,15 +1,15 @@
+using PCL2.Neo.Models.Minecraft.Java;
+
 namespace PCL2.Neo.Models.Tests
 {
     [TestClass]
     public class MainTests
     {
         [TestMethod]
-        public void JavaSearchTest()
+        public async Task JavaSearchTest()
         {
-            var result = Minecraft.Java.Windows.SearchJavaAsync(fullSearch: true).Result;
-            foreach (var item in result)
-            {
-                Console.WriteLine(item.Path);
+            foreach (var javaEntity in await Java.SearchJava()) {
+                Console.WriteLine(javaEntity.Path);
             }
         }
     }

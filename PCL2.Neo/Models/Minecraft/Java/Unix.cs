@@ -28,11 +28,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         private static bool IsValidJavaExecutable(string filePath)
         {
-            if (Directory.Exists(filePath))
-                return false;
+            // if (Directory.Exists(filePath))
+            //     return false;
 
-            return !filePath.EndsWith(".jar") && !filePath.EndsWith(".zip") && !filePath.EndsWith(".so") &&
-                   !filePath.EndsWith(".dylib");
+            // return !filePath.EndsWith(".jar") && !filePath.EndsWith(".zip") && !filePath.EndsWith(".so") &&
+            //        !filePath.EndsWith(".dylib");
+            return File.Exists(filePath);
         }
 
         private static void SearchDirectoryForJava(string basePath, HashSet<string> foundJava)
