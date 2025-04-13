@@ -1,44 +1,40 @@
-using System;
 using Avalonia.Media;
-using Color = Avalonia.Media.Color;
+using System;
+using System.Numerics;
 
 namespace PCL2.Neo.Models;
 
 
 public class MyColor
 {
-    public double A
+    private Vector4 _color;
+
+    public float A
     {
-        get => _a;
-        set => _a = Clamp(value, 0, 255);
+        get => this._color.X;
+        set => this._color.X = value;
     }
-    private double _a = 255;
 
-
-    public double R
+    public float R
     {
-        get => _r;
-        set => _r = Clamp(value, 0, 255);
+        get => this._color.Y;
+        set => this._color.Y = value;
     }
-    private double _r;
 
-
-    public double G
+    public float G
     {
-        get => _g;
-        set => _g = Clamp(value, 0, 255);
+        get => this._color.Z;
+        set => this._color.Z = value;
     }
-    private double _g;
 
-
-    public double B
+    public float B
     {
-        get => _b;
-        set => _b = Clamp(value, 0, 255);
+        get => this._color.W;
+        set => this._color.W = value;
     }
-    private double _b;
 
     // 类型转换
+
     public static implicit operator MyColor(string str)
     {
         return new MyColor(str);
@@ -51,12 +47,10 @@ public class MyColor
 
     public static implicit operator Color(MyColor conv)
     {
-        return Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255));
-    }
-
-    public static implicit operator System.Drawing.Color(MyColor conv)
-    {
-        return System.Drawing.Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255));
+        return Color.FromArgb((byte)Math.Clamp(conv.A, 0, 255),
+             (byte)Math.Clamp(conv.R, 0, 255),
+            (byte)Math.Clamp(conv.G, 0, 255),
+            (byte)Math.Clamp(conv.B, 0, 255));
     }
 
     public static implicit operator MyColor(SolidColorBrush bru)
@@ -66,7 +60,10 @@ public class MyColor
 
     public static implicit operator SolidColorBrush(MyColor conv)
     {
-        return new SolidColorBrush(Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255)));
+        return new SolidColorBrush(Color.FromArgb((byte)Math.Clamp(conv.A, 0, 255),
+             (byte)Math.Clamp(conv.R, 0, 255),
+            (byte)Math.Clamp(conv.G, 0, 255),
+            (byte)Math.Clamp(conv.B, 0, 255)));
     }
 
     public static implicit operator MyColor(Brush bru)
@@ -76,112 +73,95 @@ public class MyColor
 
     public static implicit operator Brush(MyColor conv)
     {
-        return new SolidColorBrush(Color.FromArgb((byte)Clamp(conv.A, 0, 255), (byte)Clamp(conv.R, 0, 255), (byte)Clamp(conv.G, 0, 255), (byte)Clamp(conv.B, 0, 255)));
+        return new SolidColorBrush(Color.FromArgb((byte)Math.Clamp(conv.A, 0, 255),
+             (byte)Math.Clamp(conv.R, 0, 255),
+            (byte)Math.Clamp(conv.G, 0, 255),
+            (byte)Math.Clamp(conv.B, 0, 255)));
     }
 
     // 颜色运算
 
     public static MyColor operator +(MyColor a, MyColor b)
     {
-        return new MyColor { A = a.A + b.A, B = a.B + b.B, G = a.G + b.G, R = a.R + b.R };
+        return new MyColor { _color = a._color + b._color };
     }
 
 
     public static MyColor operator -(MyColor a, MyColor b)
     {
-        return new MyColor { A = a.A - b.A, B = a.B - b.B, G = a.G - b.G, R = a.R - b.R };
+        return new MyColor { _color = a._color - b._color};
+    }
+
+    public static MyColor operator *(MyColor a, float b)
+    {
+        return new MyColor { _color = a._color * b };
+    }
+
+    public static MyColor operator /(MyColor a, float b)
+    {
+        return new MyColor { _color = a._color / b };
     }
 
     public static MyColor operator *(MyColor a, double b)
     {
-        return new MyColor { A = a.A * b, B = a.B * b, G = a.G * b, R = a.R * b };
+        return a * (float)b;
     }
 
     public static MyColor operator /(MyColor a, double b)
     {
-        return new MyColor { A = a.A / b, B = a.B / b, G = a.G / b, R = a.R / b };
+        return a / (float)b;
     }
 
     public static bool operator ==(MyColor a, MyColor b)
     {
-        if (ReferenceEquals(a, null) && ReferenceEquals(b, null)) return true;
-        if (ReferenceEquals(a, null) || ReferenceEquals(b, null)) return false;
-        return a.A == b.A && a.R == b.R && a.G == b.G && a.B == b.B;
+        return a._color == b._color;
     }
 
     public static bool operator !=(MyColor a, MyColor b)
     {
-        return !(a == b);
+        return a._color != b._color;
     }
 
     // 构造函数
 
     public MyColor()
     {
+        this._color = new Vector4(255f, 0f, 0f, 0f);
     }
-
-    public MyColor(Color col)
+    public MyColor(Color color)
     {
-        A = col.A;
-        R = col.R;
-        G = col.G;
-        B = col.B;
+        this._color = new Vector4(color.A, color.R, color.G, color.B);
     }
-
-    public MyColor(string hexString)
+    public MyColor(string hex)
     {
-        Color stringColor = Color.Parse(hexString);
-        A = stringColor.A;
-        R = stringColor.R;
-        G = stringColor.G;
-        B = stringColor.B;
+        var color = Color.Parse(hex);
+        this._color = new Vector4(color.A, color.R, color.G, color.B);
     }
-
-
-    public MyColor(double newA, MyColor col)
+    public MyColor(float a, MyColor color)
     {
-        A = newA;
-        R = col.R;
-        G = col.G;
-        B = col.B;
+        this._color = color._color with { X = a };
     }
 
-    public MyColor(double newR, double newG, double newB)
+    public MyColor(float r, float g, float b)
     {
-        A = 255;
-        R = newR;
-        G = newG;
-        B = newB;
+        this._color = new Vector4(255f, r, g, b);
     }
-
-    public MyColor(double newA, double newR, double newG, double newB)
+    public MyColor(float a, float r, float g, float b)
     {
-        A = newA;
-        R = newR;
-        G = newG;
-        B = newB;
+        this._color = new Vector4(a, r, g, b);
     }
-
     public MyColor(Brush brush)
     {
-        SolidColorBrush solidBrush = (SolidColorBrush)brush;
-        Color color = solidBrush.Color;
-        A = color.A;
-        R = color.R;
-        G = color.G;
-        B = color.B;
+        var color = ((SolidColorBrush)brush).Color;
+        this._color = new Vector4(color.A, color.R, color.G, color.B);
     }
-
     public MyColor(SolidColorBrush brush)
     {
-        Color color = brush.Color;
-        A = color.A;
-        R = color.R;
-        G = color.G;
-        B = color.B;
+        var color = brush.Color;
+        this._color = new Vector4(color.A, color.R, color.G, color.B);
     }
 
-    // HSL转换
+    // HSL
 
     public double Hue(double v1, double v2, double vH)
     {
@@ -197,7 +177,7 @@ public class MyColor
     {
         if (sS == 0)
         {
-            R = sL * 2.55;
+            R = (float)(sL * 2.55);
             G = R;
             B = R;
         }
@@ -208,9 +188,9 @@ public class MyColor
             double l = sL / 100;
             s = l < 0.5 ? s * l + l : s * (1.0 - l) + l;
             l = 2 * l - s;
-            R = 255 * Hue(l, s, h + 1 / 3.0);
-            G = 255 * Hue(l, s, h);
-            B = 255 * Hue(l, s, h - 1 / 3.0);
+            R = (float)(255 * Hue(l, s, h + 1 / 3.0));
+            G = (float)(255 * Hue(l, s, h));
+            B = (float)(255 * Hue(l, s, h - 1 / 3.0));
         }
         A = 255;
         return this;
@@ -220,19 +200,19 @@ public class MyColor
     {
         if (sS == 0)
         {
-            R = sL * 2.55;
+            R = (float)(sL * 2.55);
             G = R;
             B = R;
         }
         else
         {
             sH = (sH + 3600000) % 360;
-            double[] cent = {
+            double[] cent = [
                 +0.1, -0.06, -0.3, // 0, 30, 60
                 -0.19, -0.15, -0.24, // 90, 120, 150
                 -0.32, -0.09, +0.18, // 180, 210, 240
                 +0.05, -0.12, -0.02, // 270, 300, 330
-                +0.1, -0.06}; // 最后两位与前两位一致，加是变亮，减是变暗
+                +0.1, -0.06]; // 最后两位与前两位一致，加是变亮，减是变暗
             double center = sH / 30.0;
             int intCenter = (int)Math.Floor(center);  // 亮度片区编号
             center = 50 - (
@@ -245,20 +225,5 @@ public class MyColor
         }
         A = 255;
         return this;
-    }
-
-    public override string ToString()
-    {
-        return $"({A},{R},{G},{B})";
-    }
-
-    public override bool Equals(object obj)
-    {
-        return this == (MyColor)obj;
-    }
-
-    public static double Clamp(double value, double min, double max)
-    {
-        return Math.Min(Math.Max(value, min), max);
     }
 }

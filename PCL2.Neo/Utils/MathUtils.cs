@@ -69,10 +69,10 @@ public static class MathUtils
     {
         return new MyColor
         {
-            A = Math.Round(col.A, w),
-            R = Math.Round(col.R, w),
-            G = Math.Round(col.G, w),
-            B = Math.Round(col.B, w)
+            A = (float)Math.Round(col.A, w),
+            R = (float)Math.Round(col.R, w),
+            G = (float)Math.Round(col.G, w),
+            B = (float)Math.Round(col.B, w)
         };
     }
 
