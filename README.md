@@ -4,6 +4,8 @@
 
 # PCL2.Neo ![GitHub License](https://img.shields.io/github/license/PCL-Community/PCL2.Neo) ![GitHub Repo stars](https://img.shields.io/github/stars/PCL-Community/PCL2.Neo)
 
+[![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2.Neo)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2.Neo&web=true)
+
 **真正的跨平台 PCL2，来了。**
 
 </div>
