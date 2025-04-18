@@ -39,11 +39,11 @@ namespace PCL2.Neo.Models.Minecraft.Java
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                return Unix.SearchJava();
+                return await Unix.SearchJava();
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                return Unix.SearchJava();
+                return await Unix.SearchJava();
             }
             else
             {

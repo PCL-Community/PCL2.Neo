@@ -1,58 +1,61 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java
 {
     /// <summary>
     /// 处理Unix系统下的java
     /// </summary>
-    internal class Unix
+    internal static class Unix
     {
 #warning "该方法未经过测试，可能无法正常工作 Unix/SearchJava"
-        public static IEnumerable<JavaEntity> SearchJava() =>
-            FindJavaExecutablePath().Select(it => new JavaEntity(it));
+        public static async Task<IEnumerable<JavaEntity>> SearchJava() =>
+            await Task.Run(() => FindJavaExecutablePath().Select(it => new JavaEntity(it)));
 
-        private static HashSet<string> FindJavaExecutablePath()
-        {
-            var foundJava = new HashSet<string>();
-
-            GetPontentialJavaDir()
-                .Where(Directory.Exists)
-                .ToList().ForEach(it => SearchDirectoryForJava(it, foundJava));
-
-            return foundJava;
-        }
+        private static IEnumerable<string> FindJavaExecutablePath() =>
+            GetPotentialJavaDir()
+            .Where(Directory.Exists)
+            .SelectMany(SearchJavaExecutables)
+            .Distinct();
 
         private static bool IsValidJavaExecutable(string filePath)
         {
-            if (Directory.Exists(filePath))
-                return false;
-
-            return !filePath.EndsWith(".jar") && !filePath.EndsWith(".zip") && !filePath.EndsWith(".so") &&
-                   !filePath.EndsWith(".dylib");
+            // TODO: check execute permission
+            return File.Exists(filePath);
         }
 
-        private static void SearchDirectoryForJava(string basePath, HashSet<string> foundJava)
+        private static IEnumerable<string> SearchJavaExecutables(string basePath)
         {
             try
             {
-                var binDirs = Directory.EnumerateDirectories(basePath, "bin", SearchOption.AllDirectories);
-                binDirs
-                    .SelectMany(binDir =>
-                        Directory.EnumerateDirectories(binDir, "java", SearchOption.TopDirectoryOnly))
-                    .Where(IsValidJavaExecutable)
-                    .ToList().ForEach(it => foundJava.Add(it));
+                return Directory
+                    .EnumerateFiles(basePath, "java", new EnumerationOptions
+                    {
+                        RecurseSubdirectories = true,
+                        MaxRecursionDepth = 7,
+                        IgnoreInaccessible = true
+                    })
+                    .Where(IsValidJavaExecutable);
             }
-            catch (UnauthorizedAccessException) { }
+            catch (Exception)
+            {
+                // TODO: Logger handling exceptions
+            }
+
+            return [];
         }
 
-        private static IEnumerable<string> GetPontentialJavaDir()
+        private static IEnumerable<string> GetPotentialJavaDir()
         {
             var paths = new List<string>();
-            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            // add path
+            paths.AddRange(Environment.GetEnvironmentVariable("PATH")?.Split(':') ?? []);
 
             // add system paths
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -87,6 +90,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             }
 
             // add home dirs
+            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (!string.IsNullOrEmpty(homeDir))
             {
                 paths.AddRange([
@@ -113,7 +117,6 @@ namespace PCL2.Neo.Models.Minecraft.Java
             {
                 paths.Add(parent);
             }
-
 
             return paths.Distinct();
         }

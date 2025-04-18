@@ -6,7 +6,7 @@ namespace PCL2.Neo.Models.Tests
         [TestMethod]
         public void JavaSearchTest()
         {
-            var result = Minecraft.Java.Windows.SearchJavaAsync(fullSearch: true).Result;
+            var result = Minecraft.Java.Java.SearchJava().Result;
             foreach (var item in result)
             {
                 Console.WriteLine(item.Path);
