@@ -5,6 +5,7 @@
     MinWidth="810"
     SystemDecorations="None"
     Title="PCL2 Neo"
+    TransparencyLevelHint="Transparent"
     Width="850"
     WindowStartupLocation="CenterScreen"
     d:DesignHeight="450"
@@ -231,6 +232,7 @@
                                     Width="150" />
                                 <pc:MyButton Height="50" Margin="10" />
                                 <pc:MyButton Height="50" Margin="10" />
+                                <pc:MyCard Margin="10" />
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>
