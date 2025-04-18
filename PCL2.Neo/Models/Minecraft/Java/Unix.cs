@@ -11,7 +11,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     internal class Unix
     {
-#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJava"
+#warning "该方法未在 Linux 上测试，可能无法正常工作 Unix/SearchJava"
         public static IEnumerable<JavaEntity> SearchJava() =>
             FindJavaExecutablePath().Select(it => new JavaEntity(it));
 
@@ -28,11 +28,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         private static bool IsValidJavaExecutable(string filePath)
         {
-            if (Directory.Exists(filePath))
-                return false;
+            // if (Directory.Exists(filePath))
+            //     return false;
 
-            return !filePath.EndsWith(".jar") && !filePath.EndsWith(".zip") && !filePath.EndsWith(".so") &&
-                   !filePath.EndsWith(".dylib");
+            // return !filePath.EndsWith(".jar") && !filePath.EndsWith(".zip") && !filePath.EndsWith(".so") &&
+            //        !filePath.EndsWith(".dylib");
+            return File.Exists(filePath);
         }
 
         private static void SearchDirectoryForJava(string basePath, HashSet<string> foundJava)
@@ -41,8 +42,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             {
                 var binDirs = Directory.EnumerateDirectories(basePath, "bin", SearchOption.AllDirectories);
                 binDirs
-                    .SelectMany(binDir =>
-                        Directory.EnumerateDirectories(binDir, "java", SearchOption.TopDirectoryOnly))
+                    .SelectMany(binDir => Directory.EnumerateFiles(binDir, "java", SearchOption.TopDirectoryOnly))
                     .Where(IsValidJavaExecutable)
                     .ToList().ForEach(it => foundJava.Add(it));
             }
