@@ -1,7 +1,7 @@
-using PCL2.Neo.Minecraft.Models;
+using PCL2.Neo.Models.Minecraft;
 using System.Text.Json.Nodes;
 
-namespace PCL2.Neo.Tests.Minecraft.Models;
+namespace PCL2.Neo.Tests.Models.Minecraft;
 
 public class MetadataFileTest
 {
@@ -18,6 +18,7 @@ public class MetadataFileTest
             {
                 Assert.That(meta.Arguments.Game.Count, Is.EqualTo(jsonObj["arguments"]!["game"]!.AsArray().Count));
             }
+
             Assert.Multiple(() =>
             {
                 Assert.That(meta.Assets, Is.Not.Empty);
@@ -39,6 +40,7 @@ public class MetadataFileTest
                     Assert.That(file.Url, Is.Not.Empty);
                 });
             }
+
             Assert.That(meta.Id, Is.Not.Empty);
             Assert.Multiple(() =>
             {
@@ -106,28 +108,24 @@ public class MetadataFileTest
             "${version_type}",
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["is_demo_user"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["is_demo_user"] = true }
                     }
                 ],
                 Value = ["--demo"]
             },
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["has_custom_resolution"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["has_custom_resolution"] = true }
                     }
                 ],
                 Value =
@@ -140,14 +138,12 @@ public class MetadataFileTest
             },
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["has_quick_plays_support"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["has_quick_plays_support"] = true }
                     }
                 ],
                 Value =
@@ -158,14 +154,12 @@ public class MetadataFileTest
             },
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["is_quick_play_singleplayer"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["is_quick_play_singleplayer"] = true }
                     }
                 ],
                 Value =
@@ -176,14 +170,12 @@ public class MetadataFileTest
             },
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["is_quick_play_multiplayer"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["is_quick_play_multiplayer"] = true }
                     }
                 ],
                 Value =
@@ -194,14 +186,12 @@ public class MetadataFileTest
             },
             new MetadataFile.ConditionalArg
             {
-                Rules = [
+                Rules =
+                [
                     new MetadataFile.Rule
                     {
                         Action = MetadataFile.Rule.ActionEnum.Allow,
-                        Features = new Dictionary<string, bool>
-                        {
-                            ["is_quick_play_realms"] = true
-                        }
+                        Features = new Dictionary<string, bool> { ["is_quick_play_realms"] = true }
                     }
                 ],
                 Value =
@@ -254,6 +244,5 @@ public class MetadataFileTest
                 }
             }
         }
-
     }
 }

@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
-namespace PCL2.Neo.Minecraft.Models;
+namespace PCL2.Neo.Models.Minecraft;
 
 public class MetadataFile
 {
