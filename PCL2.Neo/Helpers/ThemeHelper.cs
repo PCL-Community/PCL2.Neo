@@ -55,17 +55,17 @@ public class ThemeHelper
         brushTitle.GradientStops.Add(new GradientStop
         {
             Offset = 0,
-            Color = new MyColor().FromHsl2(_colorHue - _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
+            Color = MyColor.FromHsl2(_colorHue - _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
         });
         brushTitle.GradientStops.Add(new GradientStop
         {
             Offset = 0.5,
-            Color = new MyColor().FromHsl2(_colorHue, _colorSat, 54 + _colorLightAdjust)
+            Color = MyColor.FromHsl2(_colorHue, _colorSat, 54 + _colorLightAdjust)
         });
         brushTitle.GradientStops.Add(new GradientStop
         {
             Offset = 1,
-            Color = new MyColor().FromHsl2(_colorHue + _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
+            Color = MyColor.FromHsl2(_colorHue + _colorHueTopbarDelta, _colorSat, 48 + _colorLightAdjust)
         });
 
         _mainWindow.NavBackgroundBorder.Background = brushTitle;
@@ -90,17 +90,17 @@ public class ThemeHelper
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = -0.1,
-            Color = new MyColor().FromHsl2(_colorHue - 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
+            Color = MyColor.FromHsl2(_colorHue - 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = 0.4,
-            Color = new MyColor().FromHsl2(_colorHue, _colorSat * 0.9, 90 * lightAdjust)
+            Color = MyColor.FromHsl2(_colorHue, _colorSat * 0.9, 90 * lightAdjust)
         });
         brushBackground.GradientStops.Add(new GradientStop
         {
             Offset = 1.1,
-            Color = new MyColor().FromHsl2(_colorHue + 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
+            Color = MyColor.FromHsl2(_colorHue + 20, Math.Min(60, _colorSat) * 0.5, 80 * lightAdjust)
         });
 
         _mainWindow.MainBorder.Background = brushBackground;
