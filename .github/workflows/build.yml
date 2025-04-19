@@ -31,7 +31,7 @@ jobs:
               run: |
                   echo "The current time is: ${{ steps.date.outputs.time }}"
 
-    build:
+    pre-setup:
         runs-on: ubuntu-22.04
         needs: time
         steps:
@@ -48,14 +48,22 @@ jobs:
                   dotnet tool install -g KuiperZone.PupNet
                   sudo apt-get update
                   sudo apt-get install fuse
+    build-AppImage:
+        runs-on: ubuntu-22.04
+        needs: [time, pre-setup]
+        steps:
             - name: Build-AppImage
               run: |
                   cd ./PCL2.Neo
                   sudo su
                   pupnet --runtime linux-x64 --kind appimage -o PCL2.Neo.linux.x64.AppImage -y --app-version ${{ needs.time.outputs.y }}.${{ needs.time.outputs.md }}.${{ needs.time.outputs.hm }}
                   pupnet --runtime linux-arm64 --kind appimage -o PCL2.Neo.linux.arm64.AppImage -y --app-version ${{ needs.time.outputs.y }}.${{ needs.time.outputs.md }}.${{ needs.time.outputs.hm }}
-            - name: Build-MacOsApp
-              run: |
+    build-MacOsApp:
+        runs-on: ubuntu-22.04
+        needs: [time, pre-setup]
+        steps:
+              - name: Build-MacOsApp
+                run: |
                   cd ./PCL2.Neo
                   sudo su
                   dotnet restore -r osx-x64
@@ -68,6 +76,10 @@ jobs:
                   cd ../../
                   cd ./osx-arm64/publish/
                   zip -9 -r ../../PCL2.Neo.osx.mac.arm64.app.zip ./PCL2.Neo.app
+    build-WinExe:
+        runs-on: ubuntu-22.04
+        needs: [time, pre-setup]
+        steps:
             - name: Build-WinExe
               run: |
                   cd ./PCL2.Neo
@@ -87,6 +99,10 @@ jobs:
                   cd ../
                   cd ./win-arm64/
                   zip -9 -r "../PCL2.Neo.win.arm64.zip" "./publish"
+    upload:
+        runs-on: ubuntu-22.04
+        needs: [build-AppImage, build-MacOsApp, build-WinExe]
+        steps:
             - name: UploadArtifacts linux.arm64
               uses: actions/upload-artifact@v4
               with:
