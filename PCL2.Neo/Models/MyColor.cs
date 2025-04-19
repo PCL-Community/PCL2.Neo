@@ -4,8 +4,7 @@ using System.Numerics;
 
 namespace PCL2.Neo.Models;
 
-
-public class MyColor
+public class MyColor : IEquatable<MyColor>
 {
     private Vector4 _color;
 
@@ -128,6 +127,7 @@ public class MyColor
     {
         this._color = new Vector4(255f, 0f, 0f, 0f);
     }
+
     public MyColor(Color color)
     {
         this._color = new Vector4(color.A, color.R, color.G, color.B);
@@ -146,10 +146,12 @@ public class MyColor
     {
         this._color = new Vector4(255f, r, g, b);
     }
+
     public MyColor(float a, float r, float g, float b)
     {
         this._color = new Vector4(a, r, g, b);
     }
+
     public MyColor(Brush brush)
     {
         var color = ((SolidColorBrush)brush).Color;
@@ -161,9 +163,51 @@ public class MyColor
         this._color = new Vector4(color.A, color.R, color.G, color.B);
     }
 
+    // IEquatable
+
+    public bool Equals(MyColor? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, other))
+        {
+            return true;
+        }
+
+        return _color.Equals(other._color);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null)
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(this, obj))
+        {
+            return true;
+        }
+
+        if (obj.GetType() != GetType())
+        {
+            return false;
+        }
+
+        return Equals((MyColor)obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return _color.GetHashCode();
+    }
+
     // HSL
 
-    public double Hue(double v1, double v2, double vH)
+    public static double Hue(double v1, double v2, double vH)
     {
         if (vH < 0) vH += 1;
         if (vH > 1) vH -= 1;
@@ -173,13 +217,14 @@ public class MyColor
         return v1;
     }
 
-    public MyColor FromHsl(double sH, double sS, double sL)
+    public static MyColor FromHsl(double sH, double sS, double sL)
     {
+        var color = new MyColor();
         if (sS == 0)
         {
-            R = (float)(sL * 2.55);
-            G = R;
-            B = R;
+            color.R = (float)(sL * 2.55);
+            color.G = color.R;
+            color.B = color.R;
         }
         else
         {
@@ -188,42 +233,47 @@ public class MyColor
             double l = sL / 100;
             s = l < 0.5 ? s * l + l : s * (1.0 - l) + l;
             l = 2 * l - s;
-            R = (float)(255 * Hue(l, s, h + 1 / 3.0));
-            G = (float)(255 * Hue(l, s, h));
-            B = (float)(255 * Hue(l, s, h - 1 / 3.0));
+            color.R = (float)(255 * Hue(l, s, h + 1 / 3.0));
+            color.G = (float)(255 * Hue(l, s, h));
+            color.B = (float)(255 * Hue(l, s, h - 1 / 3.0));
         }
-        A = 255;
-        return this;
+
+        color.A = 255;
+        return color;
     }
 
-    public MyColor FromHsl2(double sH, double sS, double sL)
+    public static MyColor FromHsl2(double sH, double sS, double sL)
     {
+        var color = new MyColor();
         if (sS == 0)
         {
-            R = (float)(sL * 2.55);
-            G = R;
-            B = R;
+            color.R = (float)(sL * 2.55);
+            color.G = color.R;
+            color.B = color.R;
         }
         else
         {
             sH = (sH + 3600000) % 360;
-            double[] cent = [
+            double[] cent =
+            [
                 +0.1, -0.06, -0.3, // 0, 30, 60
                 -0.19, -0.15, -0.24, // 90, 120, 150
                 -0.32, -0.09, +0.18, // 180, 210, 240
                 +0.05, -0.12, -0.02, // 270, 300, 330
-                +0.1, -0.06]; // 最后两位与前两位一致，加是变亮，减是变暗
+                +0.1, -0.06
+            ]; // 最后两位与前两位一致，加是变亮，减是变暗
             double center = sH / 30.0;
-            int intCenter = (int)Math.Floor(center);  // 亮度片区编号
+            int intCenter = (int)Math.Floor(center); // 亮度片区编号
             center = 50 - (
                 (1 - center + intCenter) * cent[intCenter] + (center - intCenter) * cent[intCenter + 1]
             ) * sS;
 
             sL = sL < center ? sL / center : 1 + (sL - center) / (100 - center);
             sL *= 50;
-            FromHsl(sH, sS, sL);
+            color = FromHsl(sH, sS, sL);
         }
-        A = 255;
-        return this;
+
+        color.A = 255;
+        return color;
     }
 }
