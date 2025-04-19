@@ -43,7 +43,6 @@ public class ThemeHelper
             Refresh(themeVariant);
         };
     }
-
     public void Refresh(ThemeVariant themeVariant)
     {
         // 标题栏
@@ -72,14 +71,14 @@ public class ThemeHelper
 
         _mainWindow.NavBackgroundBorder.Background = brushTitle;
 
-        float lightAdjust = 1;
+        double lightAdjust = 1;
         if (themeVariant == ThemeVariant.Light)
         {
             lightAdjust = 1;
         }
         else if (themeVariant == ThemeVariant.Dark)
         {
-            lightAdjust = 0.1f;
+            lightAdjust = 0.1;
         }
 
         // 背景
