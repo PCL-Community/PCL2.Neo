@@ -1,32 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using PCL2.Neo.Models.Minecraft.JavaSearcher;
+using System.Runtime.InteropServices;
 
-namespace PCL2.Neo.Models.Minecraft
+namespace PCL2.Neo.Models.Minecraft.Java
 {
     /// <summary>
     /// 测试
     /// </summary>
     public class Java
     {
-        public static async Task<List<JavaEntity>> SearchJava()
+        public static async Task<IEnumerable<JavaEntity>> SearchJava()
         {
-            var javaList = new List<JavaEntity>();
+            //switch (Environment.OSVersion.Platform)
+            //{
+            //    case PlatformID.Win32NT:
+            //        javaList.AddRange(await JavaSearcher.Windows.SearchJava());
+            //        break;
+            //    case PlatformID.Unix:
+            //        javaList.AddRange(Unix.SerachJavaForLinuxAsync());
+            //        break;
+            //    case PlatformID.MacOSX:
+            //        break;
+            //    default:
+            //        throw new PlatformNotSupportedException();
+            //}
 
-            switch (Environment.OSVersion.Platform)
+            // warning: Environment.OSVersion.Platform will have different performance in different .net planform
+            // detail: .net type :    | system | performance
+            //         .net framewrok:   macos | Not Support
+            //         .net Core <= 3.1  macos | Unix
+            //         .net 5+           macos | macosx
+            // this problenm is fixed by follow code
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                case PlatformID.Win32NT:
-                    javaList.AddRange(await PCL2.Neo.Models.Minecraft.JavaSearcher.Windows.SearchJava());
-                    break;
-                case PlatformID.Unix:
-                    javaList.AddRange(Unix.SerachJava());
-                    break;
-                default:
-                    throw new PlatformNotSupportedException();
+                return await Windows.SearchJavaAsync(); // TODO: Read setting to get whether full search or not.
             }
-
-            return javaList;
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return await Unix.SearchJava();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return await Unix.SearchJava();
+            }
+            else
+            {
+                throw new PlatformNotSupportedException();
+            }
         }
     }
 }
