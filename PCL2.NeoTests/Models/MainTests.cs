@@ -8,8 +8,10 @@ namespace PCL2.Neo.Models.Tests
         [TestMethod]
         public async Task JavaSearchTest()
         {
-            foreach (var javaEntity in await Java.SearchJava()) {
-                Console.WriteLine(javaEntity.Path);
+            var result = Minecraft.Java.Java.SearchJava().Result;
+            foreach (var item in result)
+            {
+                Console.WriteLine(item.Path);
             }
         }
     }
