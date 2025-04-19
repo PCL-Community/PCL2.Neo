@@ -53,7 +53,7 @@ public class MetadataFile
 
     public class ConditionalArg
     {
-        [JsonPropertyName("rules")] public List<Rule>? Rules { get; set; } = [];
+        [JsonPropertyName("rules")] public List<Rule>? Rules { get; set; }
         [JsonPropertyName("value")] public List<string> Value { get; set; }
     }
 

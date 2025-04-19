@@ -6,7 +6,7 @@ namespace PCL2.Neo.Tests.Minecraft.Models;
 public class MetadataFileTest
 {
     [Test]
-    public void Test()
+    public void MainParsingTest()
     {
         foreach (var metadataFilePath in Directory.EnumerateFiles("./MCMetadataFiles"))
         {
@@ -75,5 +75,185 @@ public class MetadataFileTest
             Assert.That(meta.Time, Is.Not.Empty);
             Assert.That(meta.Type, Is.Not.EqualTo(MetadataFile.ReleaseTypeEnum.Unknown));
         }
+    }
+
+    [Test]
+    public void ArgumentsParsingTest()
+    {
+        object[] testGameArgs =
+        [
+            "--username",
+            "${auth_player_name}",
+            "--version",
+            "${version_name}",
+            "--gameDir",
+            "${game_directory}",
+            "--assetsDir",
+            "${assets_root}",
+            "--assetIndex",
+            "${assets_index_name}",
+            "--uuid",
+            "${auth_uuid}",
+            "--accessToken",
+            "${auth_access_token}",
+            "--clientId",
+            "${clientid}",
+            "--xuid",
+            "${auth_xuid}",
+            "--userType",
+            "${user_type}",
+            "--versionType",
+            "${version_type}",
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["is_demo_user"] = true
+                        }
+                    }
+                ],
+                Value = ["--demo"]
+            },
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["has_custom_resolution"] = true
+                        }
+                    }
+                ],
+                Value =
+                [
+                    "--width",
+                    "${resolution_width}",
+                    "--height",
+                    "${resolution_height}"
+                ]
+            },
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["has_quick_plays_support"] = true
+                        }
+                    }
+                ],
+                Value =
+                [
+                    "--quickPlayPath",
+                    "${quickPlayPath}"
+                ]
+            },
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["is_quick_play_singleplayer"] = true
+                        }
+                    }
+                ],
+                Value =
+                [
+                    "--quickPlaySingleplayer",
+                    "${quickPlaySingleplayer}"
+                ]
+            },
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["is_quick_play_multiplayer"] = true
+                        }
+                    }
+                ],
+                Value =
+                [
+                    "--quickPlayMultiplayer",
+                    "${quickPlayMultiplayer}"
+                ]
+            },
+            new MetadataFile.ConditionalArg
+            {
+                Rules = [
+                    new MetadataFile.Rule
+                    {
+                        Action = MetadataFile.Rule.ActionEnum.Allow,
+                        Features = new Dictionary<string, bool>
+                        {
+                            ["is_quick_play_realms"] = true
+                        }
+                    }
+                ],
+                Value =
+                [
+                    "--quickPlayRealms",
+                    "${quickPlayRealms}"
+                ]
+            }
+        ];
+
+        var jsonObj = JsonNode.Parse(File.ReadAllText("./MCMetadataFiles/1.21.5.json"))!.AsObject();
+        var meta = new MetadataFile(jsonObj, false);
+        meta.Parse();
+        Assert.That(meta.Arguments.Game.Count, Is.EqualTo(testGameArgs.Length));
+        for (int i = 0; i < meta.Arguments.Game.Count; i++)
+        {
+            if (testGameArgs[i] is string)
+            {
+                Assert.That(meta.Arguments.Game[i].Value.Count, Is.EqualTo(1));
+                Assert.That(meta.Arguments.Game[i].Value[0], Is.EqualTo(testGameArgs[i]));
+            }
+            else
+            {
+                var arg = meta.Arguments.Game[i];
+                var testArg = (MetadataFile.ConditionalArg)testGameArgs[i];
+
+                Assert.That(arg.Value.SequenceEqual(testArg.Value), Is.True);
+                Assert.That(
+                    (arg.Rules is null && testArg.Rules is null) ||
+                    (arg.Rules is not null && testArg.Rules is not null));
+                if (arg.Rules is not null && testArg.Rules is not null)
+                {
+                    Assert.That(arg.Rules.Count, Is.EqualTo(testArg.Rules.Count));
+                    foreach ((MetadataFile.Rule rule, MetadataFile.Rule testRule) in arg.Rules.Zip(testArg.Rules))
+                    {
+                        Assert.That(rule.Action, Is.EqualTo(testRule.Action));
+                        Assert.That((rule.Features is null && testRule.Features is null) ||
+                                    (rule.Features is not null && testRule.Features is not null));
+                        if (rule.Features is not null && testRule.Features is not null)
+                            Assert.That(rule.Features.SequenceEqual(testRule.Features));
+                        Assert.That((rule.Os is null && testRule.Os is null) ||
+                                    (rule.Os is not null && testRule.Os is not null));
+                        if (rule.Os is not null && testRule.Os is not null)
+                        {
+                            Assert.That(rule.Os.Arch, Is.EqualTo(testRule.Os.Arch));
+                            Assert.That(rule.Os.Name, Is.EqualTo(testRule.Os.Name));
+                            Assert.That(rule.Os.Version, Is.EqualTo(testRule.Os.Version));
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
