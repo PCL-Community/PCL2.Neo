@@ -87,7 +87,7 @@ public static class MathUtils
     /// <summary>
     /// 获取两颜色间的百分比，根据 RGB 计算。小数点精确到 6 位。
     /// </summary>
-    public static MyColor MathPercent(MyColor valueA, MyColor valueB, float percent)
+    public static MyColor MathPercent(MyColor valueA, MyColor valueB, double percent)
     {
         return MathRound(valueA * (1 - percent) + valueB * percent, 6); // 解决 Double 计算错误
     }
