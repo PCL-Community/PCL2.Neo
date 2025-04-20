@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace PCL2.Neo.Models.Minecraft.Java
+namespace PCL2.Neo.Models.Minecraft
 {
     public class JavaEntity(string path)
     {

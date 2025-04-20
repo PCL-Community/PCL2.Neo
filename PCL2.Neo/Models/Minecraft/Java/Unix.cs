@@ -1,12 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace PCL2.Neo.Models.Minecraft.Java
+namespace PCL2.Neo.Models.Minecraft
 {
     /// <summary>
     /// 处理Unix系统下的java

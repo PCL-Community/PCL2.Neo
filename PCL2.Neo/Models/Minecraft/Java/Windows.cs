@@ -21,7 +21,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
         ];
 
-        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
+        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch, int maxDeep)
         {
             var javaEntities = new List<string>();
 
@@ -117,7 +117,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         private static Task<IEnumerable<string>> SearchFolderAsync(
             string folderPath, int deep = 0, int maxDeep = MaxDeep)
-            => Task.Run((() => SearchFolders(folderPath, deep, maxDeep)));
+            => Task.Run(() => SearchFolders(folderPath, deep, maxDeep));
 
         private static Task<IEnumerable<string>> SearchDirves(int maxDeep)
         {
