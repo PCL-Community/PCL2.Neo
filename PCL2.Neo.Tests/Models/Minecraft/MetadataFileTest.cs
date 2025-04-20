@@ -11,8 +11,7 @@ public class MetadataFileTest
         foreach (var metadataFilePath in Directory.EnumerateFiles("./MCMetadataFiles"))
         {
             var jsonObj = JsonNode.Parse(File.ReadAllText(metadataFilePath))!.AsObject();
-            var meta = new MetadataFile(jsonObj, false);
-            meta.Parse();
+            var meta = MetadataFile.Parse(jsonObj);
             Assert.That(meta.Arguments.Game, Is.Not.Empty);
             if (jsonObj.ContainsKey("arguments"))
             {
@@ -203,8 +202,7 @@ public class MetadataFileTest
         ];
 
         var jsonObj = JsonNode.Parse(File.ReadAllText("./MCMetadataFiles/1.21.5.json"))!.AsObject();
-        var meta = new MetadataFile(jsonObj, false);
-        meta.Parse();
+        var meta = MetadataFile.Parse(jsonObj);
         Assert.That(meta.Arguments.Game.Count, Is.EqualTo(testGameArgs.Length));
         for (int i = 0; i < meta.Arguments.Game.Count; i++)
         {
