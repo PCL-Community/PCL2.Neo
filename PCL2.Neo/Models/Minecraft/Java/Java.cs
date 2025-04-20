@@ -10,11 +10,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     public class Java
     {
-        public static async Task<IEnumerable<JavaEntity>> SearchJava()
+        public static async Task<IEnumerable<JavaEntity>> SearchJava(bool fullSearch = false, int maxDeep = 7)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return await Windows.SearchJavaAsync(); // TODO: Read setting to get whether full search or not.
+                return
+                    await Windows.SearchJavaAsync(fullSearch, maxDeep);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {

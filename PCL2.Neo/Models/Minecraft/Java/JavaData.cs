@@ -2,10 +2,13 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 
-namespace PCL2.Neo.Models.Minecraft
+namespace PCL2.Neo.Models.Minecraft.Java
 {
     public class JavaEntity(string path)
     {
+        /// <summary>
+        /// The java path
+        /// </summary>
         public string Path = path;
 
         public bool IsUseable = true;
@@ -35,6 +38,9 @@ namespace PCL2.Neo.Models.Minecraft
 
         private int? _version;
 
+        /// <summary>
+        /// Java version (e.g. 8, 17, 21, etc.)
+        /// </summary>
         public int Version
         {
             get
@@ -70,7 +76,7 @@ namespace PCL2.Neo.Models.Minecraft
             }
         }
 
-        private bool? _isJre = null;
+        private bool? _isJre;
 
         public bool IsJre
         {
@@ -117,14 +123,14 @@ namespace PCL2.Neo.Models.Minecraft
                 Arguments = "-version",
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                RedirectStandardError = true, // 这个Java的输出流是tmd stderr！！！
+                RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
             javaProcess.Start();
             javaProcess.WaitForExit();
 
             var output = javaProcess.StandardError.ReadToEnd();
-            return output != string.Empty ? output : javaProcess.StandardOutput.ReadToEnd(); // 就是tmd stderr
+            return output != string.Empty ? output : javaProcess.StandardOutput.ReadToEnd();
         }
     }
 }

@@ -124,6 +124,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             var readyDrive = DriveInfo.GetDrives()
                 .Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
                 .Where(d => d.Name != @"C:\");
+            // Discussion: Unknow the searching should ignore Drive C: https://github.com/PCL-Community/PCL2.Neo/discussions/58
 
             var rootFolders = readyDrive
                 .Select(d => d.RootDirectory)

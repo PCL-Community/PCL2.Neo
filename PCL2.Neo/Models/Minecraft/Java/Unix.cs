@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace PCL2.Neo.Models.Minecraft
+namespace PCL2.Neo.Models.Minecraft.Java
 {
     /// <summary>
     /// 处理Unix系统下的java
