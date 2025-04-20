@@ -111,21 +111,9 @@ public class MetadataFile
         [JsonPropertyName("type")] public string Type { get; set; } = string.Empty;
     }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ReleaseTypeEnum
-    {
-        Unknown,
-        [JsonStringEnumMemberName("release")] Release,
-        [JsonStringEnumMemberName("snapshot")] Snapshot,
-
-        [JsonStringEnumMemberName("old_alpha")]
-        OldAlpha,
-        [JsonStringEnumMemberName("old_beta")] OldBeta
-    }
-
     #endregion
 
-    private JsonObject _rawMetadata;
+    private JsonObject _rawMetadata = new();
 
     #region Metadata Fields
 
