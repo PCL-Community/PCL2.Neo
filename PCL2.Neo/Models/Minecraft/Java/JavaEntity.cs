@@ -1,11 +1,31 @@
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using PCL2.Neo.Utils;
+using System.Runtime.InteropServices;
 
 namespace PCL2.Neo.Models.Minecraft.Java
 {
     public class JavaEntity(string path)
     {
+        private static int? GetJavaVerWin(string path)
+        {
+            if (!System.IO.Path.Exists(path))
+            {
+                return null;
+            }
+
+            var versionInfo = FileVersionInfo.GetVersionInfo(path);
+            return versionInfo.ProductMajorPart;
+        }
+
+        private static bool GetJavaArchWin(string path)
+        {
+            var machine = PeHeaderReader.GetMachine(path);
+            var type = PeHeaderReader.GetMachineType(machine);
+            return type is PeHeaderReader.ImageFileMachine.AMD64 or PeHeaderReader.ImageFileMachine.ARM64;
+        }
+
         /// <summary>
         /// The java path
         /// </summary>
@@ -15,6 +35,14 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         private void JavaInfoInit()
         {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _version = GetJavaVerWin(JavaExe);
+                _is64Bit = GetJavaArchWin(JavaExe);
+
+                return;
+            }
+
             // set version
             var regexMatch = Regex.Match(Output, """version "([\d._]+)""");
             var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty,
