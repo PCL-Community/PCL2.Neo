@@ -1,3 +1,5 @@
+> ## 官方 QQ 交流群：966504100
+
 <div align=center>
 
 <img alt="Logo" src="/Assets/Icon.png" width="256" height="256">
