@@ -1,14 +1,25 @@
 using Avalonia;
+using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
+using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Rendering.Composition;
+using Avalonia.Styling;
 using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
 using PCL2.Neo.Helpers;
+using PCL2.Neo.ViewModels;
 using System;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using BounceEaseOut = Avalonia.Animation.Easings.BounceEaseOut;
+using CubicEaseOut = Avalonia.Animation.Easings.CubicEaseOut;
+using ExponentialEaseOut = Avalonia.Animation.Easings.ExponentialEaseOut;
 
 namespace PCL2.Neo.Views;
 
@@ -30,8 +41,36 @@ public partial class MainWindow : Window
 
         BtnTitleMin.Click += (_, _) => WindowState = WindowState.Minimized;
 
+        LeftNavigationControl.Loaded += (_, _) =>
+        {
+            LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
+            AnimationHelper? lastAnimation = null;
+            LeftNavigationControl.Presenter!.PropertyChanged += async (_, e) =>
+            {
+                if (e.Property != ContentPresenter.ChildProperty)
+                    return;
+                var oldValue = e.OldValue as Control;
+                var newValue = e.NewValue as Control;
+                lastAnimation?.CancelAndClear();
+                var previousScaleTransform =
+                    (LeftNavigationControlBorder.RenderTransform as TransformGroup)?.Children
+                    .FirstOrDefault(x => x is ScaleTransform) as ScaleTransform;
+                var previousScaleX = previousScaleTransform?.ScaleX ?? 1d;
+                LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
+                var scale = oldValue?.Width / newValue?.Width * previousScaleX ?? 1d;
+                lastAnimation = new AnimationHelper(
+                [
+                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder, TimeSpan.FromMilliseconds(300), scale,
+                        1d, new CubicEaseOut())
+                ]);
+                await lastAnimation.RunAsync();
+            };
+        };
+
+
         AnimationIn();
     }
+
     private void OnNavPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         this.BeginMoveDrag(e);
@@ -66,15 +105,5 @@ public partial class MainWindow : Window
             ]);
             await animation.RunAsync();
         }
-    }
-
-    private void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Loading;
-    }
-
-    private void Button2_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Error;
     }
 }

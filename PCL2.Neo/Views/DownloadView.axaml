@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:pc="using:PCL2.Neo.Controls"
+             xmlns:vm="using:PCL2.Neo.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="PCL2.Neo.Views.DownloadView"
+             x:DataType="vm:DownloadViewModel">
+    <Design.DataContext>
+        <vm:DownloadViewModel />
+    </Design.DataContext>
+    <StackPanel>
+        <TextBlock Margin="10" Text="{Binding Message}"/>
+        <pc:MyButton
+            ColorType="Normal"
+            Height="50"
+            Margin="10"
+            Text="Test1"
+            Command="{Binding Btn_Test1Command}" />
+        <pc:MyButton
+            ColorType="Normal"
+            Height="50"
+            Margin="10"
+            Text="Test2"
+            Command="{Binding Btn_Test2Command}"/>
+    </StackPanel>
+</UserControl>
+

@@ -16,7 +16,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:PCL2.Neo.Controls"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:vm="using:PCL2.Neo.ViewModels"
+    xmlns:local="using:PCL2.Neo"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:DataType="vm:MainWindowViewModel">
     <Grid>
         <Border
             BoxShadow="0 0 15 2 #50000000"
@@ -38,7 +41,7 @@
                         Margin="19,0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        ZIndex="1">
+                        ZIndex="3">
                         <Path
                             Data="M26,29 v-25 h5 a7,7 180 0 1 0,14 h-5 M61,6.5 a10,11.5 180 1 0 0,18 M68,2.5 v24.5 h12 M98,2 v27 M107,2 v27"
                             Height="16"
@@ -113,7 +116,7 @@
                         Margin="0,0,12,0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
-                        ZIndex="1">
+                        ZIndex="3">
                         <pc:MyIconButton
                             Height="28"
                             HorizontalAlignment="Right"
@@ -142,6 +145,7 @@
                         Background="{DynamicResource ColorBrush3}"
                         Grid.Row="0"
                         Height="48"
+                        ZIndex="2"
                         Name="NavBackgroundBorder">
                         <StackPanel
                             Height="27"
@@ -157,7 +161,8 @@
                                 Name="BtnTitleSelect0"
                                 Padding="2,0"
                                 Tag="0"
-                                Text="{DynamicResource LangTitleHome}" />
+                                Text="{DynamicResource LangTitleHome}"
+                                Command="{Binding NavigateToHome}" />
                             <pc:MyRadioButton
                                 Logo="M955 610h-59c-15 0-29 13-29 29v196c0 15-13 29-29 29h-649c-15 0-29-13-29-29v-196c0-15-13-29-29-29h-59c-15 0-29 13-29 29V905c0 43 35 78 78 78h787c43 0 78-35 78-78V640c0-15-13-29-29-29zM492 740c11 11 29 11 41 0l265-265c11-11 11-29 0-41l-41-41c-11-11-29-11-41 0l-110 110c-11 11-33 3-33-13V68C571 53 555 39 541 39h-59c-15 0-29 13-29 29v417c0 17-21 25-33 13l-110-110c-11-11-29-11-41 0L226 433c-11 11-11 29 0 41L492 740z"
                                 LogoScale="0.9"
@@ -165,7 +170,8 @@
                                 Name="BtnTitleSelect1"
                                 Padding="2,0"
                                 Tag="1"
-                                Text="{DynamicResource LangTitleDownload}" />
+                                Text="{DynamicResource LangTitleDownload}"
+                                Command="{Binding NavigateToDownload}" />
                             <pc:MyRadioButton
                                 Logo="M512 817c-48.601 0-88-39.399-88-88s39.399-88 88-88 88 39.399 88 88-39.399 88-88 88zM237.671 565.74C308.335 474.58 397.369 429 504.774 429c118.433 0 214.225 55.421 287.377 166.264l-53.407 30.369c-13.84 7.87-31.362 4.367-41.114-8.219-50.291-64.911-114.577-97.367-192.856-97.367-86.851 0-156.835 40.318-209.95 120.953l-47.995-28.02c-15.263-8.91-20.412-28.507-11.502-43.77a32 32 0 0 1 2.344-3.47zM107.691 419.47C205.24 278.491 337.805 208 505.379 208c178.77 0 317.694 80.224 416.772 240.672l-56.54 31.73c-13.686 7.68-30.922 4.303-40.697-7.975C735.581 360.213 629.07 303.009 505.38 300.815 373.997 298.485 261.637 362.88 168.3 494l-50.116-28.505c-15.362-8.738-20.732-28.275-11.994-43.637a32 32 0 0 1 1.5-2.387z"
                                 LogoScale="1.05"
@@ -193,48 +199,27 @@
                         </StackPanel>
                     </Border>
 
-                    <Grid Grid.Row="1" Name="PanMain">
-                        <ScrollViewer>
-                            <StackPanel Orientation="Vertical">
-                                <pc:MyButton
-                                    ColorType="Normal"
-                                    Height="50"
-                                    Margin="10"
-                                    Text="普通按钮" />
-                                <pc:MyButton
-                                    Click="Button_OnClick"
-                                    ColorType="Highlight"
-                                    Height="50"
-                                    Margin="10"
-                                    Text="高亮按钮" />
-                                <pc:MyButton
-                                    Click="Button2_OnClick"
-                                    ColorType="Red"
-                                    Height="50"
-                                    Margin="10"
-                                    Text="红色按钮" />
-                                <pc:MyButton Height="50" Margin="10">
-                                    <Run Text="PCL2.Neo 也支持了" />
-                                    <Run
-                                        FontWeight="Bold"
-                                        Foreground="#ff4c4c"
-                                        Text="Inline 富文本！" />
-                                    <LineBreak />
-                                    <Run Text="为什么这里有个" />
-                                    <InlineUIContainer>
-                                        <Image Source="avares://PCL2.Neo/Assets/Icon.ico" Width="20" />
-                                    </InlineUIContainer>
-                                    <Run Text="图标？" />
-                                </pc:MyButton>
-                                <pc:MyLoading
-                                    Height="150"
-                                    Name="TestLoading"
-                                    Width="150" />
-                                <pc:MyButton Height="50" Margin="10" />
-                                <pc:MyButton Height="50" Margin="10" />
-                                <pc:MyCard Margin="10" />
-                            </StackPanel>
-                        </ScrollViewer>
+                    <Grid Grid.Row="1" Name="PanMain"
+                          ColumnDefinitions="Auto, *">
+                        <!-- Width overridden in code behind -->
+                        <Border Grid.Column="0" Name="LeftNavigationControlBorder"
+                                RenderTransformOrigin="0 0"
+                                Background="WhiteSmoke"
+                                Width="250"
+                                ZIndex="1"
+                                BoxShadow="0 0 15 0 DarkGray">
+                        </Border>
+                        <UserControl Grid.Column="0" Name="LeftNavigationControl"
+                                     Content="{Binding CurrentViewModel}"
+                                     ZIndex="2">
+                            <UserControl.DataTemplates>
+                                <local:LeftViewLocator />
+                            </UserControl.DataTemplates>
+                        </UserControl>
+                        <UserControl Grid.Column="1" Name="RightNavigationControl"
+                                     ZIndex="0"
+                                     Content="{Binding CurrentViewModel}">
+                        </UserControl>
                     </Grid>
 
                     <Grid
@@ -243,7 +228,7 @@
                         Grid.RowSpan="2"
                         IsVisible="False"
                         Name="PanMsg"
-                        ZIndex="2" />
+                        ZIndex="10" />
                 </Grid>
             </Border>
         </Border>

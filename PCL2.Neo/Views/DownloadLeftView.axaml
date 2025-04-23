@@ -1,0 +1,15 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:PCL2.Neo.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="150" d:DesignHeight="450"
+             x:Class="PCL2.Neo.Views.DownloadLeftView"
+             x:DataType="vm:DownloadViewModel"
+             Width="150">
+    <StackPanel Orientation="Vertical">
+        <TextBlock Text="DownloadLeftView"/>
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+    </StackPanel>
+</UserControl>
+
