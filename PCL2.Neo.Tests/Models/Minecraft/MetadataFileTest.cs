@@ -6,13 +6,12 @@ namespace PCL2.Neo.Tests.Models.Minecraft;
 public class MetadataFileTest
 {
     [Test]
-    public void MainParsingTest()
+    public void Parse()
     {
         foreach (var metadataFilePath in Directory.EnumerateFiles("./MCMetadataFiles"))
         {
             var jsonObj = JsonNode.Parse(File.ReadAllText(metadataFilePath))!.AsObject();
-            var meta = new MetadataFile(jsonObj, false);
-            meta.Parse();
+            var meta = MetadataFile.Parse(jsonObj);
             Assert.That(meta.Arguments.Game, Is.Not.Empty);
             if (jsonObj.ContainsKey("arguments"))
             {
@@ -25,8 +24,8 @@ public class MetadataFileTest
                 Assert.That(meta.AssetIndex.Id, Is.Not.Empty);
                 Assert.That(meta.AssetIndex.Path, Is.Null);
                 Assert.That(meta.AssetIndex.Sha1, Is.Not.Empty);
-                Assert.That(meta.AssetIndex.Size, Is.Not.EqualTo(0));
-                Assert.That(meta.AssetIndex.TotalSize, Is.Not.EqualTo(0));
+                Assert.That(meta.AssetIndex.Size, Is.Not.Zero);
+                Assert.That(meta.AssetIndex.TotalSize, Is.Not.Zero);
             });
             Assert.That(meta.Downloads, Is.Not.Empty);
             foreach ((string id, MetadataFile.RemoteFileModel file) in meta.Downloads)
@@ -36,7 +35,7 @@ public class MetadataFileTest
                     Assert.That(id, Is.Not.Empty);
                     Assert.That(file.Path, Is.Null);
                     Assert.That(file.Sha1, Is.Not.Empty);
-                    Assert.That(file.Size, Is.Not.EqualTo(0));
+                    Assert.That(file.Size, Is.Not.Zero);
                     Assert.That(file.Url, Is.Not.Empty);
                 });
             }
@@ -47,7 +46,7 @@ public class MetadataFileTest
                 if (meta.JavaVersion is null)
                     return;
                 Assert.That(meta.JavaVersion.Component, Is.Not.Empty);
-                Assert.That(meta.JavaVersion.MajorVersion, Is.Not.EqualTo(0));
+                Assert.That(meta.JavaVersion.MajorVersion, Is.Not.Zero);
             });
             Assert.That(meta.Libraries.Count, Is.EqualTo(jsonObj["libraries"]!.AsArray().Count));
             Assert.Multiple(() =>
@@ -65,22 +64,22 @@ public class MetadataFileTest
                         Assert.That(logging.File.Id, Is.Not.Empty);
                         Assert.That(logging.File.Path, Is.Null);
                         Assert.That(logging.File.Sha1, Is.Not.Empty);
-                        Assert.That(logging.File.Size, Is.Not.EqualTo(0));
+                        Assert.That(logging.File.Size, Is.Not.Zero);
                         Assert.That(logging.File.Url, Is.Not.Empty);
                     });
                     Assert.That(logging.Type, Is.Not.Empty);
                 }
             });
             Assert.That(meta.MainClass, Is.Not.Empty);
-            Assert.That(meta.MinimumLauncherVersion, Is.Not.EqualTo(0));
+            Assert.That(meta.MinimumLauncherVersion, Is.Not.Zero);
             Assert.That(meta.ReleaseTime, Is.Not.Empty);
             Assert.That(meta.Time, Is.Not.Empty);
-            Assert.That(meta.Type, Is.Not.EqualTo(MetadataFile.ReleaseTypeEnum.Unknown));
+            Assert.That(meta.Type, Is.Not.EqualTo(ReleaseTypeEnum.Unknown));
         }
     }
 
     [Test]
-    public void ArgumentsParsingTest()
+    public void ArgumentsParsing()
     {
         object[] testGameArgs =
         [
@@ -203,8 +202,7 @@ public class MetadataFileTest
         ];
 
         var jsonObj = JsonNode.Parse(File.ReadAllText("./MCMetadataFiles/1.21.5.json"))!.AsObject();
-        var meta = new MetadataFile(jsonObj, false);
-        meta.Parse();
+        var meta = MetadataFile.Parse(jsonObj);
         Assert.That(meta.Arguments.Game.Count, Is.EqualTo(testGameArgs.Length));
         for (int i = 0; i < meta.Arguments.Game.Count; i++)
         {
