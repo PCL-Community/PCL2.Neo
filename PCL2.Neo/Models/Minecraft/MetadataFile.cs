@@ -111,19 +111,9 @@ public class MetadataFile
         [JsonPropertyName("type")] public string Type { get; set; } = string.Empty;
     }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ReleaseTypeEnum
-    {
-        Unknown,
-        [JsonStringEnumMemberName("release")] Release,
-        [JsonStringEnumMemberName("snapshot")] Snapshot,
-        [JsonStringEnumMemberName("old_alpha")] OldAlpha,
-        [JsonStringEnumMemberName("old_beta")] OldBeta
-    }
-
     #endregion
 
-    private JsonObject _rawMetadata;
+    private JsonObject _rawMetadata = new();
 
     #region Metadata Fields
 
@@ -144,40 +134,35 @@ public class MetadataFile
 
     #endregion
 
-    public MetadataFile(string content, bool isParseImmediately = true)
-    {
-        _rawMetadata = JsonNode.Parse(content)!.AsObject();
-        if (isParseImmediately)
-            Parse();
-    }
+    #region Parse Methods
 
-    public MetadataFile(JsonNode metadata, bool isParseImmediately = true)
-    {
-        _rawMetadata = metadata.DeepClone().AsObject();
-        if (isParseImmediately)
-            Parse();
-    }
-
-    public void Parse()
-    {
-        // For simplicity, we assume the metadata files are always valid
+    // For simplicity, we assume the metadata files are always valid
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AssignNullToNotNullAttribute
 #nullable disable
 #pragma warning disable IL2026
+    public static MetadataFile Parse(string json) =>
+        Parse(JsonNode.Parse(json)!.AsObject());
+
+    public static MetadataFile Parse(JsonNode json) =>
+        Parse(json.AsObject());
+
+    public static MetadataFile Parse(JsonObject json)
+    {
+        var mf = new MetadataFile { _rawMetadata = json };
 
         #region Arguments
 
-        if (_rawMetadata.ContainsKey("arguments"))
+        if (mf._rawMetadata.ContainsKey("arguments"))
         {
-            ParseArguments(Arguments.Game, "game");
-            ParseArguments(Arguments.Jvm, "jvm");
+            ParseArguments(mf.Arguments.Game, "game");
+            ParseArguments(mf.Arguments.Jvm, "jvm");
 
             // TODO: convert this to json converter
             void ParseArguments(List<ConditionalArg> toBeFilled, string propertyName)
             {
                 toBeFilled.Clear();
-                foreach (var param in _rawMetadata["arguments"][propertyName].AsArray())
+                foreach (var param in mf._rawMetadata["arguments"][propertyName].AsArray())
                 {
                     if (param.GetValueKind() == JsonValueKind.String)
                         toBeFilled.Add(new ConditionalArg { Value = [param.GetValue<string>()] });
@@ -194,10 +179,10 @@ public class MetadataFile
                 }
             }
         }
-        else if (_rawMetadata.ContainsKey("minecraftArguments"))
+        else if (mf._rawMetadata.ContainsKey("minecraftArguments"))
         {
-            var argStr = _rawMetadata["minecraftArguments"].GetValue<string>();
-            Arguments.Game = argStr
+            var argStr = mf._rawMetadata["minecraftArguments"].GetValue<string>();
+            mf.Arguments.Game = argStr
                 .Split(' ')
                 .Select(x => new ConditionalArg { Value = [x] })
                 .ToList();
@@ -209,36 +194,39 @@ public class MetadataFile
 
         #region Logging
 
-        if (_rawMetadata.ContainsKey("logging"))
-            Logging = _rawMetadata["logging"].Deserialize<Dictionary<string, LoggingModel>>();
+        if (mf._rawMetadata.ContainsKey("logging"))
+            mf.Logging = mf._rawMetadata["logging"].Deserialize<Dictionary<string, LoggingModel>>();
 
         #endregion
 
         #region Common Fields
 
-        AssetIndex = _rawMetadata["assetIndex"].Deserialize<AssetIndexModel>();
-        Assets = _rawMetadata["assets"].GetValue<string>();
+        mf.AssetIndex = mf._rawMetadata["assetIndex"].Deserialize<AssetIndexModel>();
+        mf.Assets = mf._rawMetadata["assets"].GetValue<string>();
 
-        ComplianceLevel = _rawMetadata["complianceLevel"]?.GetValue<int>(); // field missing in 1.6.4.json
+        mf.ComplianceLevel = mf._rawMetadata["complianceLevel"]?.GetValue<int>(); // field missing in 1.6.4.json
 
-        Downloads = _rawMetadata["downloads"].Deserialize<Dictionary<string, RemoteFileModel>>();
+        mf.Downloads = mf._rawMetadata["downloads"].Deserialize<Dictionary<string, RemoteFileModel>>();
 
-        Id = _rawMetadata["id"].GetValue<string>();
-        JavaVersion = _rawMetadata["javaVersion"].Deserialize<JavaVersionModel>();
+        mf.Id = mf._rawMetadata["id"].GetValue<string>();
+        mf.JavaVersion = mf._rawMetadata["javaVersion"].Deserialize<JavaVersionModel>();
 
-        Libraries = _rawMetadata["libraries"].Deserialize<List<LibraryModel>>();
+        mf.Libraries = mf._rawMetadata["libraries"].Deserialize<List<LibraryModel>>();
 
-        MainClass = _rawMetadata["mainClass"].GetValue<string>();
-        MinimumLauncherVersion = _rawMetadata["minimumLauncherVersion"].GetValue<int>();
-        ReleaseTime = _rawMetadata["releaseTime"].GetValue<string>();
-        Time = _rawMetadata["time"].GetValue<string>();
-        Type = _rawMetadata["type"].Deserialize<ReleaseTypeEnum>();
+        mf.MainClass = mf._rawMetadata["mainClass"].GetValue<string>();
+        mf.MinimumLauncherVersion = mf._rawMetadata["minimumLauncherVersion"].GetValue<int>();
+        mf.ReleaseTime = mf._rawMetadata["releaseTime"].GetValue<string>();
+        mf.Time = mf._rawMetadata["time"].GetValue<string>();
+        mf.Type = mf._rawMetadata["type"].Deserialize<ReleaseTypeEnum>();
 
         #endregion
 
+        return mf;
+    }
 #pragma warning restore IL2026
 #nullable restore
 // ReSharper restore AssignNullToNotNullAttribute
 // ReSharper restore PossibleNullReferenceException
-    }
+
+    #endregion
 }
