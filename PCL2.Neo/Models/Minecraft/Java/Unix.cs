@@ -13,15 +13,16 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     internal static class Unix
     {
-#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJava"
-        public static async Task<IEnumerable<JavaEntity>> SearchJava() =>
+#warning "该方法未经过测试，可能无法正常工作 Unix/SearchJavaAsync"
+        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync() =>
             await Task.Run(() => FindJavaExecutablePath().Select(it => new JavaEntity(it)));
 
         private static IEnumerable<string> FindJavaExecutablePath() =>
             GetPotentialJavaDir()
-            .Where(Directory.Exists)
-            .SelectMany(SearchJavaExecutables)
-            .Distinct();
+                .Where(Directory.Exists)
+                .SelectMany(SearchJavaExecutables)
+                .Select(Path.GetDirectoryName)
+                .Distinct()!;
 
         private static bool IsValidJavaExecutable(string filePath)
         {
@@ -34,12 +35,11 @@ namespace PCL2.Neo.Models.Minecraft.Java
             try
             {
                 return Directory
-                    .EnumerateFiles(basePath, "java", new EnumerationOptions
-                    {
-                        RecurseSubdirectories = true,
-                        MaxRecursionDepth = 7,
-                        IgnoreInaccessible = true
-                    })
+                    .EnumerateFiles(basePath, "java",
+                        new EnumerationOptions
+                        {
+                            RecurseSubdirectories = true, MaxRecursionDepth = 7, IgnoreInaccessible = true
+                        })
                     .Where(IsValidJavaExecutable);
             }
             catch (Exception)
@@ -53,6 +53,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
         private static IEnumerable<string> GetPotentialJavaDir()
         {
             var paths = new List<string>();
+            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             // add path
             paths.AddRange(Environment.GetEnvironmentVariable("PATH")?.Split(':') ?? []);
@@ -75,6 +76,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             {
                 paths.AddRange([
                     "/Library/Java/JavaVirtualMachines",
+                    $"{homeDir}/Library/Java/JavaVirtualMachines",
                     "/System/Library/Frameworks/JavaVM.framework/Versions", // Older macOS Java installs
                     "/usr/local/opt", // Homebrew links (e.g., /usr/local/opt/openjdk)
                     "/opt/homebrew/opt", // Homebrew on Apple Silicon
@@ -90,7 +92,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             }
 
             // add home dirs
-            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
             if (!string.IsNullOrEmpty(homeDir))
             {
                 paths.AddRange([

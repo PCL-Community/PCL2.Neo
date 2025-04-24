@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java
 {
-    public class Windows
+    public static class Windows
     {
         private const int MaxDeep = 7;
 

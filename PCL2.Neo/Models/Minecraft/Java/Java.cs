@@ -8,7 +8,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// <summary>
     /// 测试
     /// </summary>
-    public class Java
+    public static class Java
     {
         public static async Task<IEnumerable<JavaEntity>> SearchJava()
         {
@@ -34,21 +34,11 @@ namespace PCL2.Neo.Models.Minecraft.Java
             // this problenm is fixed by follow code
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return await Windows.SearchJavaAsync(); // TODO: Read setting to get whether full search or not.
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return await Unix.SearchJava();
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return await Unix.SearchJava();
-            }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
+                return await Windows.SearchJavaAsync();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return await Unix.SearchJavaAsync();
+
+            throw new PlatformNotSupportedException();
         }
     }
 }

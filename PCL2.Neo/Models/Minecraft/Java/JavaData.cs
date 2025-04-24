@@ -1,21 +1,22 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace PCL2.Neo.Models.Minecraft.Java
 {
     public class JavaEntity(string path)
     {
-        public string Path = path;
+        public readonly string Path = path;
 
-        public bool IsUseable = true;
+        public bool IsUsable = true;
 
         private void JavaInfoInit()
         {
             // set version
-            var regexMatch = Regex.Match(Output, """version "([\d._]+)""");
+            var regexMatch = Regex.Match(Output, """version\s+"([\d._]+)""");
             var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty,
-                @"^(\d+)\.");
+                @"^(\d+)");
             _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
 
             if (_version == 1)
@@ -51,8 +52,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
             }
         }
 
-        public string JavaExe => System.IO.Path.Combine(Path, "java.exe");
-        public string JavaWExe => System.IO.Path.Combine(Path, "javaw.exe");
+        public string JavaExe => System.IO.Path.Combine(Path, "java");
+
+        public string? JavaWExe
+            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? System.IO.Path.Combine(Path, "javaw.exe") : null;
 
         private string? _output;
 
@@ -81,7 +84,8 @@ namespace PCL2.Neo.Models.Minecraft.Java
                     return _isJre.Value;
                 }
 
-                var result = File.Exists(Path + "\\javac.exe");
+                var result = File.Exists(System.IO.Path.Combine(Path,
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac"));
                 _isJre = result;
                 return result;
             }
