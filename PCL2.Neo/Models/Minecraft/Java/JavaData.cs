@@ -84,10 +84,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
                     return _isJre.Value;
                 }
 
-                var result = File.Exists(System.IO.Path.Combine(Path,
+                var hasJavac = File.Exists(System.IO.Path.Combine(Path,
                     RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac"));
-                _isJre = result;
-                return result;
+                _isJre = !hasJavac;
+                return _isJre.Value;
             }
         }
 
