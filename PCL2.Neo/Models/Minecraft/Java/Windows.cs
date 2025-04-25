@@ -26,9 +26,9 @@ namespace PCL2.Neo.Models.Minecraft.Java
             var javaEntities = new List<string>();
 
             javaEntities.AddRange(SearchRegister()); // search registies
-            javaEntities.AddRange(SearchEnvionment()); // search path
+            javaEntities.AddRange(SearchEnvironment()); // search path
 
-            if (fullSearch) javaEntities.AddRange(await SearchDirves(maxDeep)); // full search mode
+            if (fullSearch) javaEntities.AddRange(await SearchDrives(maxDeep)); // full search mode
 
             var result = TargetSearchFolders
                 .Where(Path.Exists)
@@ -62,7 +62,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             return javaList;
         }
 
-        private static IEnumerable<string> SearchEnvionment()
+        private static IEnumerable<string> SearchEnvironment()
         {
             var javaList = new List<string>();
 
@@ -119,7 +119,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             string folderPath, int deep = 0, int maxDeep = MaxDeep)
             => Task.Run((() => SearchFolders(folderPath, deep, maxDeep)));
 
-        private static Task<IEnumerable<string>> SearchDirves(int maxDeep)
+        private static Task<IEnumerable<string>> SearchDrives(int maxDeep)
         {
             var readyDrive = DriveInfo.GetDrives()
                 .Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })

@@ -35,8 +35,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 return await Windows.SearchJavaAsync();
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                return await Unix.SearchJavaAsync();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                return await Unix.SearchJavaAsync(OSPlatform.Linux);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return await Unix.SearchJavaAsync(OSPlatform.OSX);
 
             throw new PlatformNotSupportedException();
         }
