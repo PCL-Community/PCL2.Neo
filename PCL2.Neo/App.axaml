@@ -1,5 +1,5 @@
 <Application
-    RequestedThemeVariant="Default"
+    RequestedThemeVariant="Light"
     x:Class="PCL2.Neo.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:local="using:PCL2.Neo"
@@ -26,6 +26,7 @@
 
         <StyleInclude Source="avares://PCL2.Neo/Styles/MyControlStyles.axaml" />
         <StyleInclude Source="avares://PCL2.Neo/Styles/CustomStyles.axaml" />
+        <StyleInclude Source="avares://PCL2.Neo/Styles/Icons.axaml"/>
 
     </Application.Styles>
 </Application>

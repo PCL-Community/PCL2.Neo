@@ -32,8 +32,8 @@ public class MyIconButton : Button
         this.Loaded += (_, _) => RefreshColor();
 
         // 初始化
-        _pathIcon.Data = Geometry.Parse(Logo);
-        _pathIcon.RenderTransform = new ScaleTransform{ ScaleX = LogoScale, ScaleY = LogoScale };
+        _pathIcon.Data = Logo;
+        _pathIcon.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
 
         SetPseudoClass();
     }
@@ -46,7 +46,8 @@ public class MyIconButton : Button
             _animation.CancelAndClear();
             _animation.Animations.AddRange(
             [
-                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut()),
+                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d,
+                    new QuarticEaseOut()),
                 new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut())
             ]);
             await _animation.RunAsync();
@@ -61,8 +62,10 @@ public class MyIconButton : Button
             _animation.CancelAndClear();
             _animation.Animations.AddRange(
             [
-                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut()),
-                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d, new BackEaseOut())
+                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d,
+                    new BackEaseOut()),
+                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d,
+                    new BackEaseOut())
             ]);
             await _animation.RunAsync();
         }
@@ -70,9 +73,10 @@ public class MyIconButton : Button
 
     public int Uuid = CoreUtils.GetUuid();
 
-    public static readonly StyledProperty<string> LogoProperty = AvaloniaProperty.Register<MyIconButton, string>(
+    public static readonly StyledProperty<Geometry> LogoProperty = AvaloniaProperty.Register<MyIconButton, Geometry>(
         nameof(Logo));
-    public string Logo
+
+    public Geometry Logo
     {
         get => GetValue(LogoProperty);
         set
@@ -80,13 +84,15 @@ public class MyIconButton : Button
             SetValue(LogoProperty, value);
             if (_pathIcon != null)
             {
-                _pathIcon.Data = Geometry.Parse(value);
+                _pathIcon.Data = value;
             }
         }
     }
+
     public static readonly StyledProperty<double> LogoScaleProperty = AvaloniaProperty.Register<MyIconButton, double>(
         nameof(LogoScale),
         1);
+
     public double LogoScale
     {
         get => GetValue(LogoScaleProperty);
@@ -95,10 +101,11 @@ public class MyIconButton : Button
             SetValue(LogoScaleProperty, value);
             if (_pathIcon != null)
             {
-                _pathIcon.RenderTransform = new ScaleTransform{ ScaleX = value, ScaleY = value };
+                _pathIcon.RenderTransform = new ScaleTransform { ScaleX = value, ScaleY = value };
             }
         }
     }
+
     public enum IconThemes
     {
         Color,
@@ -108,9 +115,11 @@ public class MyIconButton : Button
         Custom
     }
 
-    public static readonly StyledProperty<IconThemes> IconThemeProperty = AvaloniaProperty.Register<MyIconButton, IconThemes>(
-        nameof(IconTheme),
-        IconThemes.Color);
+    public static readonly StyledProperty<IconThemes> IconThemeProperty =
+        AvaloniaProperty.Register<MyIconButton, IconThemes>(
+            nameof(IconTheme),
+            IconThemes.Color);
+
     public IconThemes IconTheme
     {
         get => GetValue(IconThemeProperty);
@@ -121,8 +130,9 @@ public class MyIconButton : Button
         }
     }
 
-    public new static readonly StyledProperty<IBrush> ForegroundProperty = AvaloniaProperty.Register<MyIconButton, IBrush>(
-        nameof(Foreground));
+    public new static readonly StyledProperty<IBrush> ForegroundProperty =
+        AvaloniaProperty.Register<MyIconButton, IBrush>(
+            nameof(Foreground));
 
     public new IBrush Foreground
     {
@@ -130,8 +140,9 @@ public class MyIconButton : Button
         set => SetValue(ForegroundProperty, value);
     }
 
-    public static readonly StyledProperty<IBrush> ForegroundInnerProperty = AvaloniaProperty.Register<MyIconButton, IBrush>(
-        nameof(ForegroundInner));
+    public static readonly StyledProperty<IBrush> ForegroundInnerProperty =
+        AvaloniaProperty.Register<MyIconButton, IBrush>(
+            nameof(ForegroundInner));
 
     public IBrush ForegroundInner
     {
@@ -139,8 +150,9 @@ public class MyIconButton : Button
         set => SetValue(ForegroundInnerProperty, value);
     }
 
-    public new static readonly StyledProperty<IBrush> BackgroundProperty = AvaloniaProperty.Register<MyIconButton, IBrush>(
-        nameof(Background));
+    public new static readonly StyledProperty<IBrush> BackgroundProperty =
+        AvaloniaProperty.Register<MyIconButton, IBrush>(
+            nameof(Background));
 
     public new IBrush Background
     {
@@ -190,8 +202,10 @@ public class MyIconButton : Button
                 _pathIcon.Fill = (SolidColorBrush)new MyColor(160, (SolidColorBrush)Foreground);
                 break;
         }
+
         _panBack.Background = (SolidColorBrush)new MyColor(0, 255, 255, 255);
     }
+
     private void SetPseudoClass()
     {
         switch (IconTheme)
