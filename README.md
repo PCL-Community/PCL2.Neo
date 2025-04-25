@@ -4,7 +4,7 @@
 
 <img alt="Logo" src="/Assets/Icon.png" width="256" height="256">
 
-# PCL2.Neo ![GitHub License](https://img.shields.io/github/license/PCL-Community/PCL2.Neo) ![GitHub Repo stars](https://img.shields.io/github/stars/PCL-Community/PCL2.Neo)
+# PCL2.Neo ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/PCL-Community/PCL2.Neo) ![GitHub Repo stars](https://img.shields.io/github/stars/PCL-Community/PCL2.Neo)
 
 [![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2.Neo)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2.Neo&web=true)
 
