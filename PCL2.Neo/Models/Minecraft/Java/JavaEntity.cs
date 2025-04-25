@@ -26,23 +26,8 @@ namespace PCL2.Neo.Models.Minecraft.Java
             return type is PeHeaderReader.ImageFileMachine.AMD64 or PeHeaderReader.ImageFileMachine.ARM64;
         }
 
-        /// <summary>
-        /// The java path
-        /// </summary>
-        public string Path = path;
-
-        public bool IsUseable = true;
-
-        private void JavaInfoInit()
+        private void GetJavaInfoNotWin()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                _version = GetJavaVerWin(JavaExe);
-                _is64Bit = GetJavaArchWin(JavaExe);
-
-                return;
-            }
-
             // set version
             var regexMatch = Regex.Match(Output, """version "([\d._]+)""");
             var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty,
@@ -62,6 +47,26 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
             // delete output
             _output = null;
+        }
+
+        /// <summary>
+        /// The java path
+        /// </summary>
+        public string Path = path;
+
+        public bool IsUseable = true;
+
+        private void JavaInfoInit()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _version = GetJavaVerWin(JavaExe);
+                _is64Bit = GetJavaArchWin(JavaExe);
+            }
+            else
+            {
+                GetJavaInfoNotWin();
+            }
         }
 
         private int? _version;

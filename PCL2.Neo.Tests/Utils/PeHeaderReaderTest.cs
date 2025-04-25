@@ -15,7 +15,7 @@ namespace PCL2.Neo.Tests.Utils
             // Act
             ushort actualMachine = PeHeaderReader.GetMachine(path);
             // Assert
-            Assert.AreEqual(expectedMachine, actualMachine);
+            Assert.That(actualMachine, Is.EqualTo(expectedMachine));
         }
     }
 }
