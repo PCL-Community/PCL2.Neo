@@ -86,7 +86,6 @@ public class MyColor : IEquatable<MyColor>
         return new MyColor { _color = a._color + b._color };
     }
 
-
     public static MyColor operator -(MyColor a, MyColor b)
     {
         return new MyColor { _color = a._color - b._color};
@@ -200,7 +199,7 @@ public class MyColor : IEquatable<MyColor>
 
     public override int GetHashCode()
     {
-        return _color.GetHashCode();
+        return HashCode.Combine(A, R, G, B);
     }
 
     // HSL
