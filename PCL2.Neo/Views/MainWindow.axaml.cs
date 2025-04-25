@@ -7,7 +7,9 @@ using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
 using PCL2.Neo.Helpers;
+using PCL2.Neo.Models.Minecraft.Java;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Views;
@@ -76,5 +78,28 @@ public partial class MainWindow : Window
     private void Button2_OnClick(object? sender, RoutedEventArgs e)
     {
         this.TestLoading.State = MyLoading.LoadingState.Error;
+    }
+
+    private async void Search_Java_Button(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var javas = await Java.SearchJava();
+            Console.WriteLine($"找到 {javas.Count()} 个Java环境:");
+
+            foreach (var java in javas)
+            {
+                Console.WriteLine("----------------------");
+                Console.WriteLine($"路径: {java.Path}");
+                Console.WriteLine($"版本: Java {java.Version}");
+                Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
+                Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
+                Console.WriteLine($"可用: {java.IsUsable}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"搜索失败: {ex.Message}");
+        }
     }
 }
