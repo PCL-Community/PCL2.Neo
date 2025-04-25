@@ -8,27 +8,8 @@ on:
         branches: ["main"]
 
 jobs:
-    time:
-        runs-on: ubuntu-latest
-        outputs:
-            v: ${{ steps.date.outputs.time }}
-            y: ${{ steps.date.outputs.y }}
-            md: ${{ steps.date.outputs.md }}
-            hm: ${{ steps.date.outputs.hm }}
-        steps:
-            - name: Time
-              id: date
-              run: |
-                  echo "::set-output name=time::$(date +'%Y.%m.%d.%H.%M')"
-                  echo "::set-output name=y::$(date +'%Y')"
-                  echo "::set-output name=md::$(date +'%m%d')"
-                  echo "::set-output name=hm::$(date +'%H%M')"
-            - name: EchoTime
-              run: |
-                  echo "The current time is: ${{ steps.date.outputs.time }}"
     build-AppImage:
         runs-on: ubuntu-22.04
-        needs: time
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -63,7 +44,6 @@ jobs:
                     PCL2.Neo/Deploy/OUT/PCL2.Neo.linux.x64.AppImage
     build-MacOsApp:
         runs-on: ubuntu-22.04
-        needs: time
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -106,7 +86,6 @@ jobs:
                         PCL2.Neo/bin/Release/net9.0/PCL2.Neo.osx.mac.x64.app.zip
     build-WinExe:
         runs-on: ubuntu-22.04
-        needs: time
         steps:
             - name: Checkout
               uses: actions/checkout@v4
