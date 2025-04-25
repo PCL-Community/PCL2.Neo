@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 #pragma warning disable CA1416 // Platform compatibility
@@ -25,7 +26,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
         {
             var javaEntities = new List<string>();
 
-            javaEntities.AddRange(SearchRegister()); // search registies
+            javaEntities.AddRange(SearchRegister()); // search registries
             javaEntities.AddRange(SearchEnvironment()); // search path
 
             if (fullSearch) javaEntities.AddRange(await SearchDrives(maxDeep)); // full search mode

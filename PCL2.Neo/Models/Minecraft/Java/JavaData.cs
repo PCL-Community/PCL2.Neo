@@ -30,8 +30,46 @@ namespace PCL2.Neo.Models.Minecraft.Java
             regexMatch = Regex.Match(Output, @"\b(\d+)-Bit\b"); // get bit
             _is64Bit = (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
 
+            _architecture = RuntimeInformation.ProcessArchitecture;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                using var lipoProcess = new Process();
+                lipoProcess.StartInfo = new ProcessStartInfo
+                {
+                    FileName ="/usr/bin/lipo",
+                    Arguments = "-info " + JavaExe,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    RedirectStandardOutput = true
+                };
+                lipoProcess.Start();
+                lipoProcess.WaitForExit();
+
+                var output = lipoProcess.StandardOutput.ReadToEnd();
+                _architecture = output.Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+            }
+
             // delete output
             _output = null;
+        }
+
+        private Architecture? _architecture;
+
+        public Architecture Architecture
+        {
+            get
+            {
+                if (_architecture != null)
+                {
+                    return _architecture.Value;
+                }
+
+                JavaInfoInit();
+
+                return _architecture!.Value;
+            }
         }
 
         private int? _version;
