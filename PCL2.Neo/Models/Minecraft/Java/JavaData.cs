@@ -6,6 +6,13 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
+public enum JavaCompability
+{
+    Unknown,
+    Yes,
+    No,
+    UnderTranslation,
+}
 
 /// <summary>
 /// 每一个 Java 实体的信息类
@@ -18,7 +25,7 @@ public class JavaEntity
     public string DirectoryPath { get; }
 
     /// <summary>
-    /// 描述具体的 Java 信息，内部信息
+    /// 描述具体的 Java 信息，内部信息，不应在外部取用
     /// </summary>
     private readonly Lazy<JavaInfo> _javaInfo;
 
@@ -29,11 +36,12 @@ public class JavaEntity
     {
         public int Version { get; set; }
         public bool Is64Bit { get; set; }
-        public Architecture Architecture { get; set; }
+        // public Architecture Architecture { get; set; }
         public bool IsJre { get; set; }
         public bool IsFatFile { get; set; }
-        public bool IsCompatible { get; set; }
-        public bool UseTranslation { get; set; }
+        public JavaCompability Compability { get; set; }
+        public required string JavaExe { get; set; }
+        public required string JavaWExe { get; set; }
     }
 
     /// <summary>
@@ -42,6 +50,7 @@ public class JavaEntity
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
     public JavaEntity(string directoryPath)
     {
+        Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
         DirectoryPath = directoryPath;
         _javaInfo = new Lazy<JavaInfo>(JavaInfoInit);
     }
@@ -50,49 +59,44 @@ public class JavaEntity
     public bool IsUserImport { get; set; }
     public int Version => _javaInfo.Value.Version;
     public bool Is64Bit => _javaInfo.Value.Is64Bit;
-    public Architecture Architecture => _javaInfo.Value.Architecture;
+    // public Architecture Architecture => _javaInfo.Value.Architecture;
     public bool IsFatFile => _javaInfo.Value.IsFatFile;
-    public bool IsCompatible => _javaInfo.Value.IsCompatible;
-    public bool UseTranslation => _javaInfo.Value.UseTranslation;
-
+    public JavaCompability Compability => _javaInfo.Value.Compability;
     public bool IsJre => _javaInfo.Value.IsJre;
+    public string JavaExe => Path.Combine(DirectoryPath, "java");   // [INFO] 这里必须直接指定，否则初始化会出错
 
-    public string JavaExe => Path.Combine(DirectoryPath, "java");
-
-    public string JavaWExe => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? Path.Combine(DirectoryPath, "javaw.exe")
-        : JavaExe;
+    /// <summary>
+    /// Windows 特有的 javaw.exe
+    /// </summary>
+    public string JavaWExe => _javaInfo.Value.JavaWExe;
 
 
     private JavaInfo JavaInfoInit()
     {
-        var runJavaOutput = RunJava();
-        var info = new JavaInfo();
-
-        // 设置版本（Version）
-        var regexMatch = Regex.Match(runJavaOutput, """version\s+"([\d._]+)""");
-        var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty, @"^(\d+)");
-        info.Version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
-        if (info.Version == 1)
+        Debug.WriteLine("JavaInfoInit...");
+        var runJavaOutput = GetRunJavaOutput(JavaExe);
+        var info = new JavaInfo
         {
-            // java version 8
-            match = Regex.Match(regexMatch.Groups[1].Value, @"^1\.(\d+)\.");
-            info.Version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+            Version = MatchVersion(runJavaOutput), // 设置版本（Version）
+            Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
+            IsJre = !File.Exists(Path.Combine(DirectoryPath,
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
+            // Architecture = RuntimeInformation.OSArchitecture,
+            IsFatFile = false,
+            Compability = JavaCompability.Unknown,
+            JavaExe = JavaExe,
+            JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? Path.Combine(DirectoryPath, "javaw.exe")
+                : JavaExe,
+        };
+
+        // 针对 Windows 设置兼容性，是 64 位则兼容
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            info.Compability = info.Is64Bit ? JavaCompability.Yes : JavaCompability.No;
         }
 
-        // 设置位数（Is64Bit）
-        regexMatch = Regex.Match(runJavaOutput, @"\b(\d+)-Bit\b"); // get bit
-        info.Is64Bit = (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
-
-        // 设置是否为JDK/JRE
-        var javacPath = System.IO.Path.Combine(DirectoryPath,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac");
-        info.IsJre = !File.Exists(javacPath);
-
-        // 设置二进制格式（Architecture），针对 macOS 的转译问题
-        info.Architecture = RuntimeInformation.OSArchitecture;
-        info.IsFatFile = false;
-
+        // 针对 macOS 的转译问题额外设置兼容性
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             using var lipoProcess = new Process();
@@ -107,40 +111,24 @@ public class JavaEntity
             };
             lipoProcess.Start();
             lipoProcess.WaitForExit();
-
-            var output = lipoProcess.StandardOutput.ReadToEnd();
-            if (output.Trim().StartsWith("Non-fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
+            var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
+            var sysArchitecture = RuntimeInformation.OSArchitecture;
+            info.IsFatFile = !output.StartsWith("Non-fat file");
+            switch (sysArchitecture)
             {
-                info.Architecture = output.Split(':').Last().Trim().Contains("arm64")
-                    ? Architecture.Arm64
-                    : Architecture.X64;
-            }
-            else
-            {
-                info.IsFatFile = true;
+                case Architecture.X64:
+                    info.Compability = output.Contains("x64") ? JavaCompability.Yes : JavaCompability.No;
+                    break;
+                case Architecture.Arm64:
+                    if(output.Contains("arm64")) info.Compability = JavaCompability.Yes;
+                    else if(output.Contains("x64")) info.Compability = JavaCompability.UnderTranslation;
+                    break;
+                default:
+                    Debug.WriteLine("未知的 macOS 系统架构");  // 理论上程序不可能运行到这里
+                    break;
             }
         }
-        // TODO 判断其他系统的可执行文件架构
-
-        info.IsCompatible = info.Architecture == RuntimeInformation.OSArchitecture;
-        info.UseTranslation = false;
-
-        // if (info.IsCompatible == false)
-        // {
-        //     // 判断转译
-        //     if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
-        //         RuntimeInformation.OSArchitecture == Architecture.Arm64)
-        //     {
-        //         info.IsCompatible = true;
-        //     }
-        //     // TODO 判断其他系统的转译
-        //
-        //
-        //     if (info.IsCompatible!.Value) // 若判断后变为兼容，则视为启用转译
-        //     {
-        //         info.UseTranslation = true;
-        //     }
-        // }
+        // TODO)) 判断其他系统的可执行文件架构
         return info;
     }
 
@@ -148,12 +136,12 @@ public class JavaEntity
     /// 运行 java -version 并获取输出
     /// </summary>
     /// <returns></returns>
-    private string RunJava()
+    private static string GetRunJavaOutput(string javaExe)
     {
         using var javaProcess = new Process();
         javaProcess.StartInfo = new ProcessStartInfo
         {
-            FileName = JavaExe,
+            FileName = javaExe,
             Arguments = "-version",
             UseShellExecute = false,
             CreateNoWindow = true,
@@ -165,5 +153,26 @@ public class JavaEntity
 
         var output = javaProcess.StandardError.ReadToEnd();
         return output != string.Empty ? output : javaProcess.StandardOutput.ReadToEnd(); // 就是tmd stderr
+    }
+
+    private static int MatchVersion(string runJavaOutput)
+    {
+        var regexMatch = Regex.Match(runJavaOutput, """version\s+"([\d._]+)""");
+        var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty, @"^(\d+)");
+        int version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+        if (version == 1)
+        {
+            // java version 8
+            match = Regex.Match(regexMatch.Groups[1].Value, @"^1\.(\d+)\.");
+            version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
+        }
+
+        return version;
+    }
+
+    private static bool MatchIs64Bit(string runJavaOutput)
+    {
+        var regexMatch = Regex.Match(runJavaOutput, @"\b(\d+)-Bit\b"); // get bit
+        return (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
     }
 }

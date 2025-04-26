@@ -89,12 +89,20 @@ public partial class MainWindow : Window
 
             foreach (var java in javas)
             {
-                Console.WriteLine("----------------------");
-                Console.WriteLine($"路径: {java.DirectoryPath}");
-                Console.WriteLine($"版本: Java {java.Version}");
-                Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
-                Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
-                Console.WriteLine($"可用: {java.IsCompatible}");
+                try
+                {
+                    Console.WriteLine("----------------------");
+                    Console.WriteLine($"路径: {java.DirectoryPath}");
+                    var version = java.Version;
+                    Console.WriteLine($"版本: Java {version}");
+                    Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
+                    Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
+                    Console.WriteLine($"可用: {java.Compability}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"处理Java信息时出错: {ex.Message}");
+                }
             }
         }
         catch (Exception ex)
