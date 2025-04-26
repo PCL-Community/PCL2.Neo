@@ -111,9 +111,10 @@ public class JavaEntity
             };
             lipoProcess.Start();
             lipoProcess.WaitForExit();
-            var output = lipoProcess.StandardOutput.ReadToEnd().Trim().Split(":").Last();
+            var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
             info.IsFatFile = !output.StartsWith("Non-fat file");
+            output = output.Split(":").Last();
             switch (sysArchitecture)
             {
                 case Architecture.X64:
