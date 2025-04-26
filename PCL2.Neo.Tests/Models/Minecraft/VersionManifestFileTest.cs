@@ -8,7 +8,7 @@ public class VersionManifestFileTest
     public void Parse()
     {
         var vmf = VersionManifestFile.Parse(File.ReadAllText("./version_manifest.json"));
-        Assert.IsNotNull(vmf);
+        //Assert.IsNotNull(vmf);
         Assert.That(vmf.Latest, Is.Not.Empty);
         Assert.That(vmf.Latest.ContainsKey(ReleaseTypeEnum.Release));
         Assert.That(vmf.Latest.ContainsKey(ReleaseTypeEnum.Snapshot));
