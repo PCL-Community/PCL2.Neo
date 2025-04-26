@@ -129,8 +129,8 @@ public class JavaEntity
             }
         }
 
-        // 针对 Linux 和 FreeBSD 设置兼容性
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+        // 针对 Linux 设置兼容性
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             using var fileProcess = new Process();
             fileProcess.StartInfo = new ProcessStartInfo
@@ -143,7 +143,7 @@ public class JavaEntity
             fileProcess.Start();
             fileProcess.WaitForExit();
             var arch = fileProcess.StandardOutput.ReadToEnd().Trim().Replace(JavaExe, "").Split(",")[2];
-            info.IsFatFile = false;
+            info.IsFatFile = false; // TODO 需要进一步判断
             switch (RuntimeInformation.OSArchitecture)
             {
                 case Architecture.X64:
