@@ -8,7 +8,9 @@ namespace PCL2.Neo.Tests.Models.Minecraft
         public async Task Test()
         {
             var javaEntities = await Java.SearchJava();
-            foreach (JavaEntity javaEntity in javaEntities)
+            IEnumerable<JavaEntity> enumerable = javaEntities.ToList();
+            Console.WriteLine("搜索到 " + enumerable.Count() + " 个 Java");
+            foreach (JavaEntity javaEntity in enumerable)
             {
                 Console.WriteLine("--------------------");
                 Console.WriteLine("路径: " + javaEntity.DirectoryPath);

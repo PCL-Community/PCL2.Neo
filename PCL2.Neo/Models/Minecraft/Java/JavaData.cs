@@ -111,17 +111,17 @@ public class JavaEntity
             };
             lipoProcess.Start();
             lipoProcess.WaitForExit();
-            var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
+            var output = lipoProcess.StandardOutput.ReadToEnd().Trim().Split(":").Last();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
             info.IsFatFile = !output.StartsWith("Non-fat file");
             switch (sysArchitecture)
             {
-                case Architecture.X64:
-                    info.Compability = output.Contains("x64") ? JavaCompability.Yes : JavaCompability.No;
+                case Architecture.X86:
+                    info.Compability = output.Contains("x86_64") ? JavaCompability.Yes : JavaCompability.No;
                     break;
                 case Architecture.Arm64:
                     if(output.Contains("arm64")) info.Compability = JavaCompability.Yes;
-                    else if(output.Contains("x64")) info.Compability = JavaCompability.UnderTranslation;
+                    else if(output.Contains("x86_64")) info.Compability = JavaCompability.UnderTranslation;
                     break;
                 default:
                     Debug.WriteLine("未知的 macOS 系统架构");  // 理论上程序不可能运行到这里
