@@ -116,7 +116,7 @@ public class JavaEntity
             info.IsFatFile = !output.StartsWith("Non-fat file");
             switch (sysArchitecture)
             {
-                case Architecture.X86:
+                case Architecture.X64:
                     info.Compability = output.Contains("x86_64") ? JavaCompability.Yes : JavaCompability.No;
                     break;
                 case Architecture.Arm64:
