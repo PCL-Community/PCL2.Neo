@@ -32,6 +32,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             _is64Bit = (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
 
             _architecture = RuntimeInformation.OSArchitecture;
+            _isFatFile = false;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -49,9 +50,13 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 lipoProcess.WaitForExit();
 
                 var output = lipoProcess.StandardOutput.ReadToEnd();
-                if (output.Contains("Non-fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
+                if (output.Trim().StartsWith("Non-fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
                 {
                     _architecture = output.Split(':').Last().Trim().Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+                }
+                else
+                {
+                    _isFatFile = true;
                 }
             }
             // TODO 判断其他系统的可执行文件架构
@@ -110,6 +115,23 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 JavaInfoInit();
 
                 return _isCompatible!.Value;
+            }
+        }
+
+        private bool? _isFatFile;
+
+        public bool IsFatFile
+        {
+            get
+            {
+                if (_isFatFile != null)
+                {
+                    return _isFatFile.Value;
+                }
+
+                JavaInfoInit();
+
+                return _isFatFile!.Value;
             }
         }
 
