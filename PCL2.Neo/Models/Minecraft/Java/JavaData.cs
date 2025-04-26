@@ -128,6 +128,39 @@ public class JavaEntity
                     break;
             }
         }
+
+        // 针对 Linux 和 FreeBSD 设置兼容性
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+        {
+            using var fileProcess = new Process();
+            fileProcess.StartInfo = new ProcessStartInfo
+            {
+                FileName = "/usr/bin/file",
+                Arguments = "-L " + JavaExe,
+                UseShellExecute = false,
+                RedirectStandardOutput = true
+            };
+            fileProcess.Start();
+            fileProcess.WaitForExit();
+            var arch = fileProcess.StandardOutput.ReadToEnd().Trim().Replace(JavaExe, "").Split(",")[2];
+            info.IsFatFile = false;
+            switch (RuntimeInformation.OSArchitecture)
+            {
+                case Architecture.X64:
+                    info.Compability = arch.Contains("x86-64") ? JavaCompability.Yes : JavaCompability.No;
+                    break;
+                case Architecture.Arm64:
+                    if (arch.Contains("ARM aarch64"))
+                        info.Compability = JavaCompability.Yes;
+                    else if (arch.Contains("x86-64"))
+                        info.Compability = JavaCompability.UnderTranslation; // QEMU
+                    break;
+                default:
+                    Debug.WriteLine("未知的 Linux 系统架构");
+                    break;
+            }
+        }
+
         // TODO)) 判断其他系统的可执行文件架构
         return info;
     }
