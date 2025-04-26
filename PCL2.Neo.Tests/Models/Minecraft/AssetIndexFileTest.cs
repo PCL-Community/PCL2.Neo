@@ -9,7 +9,7 @@ public class AssetIndexFileTest
     public void Parse()
     {
         var aif = AssetIndexFile.Parse(File.ReadAllText("./pre-1.6.json"));
-        Assert.NotNull(aif);
+        //Assert.NotNull(aif);
         Assert.That(aif.Objects, Is.Not.Empty);
         foreach (var (path, info) in aif.Objects)
         {

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -30,7 +31,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             regexMatch = Regex.Match(Output, @"\b(\d+)-Bit\b"); // get bit
             _is64Bit = (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
 
-            _architecture = RuntimeInformation.ProcessArchitecture;
+            _architecture = RuntimeInformation.OSArchitecture;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -48,14 +49,65 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 lipoProcess.WaitForExit();
 
                 var output = lipoProcess.StandardOutput.ReadToEnd();
-                if (!output.Contains("fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
+                if (output.Contains("Non-fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
                 {
-                    _architecture = output.Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+                    _architecture = output.Split(':').Last().Trim().Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+                }
+            }
+
+            _isCompatible = _architecture == RuntimeInformation.OSArchitecture;
+            _useTranslation = false;
+
+            if (_isCompatible == false)
+            {
+                // 判断转译
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    _isCompatible = RuntimeInformation.OSArchitecture == Architecture.Arm64;
+                }
+
+                if (_isCompatible!.Value)
+                {
+                    _useTranslation = true;
                 }
             }
 
             // delete output
             _output = null;
+        }
+
+        private bool? _useTranslation; // 是否启用转译，启用后会损失性能
+
+        public bool UseTranslation
+        {
+            get
+            {
+                if (_useTranslation != null)
+                {
+                    return _useTranslation.Value;
+                }
+
+                JavaInfoInit();
+
+                return _useTranslation!.Value;
+            }
+        }
+
+        private bool? _isCompatible;
+
+        public bool IsCompatible
+        {
+            get
+            {
+                if (_isCompatible != null)
+                {
+                    return _isCompatible.Value;
+                }
+
+                JavaInfoInit();
+
+                return _isCompatible!.Value;
+            }
         }
 
         private Architecture? _architecture;
@@ -114,7 +166,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             }
         }
 
-        private bool? _isJre = null;
+        private bool? _isJre;
 
         public bool IsJre
         {
