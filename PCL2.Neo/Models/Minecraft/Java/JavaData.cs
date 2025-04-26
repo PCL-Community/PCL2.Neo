@@ -142,7 +142,7 @@ public class JavaEntity
             };
             fileProcess.Start();
             fileProcess.WaitForExit();
-            var arch = fileProcess.StandardOutput.ReadToEnd().Trim().Replace(JavaExe, "").Split(",")[2];
+            var arch = fileProcess.StandardOutput.ReadToEnd().Trim().Replace(JavaExe, "").Split(",")[1];
             info.IsFatFile = false; // TODO 需要进一步判断
             switch (RuntimeInformation.OSArchitecture)
             {
