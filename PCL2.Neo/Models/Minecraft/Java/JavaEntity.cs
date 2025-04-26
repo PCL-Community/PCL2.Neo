@@ -29,7 +29,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
         private void GetJavaInfoNotWin()
         {
             // set version
-            var regexMatch = Regex.Match(Output, """version "([\d._]+)""");
+            var regexMatch = Regex.Match(Output, "version \"([\\d._]+)");
             var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty,
                 @"^(\d+)\.");
             _version = match.Success ? int.Parse(match.Groups[1].Value) : 0;

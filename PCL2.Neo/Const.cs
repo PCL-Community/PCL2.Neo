@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace PCL2.Neo;
 
@@ -24,4 +25,25 @@ public static class Const
     /// 包含程序名的完整路径。
     /// </summary>
     public static readonly string PathWithName = Process.GetCurrentProcess().MainModule!.FileName;
+
+    /// <summary>
+    /// 系统是否为64位。
+    /// </summary>
+    public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
+
+    public enum RunningOs
+    {
+        Windows,
+        Linux,
+        MacOs,
+        Unkonw
+    }
+
+    public static readonly RunningOs Os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+        ? RunningOs.Windows
+        : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+            ? RunningOs.Linux
+            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+                ? RunningOs.MacOs
+                : RunningOs.Unkonw;
 }
