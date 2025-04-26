@@ -37,7 +37,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 using var lipoProcess = new Process();
                 lipoProcess.StartInfo = new ProcessStartInfo
                 {
-                    FileName ="/usr/bin/lipo",
+                    FileName = "/usr/bin/lipo",
                     Arguments = "-info " + JavaExe,
                     UseShellExecute = false,
                     CreateNoWindow = true,
@@ -48,7 +48,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 lipoProcess.WaitForExit();
 
                 var output = lipoProcess.StandardOutput.ReadToEnd();
-                _architecture = output.Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+                if (!output.Contains("fat file")) // fat file 在执行时架构和系统一致(同上)，所以这里判断不是 fat file 的情况
+                {
+                    _architecture = output.Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
+                }
             }
 
             // delete output
