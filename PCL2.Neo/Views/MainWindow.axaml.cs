@@ -90,11 +90,11 @@ public partial class MainWindow : Window
             foreach (var java in javas)
             {
                 Console.WriteLine("----------------------");
-                Console.WriteLine($"路径: {java.Path}");
+                Console.WriteLine($"路径: {java.DirectoryPath}");
                 Console.WriteLine($"版本: Java {java.Version}");
                 Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
                 Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
-                Console.WriteLine($"可用: {java.IsUsable}");
+                Console.WriteLine($"可用: {java.IsCompatible}");
             }
         }
         catch (Exception ex)
