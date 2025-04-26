@@ -54,6 +54,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                     _architecture = output.Split(':').Last().Trim().Contains("arm64") ? Architecture.Arm64 : Architecture.X86;
                 }
             }
+            // TODO 判断其他系统的可执行文件架构
 
             _isCompatible = _architecture == RuntimeInformation.OSArchitecture;
             _useTranslation = false;
@@ -61,12 +62,14 @@ namespace PCL2.Neo.Models.Minecraft.Java
             if (_isCompatible == false)
             {
                 // 判断转译
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && RuntimeInformation.OSArchitecture == Architecture.Arm64)
                 {
-                    _isCompatible = RuntimeInformation.OSArchitecture == Architecture.Arm64;
+                    _isCompatible = true;
                 }
+                // TODO 判断其他系统的转译
 
-                if (_isCompatible!.Value)
+
+                if (_isCompatible!.Value) // 若判断后变为兼容，则视为启用转译
                 {
                     _useTranslation = true;
                 }
@@ -76,7 +79,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             _output = null;
         }
 
-        private bool? _useTranslation; // 是否启用转译，启用后会损失性能
+        private bool? _useTranslation; // 是否需要转译运行 (会损失性能)
 
         public bool UseTranslation
         {
@@ -147,8 +150,8 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         public string JavaExe => System.IO.Path.Combine(Path, "java");
 
-        public string? JavaWExe
-            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? System.IO.Path.Combine(Path, "javaw.exe") : null;
+        public string JavaWExe
+            => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? System.IO.Path.Combine(Path, "javaw.exe") : JavaExe;
 
         private string? _output;
 
