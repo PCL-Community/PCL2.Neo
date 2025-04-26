@@ -10,6 +10,7 @@ using PCL2.Neo.Helpers;
 using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Views;
@@ -34,10 +35,12 @@ public partial class MainWindow : Window
 
         AnimationIn();
     }
+
     private void OnNavPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         this.BeginMoveDrag(e);
     }
+
     /// <summary>
     /// 进入窗口的动画。
     /// </summary>
@@ -46,11 +49,14 @@ public partial class MainWindow : Window
         var animation = new AnimationHelper(
         [
             new OpacityAnimation(this, TimeSpan.FromMilliseconds(250), 0d, 1d),
-            new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(600), 60d, 0d, new MyBackEaseOut(EasePower.Weak)),
-            new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(500), -4d, 0d, new MyBackEaseOut(EasePower.Weak))
+            new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(600), 60d, 0d,
+                new MyBackEaseOut(EasePower.Weak)),
+            new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(500), -4d, 0d,
+                new MyBackEaseOut(EasePower.Weak))
         ]);
         await animation.RunAsync();
     }
+
     /// <summary>
     /// 关闭窗口的动画。
     /// </summary>
@@ -60,7 +66,8 @@ public partial class MainWindow : Window
         {
             var animation = new AnimationHelper(
             [
-                new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
+                new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d,
+                    new QuadraticEaseOut()),
                 new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
                 new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
                 new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
@@ -82,6 +89,7 @@ public partial class MainWindow : Window
 
     private async void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
+        Console.WriteLine($"当前系统架构 {RuntimeInformation.OSArchitecture}");
         try
         {
             var javas = await Java.SearchJava();
@@ -89,20 +97,13 @@ public partial class MainWindow : Window
 
             foreach (var java in javas)
             {
-                try
-                {
-                    Console.WriteLine("----------------------");
-                    Console.WriteLine($"路径: {java.DirectoryPath}");
-                    var version = java.Version;
-                    Console.WriteLine($"版本: Java {version}");
-                    Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
-                    Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
-                    Console.WriteLine($"可用: {java.Compability}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"处理Java信息时出错: {ex.Message}");
-                }
+                Console.WriteLine("----------------------");
+                Console.WriteLine($"路径: {java.DirectoryPath}");
+                Console.WriteLine($"版本: Java {java.Version}");
+                Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
+                Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
+                Console.WriteLine($"可用: {java.Compability}");
+                Console.WriteLine($"是否为通用二进制：{java.IsFatFile}");
             }
         }
         catch (Exception ex)

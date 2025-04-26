@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
+
 public enum JavaCompability
 {
     Unknown,
@@ -35,7 +36,9 @@ public class JavaEntity
     private class JavaInfo
     {
         public int Version { get; set; }
+
         public bool Is64Bit { get; set; }
+
         // public Architecture Architecture { get; set; }
         public bool IsJre { get; set; }
         public bool IsFatFile { get; set; }
@@ -58,12 +61,14 @@ public class JavaEntity
     // 向外暴露的信息
     public bool IsUserImport { get; set; }
     public int Version => _javaInfo.Value.Version;
+
     public bool Is64Bit => _javaInfo.Value.Is64Bit;
+
     // public Architecture Architecture => _javaInfo.Value.Architecture;
     public bool IsFatFile => _javaInfo.Value.IsFatFile;
     public JavaCompability Compability => _javaInfo.Value.Compability;
     public bool IsJre => _javaInfo.Value.IsJre;
-    public string JavaExe => Path.Combine(DirectoryPath, "java");   // [INFO] 这里必须直接指定，否则初始化会出错
+    public string JavaExe => Path.Combine(DirectoryPath, "java"); // [INFO] 这里必须直接指定，否则初始化会出错
 
     /// <summary>
     /// Windows 特有的 javaw.exe
@@ -113,21 +118,38 @@ public class JavaEntity
             lipoProcess.WaitForExit();
             var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
-            info.IsFatFile = !output.StartsWith("Non-fat file");
-            switch (sysArchitecture)
+            info.IsFatFile = output.StartsWith("Architectures in the fat file:");
+
+            // 使用正则表达式精确匹配架构信息，避免路径中包含关键词导致误判
+            var architectureRegex =
+                new Regex(@"is architecture:\s*(\w+)|Architectures in the fat file:.*:\s*([\w\s]+)");
+            var match = architectureRegex.Match(output);
+
+            if (match.Success)
             {
-                case Architecture.X64:
-                    info.Compability = output.Contains("x64") ? JavaCompability.Yes : JavaCompability.No;
-                    break;
-                case Architecture.Arm64:
-                    if(output.Contains("arm64")) info.Compability = JavaCompability.Yes;
-                    else if(output.Contains("x64")) info.Compability = JavaCompability.UnderTranslation;
-                    break;
-                default:
-                    Debug.WriteLine("未知的 macOS 系统架构");  // 理论上程序不可能运行到这里
-                    break;
+                var architectures = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+
+                switch (sysArchitecture)
+                {
+                    case Architecture.X64:
+                        info.Compability = architectures.Contains("x86_64") ? JavaCompability.Yes : JavaCompability.No;
+                        break;
+                    case Architecture.Arm64:
+                        if (architectures.Contains("arm64")) info.Compability = JavaCompability.Yes;
+                        else if (architectures.Contains("x86_64")) info.Compability = JavaCompability.UnderTranslation;
+                        break;
+                    default:
+                        Debug.WriteLine("未知的 macOS 系统架构"); // 理论上程序不可能运行到这里
+                        break;
+                }
+            }
+            else
+            {
+                Debug.WriteLine("无法解析 lipo 输出中的架构信息");
+                info.Compability = JavaCompability.Unknown;
             }
         }
+
         // TODO)) 判断其他系统的可执行文件架构
         return info;
     }
