@@ -1,4 +1,5 @@
 using PCL2.Neo.Utils;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -13,6 +14,7 @@ public enum JavaCompability
     Yes,
     No,
     UnderTranslation,
+    Error,
 }
 
 /// <summary>
@@ -61,6 +63,7 @@ public class JavaEntity
     {
         Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
         var javaInfo = await JavaInfoInitAsync(directoryPath);
+        // if(javaInfo.Compability == JavaCompability.Error) return null;
         var javaEntity = new JavaEntity(directoryPath, javaInfo);
         return javaEntity;
     }
@@ -83,7 +86,28 @@ public class JavaEntity
     {
         Debug.WriteLine("JavaInfoInit...");
         var javaExe = Path.Combine(directoryPath, "java");
-        var runJavaOutput = await GetRunJavaOutputAsync(javaExe);
+        string runJavaOutput;
+        try
+        {
+            runJavaOutput = await GetRunJavaOutputAsync(javaExe);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return new JavaInfo
+            {
+                Version = 0,
+                Is64Bit = false,
+                IsJre = false,
+                IsFatFile = false,
+                Compability = JavaCompability.Error,
+                JavaExe = javaExe,
+                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? Path.Combine(directoryPath, "javaw.exe")
+                    : javaExe,
+            };
+        }
+
         var info = new JavaInfo
         {
             Version = MatchVersion(runJavaOutput), // 设置版本（Version）

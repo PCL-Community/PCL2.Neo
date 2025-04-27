@@ -22,7 +22,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             javaPaths.UnionWith(GetOsKnowDirs(platform));
             if (CheckJavaHome() is { } javaHome) javaPaths.Add(javaHome);
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
-            if(platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
+            if (platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
             var validPaths = new HashSet<string>();
             var validEntities = new List<JavaEntity>();
             foreach (string path in javaPaths.Where(Directory.Exists))
@@ -37,8 +37,16 @@ namespace PCL2.Neo.Models.Minecraft.Java
                     }
                 }
             }
+
             foreach (string validPath in validPaths)
-                validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
+            {
+                var newEntity = await JavaEntity.CreateJavaEntityAsync(validPath);
+                if (newEntity.Compability is not JavaCompability.Error)
+                {
+                    validEntities.Add(newEntity);
+                }
+            }
+
             return validEntities;
         }
 

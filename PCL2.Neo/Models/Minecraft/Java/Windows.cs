@@ -39,7 +39,9 @@ namespace PCL2.Neo.Models.Minecraft.Java
             var validEntities = new List<JavaEntity>();
             foreach (string validPath in javaEntities)
             {
-                validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
+                var newEntity = await JavaEntity.CreateJavaEntityAsync(validPath);
+                if(newEntity.Compability != JavaCompability.Error)
+                    validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
             }
             return validEntities;
         }

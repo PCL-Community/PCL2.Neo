@@ -16,6 +16,10 @@ public class Java
 
     private Java() { }  // 私有构造函数
 
+    /// <summary>
+    /// 供外部调用，根据实际情况创建 Java 管理器实例
+    /// </summary>
+    /// <returns></returns>
     public static async Task<Java> CreateAsync()
     {
         var java = new Java();
@@ -59,6 +63,13 @@ public class Java
             Console.WriteLine("初始化 Java 失败");
             throw;
         }
+    }
+
+    public async Task ManualAdd(string javaDir)
+    {
+        var entity = await JavaEntity.CreateJavaEntityAsync(javaDir);
+        if(entity.Compability is not JavaCompability.Error) JavaList.Add(entity);
+        else Console.WriteLine("添加的 Java 文件无法运行！");
     }
 
     public static async Task<IEnumerable<JavaEntity>> SearchJava()
