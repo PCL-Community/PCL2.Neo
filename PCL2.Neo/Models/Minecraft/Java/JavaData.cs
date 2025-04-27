@@ -1,7 +1,7 @@
+using PCL2.Neo.Utils;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -111,9 +111,11 @@ public class JavaEntity
             };
             lipoProcess.Start();
             lipoProcess.WaitForExit();
-            var output = lipoProcess.StandardOutput.ReadToEnd().Trim().Split(":").Last();
+            var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
             info.IsFatFile = !output.StartsWith("Non-fat file");
+            output = output.AfterLast(":");
+            Debug.Assert(sysArchitecture is Architecture.X64 or Architecture.Arm64);
             switch (sysArchitecture)
             {
                 case Architecture.X64:
@@ -124,7 +126,7 @@ public class JavaEntity
                     else if(output.Contains("x86_64")) info.Compability = JavaCompability.UnderTranslation;
                     break;
                 default:
-                    Debug.WriteLine("未知的 macOS 系统架构");  // 理论上程序不可能运行到这里
+                    Debug.Fail("本句报错理论上永远不会出现：可运行Avalonia的macOS不可能是其他架构");
                     break;
             }
         }
