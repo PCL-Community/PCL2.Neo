@@ -36,8 +36,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 .Select(async item => await SearchFolderAsync(item, maxDeep: 6))
                 .SelectMany(it => it.Result);
             javaEntities.AddRange(result);
-
-            return javaEntities.Distinct().Select(it => new JavaEntity(it));
+            var validEntities = new List<JavaEntity>();
+            foreach (string validPath in javaEntities)
+            {
+                validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
+            }
+            return validEntities;
         }
 
         private static IEnumerable<string> SearchRegister()

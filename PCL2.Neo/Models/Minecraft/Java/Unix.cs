@@ -24,16 +24,22 @@ namespace PCL2.Neo.Models.Minecraft.Java
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
             if(platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
             var validPaths = new HashSet<string>();
+            var validEntities = new List<JavaEntity>();
             foreach (string path in javaPaths.Where(Directory.Exists))
             {
                 var foundPaths = await SearchJavaExecutablesAsync(path);
                 foreach (string foundPath in foundPaths)
                 {
                     var directoryName = Path.GetDirectoryName(foundPath);
-                    if (directoryName != null) validPaths.Add(directoryName);
+                    if (directoryName != null)
+                    {
+                        validPaths.Add(directoryName);
+                    }
                 }
             }
-            return validPaths.Select(x => new JavaEntity(x));
+            foreach (string validPath in validPaths)
+                validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
+            return validEntities;
         }
 
         private static List<string> GetOsKnowDirs(OSPlatform platform)

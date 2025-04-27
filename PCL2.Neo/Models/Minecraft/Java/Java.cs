@@ -27,7 +27,7 @@ public class Java
     /// 初始化 Java 列表，但除非没有 Java，否则不进行检查。
     /// TODO)) 更换为 Logger.cs 中的 logger
     /// </summary>
-    public async Task JavaListInit()
+    private async Task JavaListInit()
     {
         JavaList = [];
         try
@@ -71,5 +71,18 @@ public class Java
             return await Unix.SearchJavaAsync(OSPlatform.OSX);
 
         throw new PlatformNotSupportedException();
+    }
+
+    public static async Task TestOutput()
+    {
+        Java javaInstance = await CreateAsync();
+        Console.WriteLine("当前有 " + javaInstance.JavaList.Count + " 个 Java");
+        foreach (JavaEntity javaEntity in javaInstance.JavaList)
+        {
+            Console.WriteLine("--------------------");
+            Console.WriteLine("路径: " + javaEntity.DirectoryPath);
+            Console.WriteLine("是否兼容: " + javaEntity.Compability);
+            Console.WriteLine("是否通用: " + javaEntity.IsFatFile);
+        }
     }
 }
