@@ -84,8 +84,8 @@ public partial class MainWindow : Window
     {
         try
         {
-            var javas = await Java.SearchJava();
-            Console.WriteLine($"找到 {javas.Count()} 个Java环境:");
+            var javas = (await Java.SearchJava()).ToList();
+            Console.WriteLine($"找到 {javas.Count} 个Java环境:");
 
             foreach (var java in javas)
             {
