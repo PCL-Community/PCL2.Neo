@@ -4,14 +4,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
+
 public enum JavaCompability
 {
     Unknown,
     Yes,
     No,
     UnderTranslation,
+    Error,
 }
 
 /// <summary>
@@ -27,68 +30,101 @@ public class JavaEntity
     /// <summary>
     /// 描述具体的 Java 信息，内部信息，不应在外部取用
     /// </summary>
-    private readonly Lazy<JavaInfo> _javaInfo;
+    private readonly JavaInfo _javaInfo;
+
+    private JavaEntity(string directoryPath, JavaInfo javaInfo)
+    {
+        DirectoryPath = directoryPath;
+        _javaInfo = javaInfo;
+    }
 
     /// <summary>
     /// 具体的 Java 信息数据结构
     /// </summary>
     private class JavaInfo
     {
-        public int Version { get; set; }
-        public bool Is64Bit { get; set; }
+        public int Version { get; init; }
+
+        public bool Is64Bit { get; init; }
+
         // public Architecture Architecture { get; set; }
-        public bool IsJre { get; set; }
+        public bool IsJre { get; init; }
         public bool IsFatFile { get; set; }
         public JavaCompability Compability { get; set; }
         public required string JavaExe { get; set; }
-        public required string JavaWExe { get; set; }
+        public required string JavaWExe { get; init; }
     }
 
     /// <summary>
-    /// 单个Java 实体的构造函数
+    /// 单个Java 实体的工厂函数
     /// </summary>
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
-    public JavaEntity(string directoryPath)
+    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath)
     {
         Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
-        DirectoryPath = directoryPath;
-        _javaInfo = new Lazy<JavaInfo>(JavaInfoInit);
+        var javaInfo = await JavaInfoInitAsync(directoryPath);
+        if(javaInfo.Compability == JavaCompability.Error) return null;
+        var javaEntity = new JavaEntity(directoryPath, javaInfo);
+        return javaEntity;
     }
 
-    // 向外暴露的信息
     public bool IsUserImport { get; set; }
-    public int Version => _javaInfo.Value.Version;
-    public bool Is64Bit => _javaInfo.Value.Is64Bit;
-    // public Architecture Architecture => _javaInfo.Value.Architecture;
-    public bool IsFatFile => _javaInfo.Value.IsFatFile;
-    public JavaCompability Compability => _javaInfo.Value.Compability;
-    public bool IsJre => _javaInfo.Value.IsJre;
-    public string JavaExe => Path.Combine(DirectoryPath, "java");   // [INFO] 这里必须直接指定，否则初始化会出错
+    public int Version => _javaInfo.Version;
+    public bool Is64Bit => _javaInfo.Is64Bit;
+    public bool IsFatFile => _javaInfo.IsFatFile;
+    public JavaCompability Compability => _javaInfo.Compability;
+    public bool IsJre => _javaInfo.IsJre;
+    public string JavaExe => Path.Combine(DirectoryPath, "java");
 
     /// <summary>
     /// Windows 特有的 javaw.exe
     /// </summary>
-    public string JavaWExe => _javaInfo.Value.JavaWExe;
+    public string JavaWExe => _javaInfo.JavaWExe;
 
 
-    private JavaInfo JavaInfoInit()
+    private static async Task<JavaInfo> JavaInfoInitAsync(string directoryPath)
     {
         Debug.WriteLine("JavaInfoInit...");
-        var runJavaOutput = GetRunJavaOutput(JavaExe);
+        var javaExe = Path.Combine(directoryPath, "java");
+        string runJavaOutput;
+        try
+        {
+            runJavaOutput = await GetRunJavaOutputAsync(javaExe);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return new JavaInfo
+            {
+                Version = 0,
+                Is64Bit = false,
+                IsJre = false,
+                IsFatFile = false,
+                Compability = JavaCompability.Error,
+                JavaExe = javaExe,
+                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? Path.Combine(directoryPath, "javaw.exe")
+                    : javaExe,
+            };
+        }
+
         var info = new JavaInfo
         {
             Version = MatchVersion(runJavaOutput), // 设置版本（Version）
             Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
-            IsJre = !File.Exists(Path.Combine(DirectoryPath,
+            IsJre = !File.Exists(Path.Combine(directoryPath,
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
             // Architecture = RuntimeInformation.OSArchitecture,
             IsFatFile = false,
             Compability = JavaCompability.Unknown,
-            JavaExe = JavaExe,
+            JavaExe = javaExe,
             JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? Path.Combine(DirectoryPath, "javaw.exe")
-                : JavaExe,
+                ? Path.Combine(directoryPath, "javaw.exe")
+                : javaExe,
         };
+
+        if (info.Version == 0)
+            info.Compability = JavaCompability.Error;
 
         // 针对 Windows 设置兼容性，是 64 位则兼容
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -103,15 +139,15 @@ public class JavaEntity
             lipoProcess.StartInfo = new ProcessStartInfo
             {
                 FileName = "/usr/bin/lipo",
-                Arguments = "-info " + JavaExe,
+                Arguments = "-info " + javaExe,
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true
             };
             lipoProcess.Start();
-            lipoProcess.WaitForExit();
-            var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
+            await lipoProcess.WaitForExitAsync();
+            var output = (await lipoProcess.StandardOutput.ReadToEndAsync()).Trim();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
             info.IsFatFile = !output.StartsWith("Non-fat file");
             output = output.AfterLast(":");
@@ -122,8 +158,8 @@ public class JavaEntity
                     info.Compability = output.Contains("x86_64") ? JavaCompability.Yes : JavaCompability.No;
                     break;
                 case Architecture.Arm64:
-                    if(output.Contains("arm64")) info.Compability = JavaCompability.Yes;
-                    else if(output.Contains("x86_64")) info.Compability = JavaCompability.UnderTranslation;
+                    if (output.Contains("arm64")) info.Compability = JavaCompability.Yes;
+                    else if (output.Contains("x86_64")) info.Compability = JavaCompability.UnderTranslation;
                     break;
                 default:
                     Debug.Fail("本句报错理论上永远不会出现：可运行Avalonia的macOS不可能是其他架构");
@@ -198,7 +234,7 @@ public class JavaEntity
     /// 运行 java -version 并获取输出
     /// </summary>
     /// <returns></returns>
-    private static string GetRunJavaOutput(string javaExe)
+    private static async Task<string> GetRunJavaOutputAsync(string javaExe)
     {
         using var javaProcess = new Process();
         javaProcess.StartInfo = new ProcessStartInfo
@@ -211,10 +247,10 @@ public class JavaEntity
             RedirectStandardOutput = true
         };
         javaProcess.Start();
-        javaProcess.WaitForExit();
+        await javaProcess.WaitForExitAsync();
 
-        var output = javaProcess.StandardError.ReadToEnd();
-        return output != string.Empty ? output : javaProcess.StandardOutput.ReadToEnd(); // 就是tmd stderr
+        var output = await javaProcess.StandardError.ReadToEndAsync();
+        return output != string.Empty ? output : await javaProcess.StandardOutput.ReadToEndAsync(); // 就是tmd stderr
     }
 
     private static int MatchVersion(string runJavaOutput)
