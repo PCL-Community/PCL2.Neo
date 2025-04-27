@@ -30,7 +30,7 @@ public class JavaEntity
     /// <summary>
     /// 描述具体的 Java 信息，内部信息，不应在外部取用
     /// </summary>
-    private readonly JavaInfo _javaInfo;
+    private JavaInfo _javaInfo;
 
     private JavaEntity(string directoryPath, JavaInfo javaInfo)
     {
@@ -59,12 +59,13 @@ public class JavaEntity
     /// 单个Java 实体的工厂函数
     /// </summary>
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
-    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath)
+    /// <param name="isUserImport">是否为用户手动导入</param>
+    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath, bool isUserImport = false)
     {
         Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
         var javaInfo = await JavaInfoInitAsync(directoryPath);
         if(javaInfo.Compability == JavaCompability.Error) return null;
-        var javaEntity = new JavaEntity(directoryPath, javaInfo);
+        var javaEntity = new JavaEntity(directoryPath, javaInfo) { IsUserImport = isUserImport };
         return javaEntity;
     }
 
@@ -228,6 +229,15 @@ public class JavaEntity
 
         // TODO)) 判断其他系统的可执行文件架构
         return info;
+    }
+
+    /// <summary>
+    /// 刷新 Java 实体的信息
+    /// </summary>
+    public async Task<bool> RefreshInfo()
+    {
+        _javaInfo = await JavaInfoInitAsync(DirectoryPath);
+        return _javaInfo.Compability != JavaCompability.Error;
     }
 
     /// <summary>

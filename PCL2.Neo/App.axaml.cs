@@ -6,14 +6,17 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using PCL2.Neo.Helpers;
+using PCL2.Neo.Models.Minecraft.Java;
 using PCL2.Neo.Utils;
 using PCL2.Neo.ViewModels;
 using PCL2.Neo.Views;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo
 {
     public partial class App : Application
     {
+        public static Java JavaManager;
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -21,6 +24,7 @@ namespace PCL2.Neo
 
         public override void OnFrameworkInitializationCompleted()
         {
+            Task.Run(SetupJavaManager);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
@@ -30,6 +34,11 @@ namespace PCL2.Neo
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private async Task SetupJavaManager()
+        {
+            JavaManager = await Java.CreateAsync();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()
