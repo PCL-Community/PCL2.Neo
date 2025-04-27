@@ -210,7 +210,7 @@ public class JavaEntity
 
                 ushort eMachine = reader.ReadUInt16();
 
-                Architecture architecture = eMachine switch
+                Architecture? architecture = eMachine switch
                 {
                     0x03 => Architecture.X86,
                     0x3E => Architecture.X64,
@@ -219,11 +219,13 @@ public class JavaEntity
                     0xF3 => Architecture.RiscV64,
                     0x102 => Architecture.LoongArch64,
                     // TODO 添加更多的架构判断
-                    _ => throw new NotSupportedException($"Unsupported architecture: 0x{eMachine:X4}")
+                    _ => null
                 };
-                Console.WriteLine($"{javaExe}: {architecture}"); // for debug
-
-                info.Compability = architecture == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
+                if (architecture != null)
+                {
+                    Console.WriteLine($"{javaExe}: {architecture.Value}"); // for debug
+                    info.Compability = architecture.Value == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
+                }
             }
         }
 
