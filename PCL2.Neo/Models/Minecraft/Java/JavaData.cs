@@ -1,7 +1,7 @@
+using PCL2.Neo.Utils;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
@@ -114,7 +114,7 @@ public class JavaEntity
             var output = lipoProcess.StandardOutput.ReadToEnd().Trim();
             var sysArchitecture = RuntimeInformation.OSArchitecture;
             info.IsFatFile = !output.StartsWith("Non-fat file");
-            output = output.Split(":").Last();
+            output = output.AfterLast(":");
             Debug.Assert(sysArchitecture is Architecture.X64 or Architecture.Arm64);
             switch (sysArchitecture)
             {
