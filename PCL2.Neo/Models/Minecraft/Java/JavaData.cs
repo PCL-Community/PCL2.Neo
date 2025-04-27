@@ -198,7 +198,7 @@ public class JavaEntity
             //         break;
             // }
 
-            using FileStream fs = new(JavaExe, FileMode.Open, FileAccess.Read);
+            await using FileStream fs = new(javaExe, FileMode.Open, FileAccess.Read);
             using BinaryReader reader = new(fs);
             if (reader.ReadByte() == 0x7F &&
                 reader.ReadByte() == 'E' &&
@@ -220,7 +220,7 @@ public class JavaEntity
                     // TODO 添加更多的架构判断
                     _ => throw new NotSupportedException($"Unsupported architecture: 0x{eMachine:X4}")
                 };
-                Console.WriteLine($"{JavaExe}: {architecture}"); // for debug
+                Console.WriteLine($"{javaExe}: {architecture}"); // for debug
 
                 info.Compability = architecture == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
             }
