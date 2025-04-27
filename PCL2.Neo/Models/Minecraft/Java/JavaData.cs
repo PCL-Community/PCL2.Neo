@@ -164,32 +164,30 @@ public class JavaEntity
 
             using FileStream fs = new(JavaExe, FileMode.Open, FileAccess.Read);
             using BinaryReader reader = new(fs);
-            if (reader.ReadByte() != 0x7F ||
-                reader.ReadByte() != 'E' ||
-                reader.ReadByte() != 'L' ||
-                reader.ReadByte() != 'F')
+            if (reader.ReadByte() == 0x7F &&
+                reader.ReadByte() == 'E' &&
+                reader.ReadByte() == 'L' &&
+                reader.ReadByte() == 'F')
             {
-                throw new InvalidDataException("Not an ELF file");
+                fs.Seek(12, SeekOrigin.Current);
+
+                ushort eMachine = reader.ReadUInt16();
+
+                Architecture architecture = eMachine switch
+                {
+                    0x03 => Architecture.X86,
+                    0x3E => Architecture.X64,
+                    0x28 => Architecture.Arm,
+                    0xB7 => Architecture.Arm64,
+                    0xF3 => Architecture.RiscV64,
+                    0x102 => Architecture.LoongArch64,
+                    // TODO 添加更多的架构判断
+                    _ => throw new NotSupportedException($"Unsupported architecture: 0x{eMachine:X4}")
+                };
+                Console.WriteLine($"{JavaExe}: {architecture}"); // for debug
+
+                info.Compability = architecture == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
             }
-
-            fs.Seek(12, SeekOrigin.Current);
-
-            ushort eMachine = reader.ReadUInt16();
-
-            Architecture architecture = eMachine switch
-            {
-                0x03 => Architecture.X86,
-                0x3E => Architecture.X64,
-                0x28 => Architecture.Arm,
-                0xB7 => Architecture.Arm64,
-                0xF3 => Architecture.RiscV64,
-                0x102 => Architecture.LoongArch64,
-                // TODO 添加更多的架构判断
-                _ => throw new NotSupportedException($"Unsupported architecture: 0x{eMachine:X4}")
-            };
-            Console.WriteLine($"{JavaExe}: {architecture}"); // for debug
-
-            info.Compability = architecture == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
         }
 
         // TODO)) 判断其他系统的可执行文件架构
