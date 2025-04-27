@@ -9,9 +9,11 @@ namespace PCL2.Neo.Models.Minecraft.Java;
 /// <summary>
 /// 测试
 /// </summary>
-public class Java
+public sealed class Java
 {
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
+    public bool IsInitialized { get; private set; } = false;
+
     public List<JavaEntity> JavaList { get; private set; } = [];
 
     private Java() { } // 私有构造函数
@@ -33,6 +35,7 @@ public class Java
     /// </summary>
     private async Task JavaListInit()
     {
+        if (IsInitialized) return;
         JavaList = [];
         try
         {
@@ -52,24 +55,48 @@ public class Java
             {
                 Console.WriteLine("[Java] 初始化未找到可用的 Java，将自动触发搜索");
                 JavaList = (await SearchJava()).ToList();
+                Console.Write($"[Java] 搜索完成 ");
             }
             else
             {
                 Console.WriteLine($"[Java] 缓存中有{JavaList.Count}个可用的 Java：");
             }
+
+            IsInitialized = true;
+            TestOutput();
         }
         catch (Exception e)
         {
             Console.WriteLine("初始化 Java 失败");
+            IsInitialized = false;
             throw;
         }
     }
 
     public async Task ManualAdd(string javaDir)
     {
-        var entity = await JavaEntity.CreateJavaEntityAsync(javaDir);
+        if (!IsInitialized) return;
+        var entity = await JavaEntity.CreateJavaEntityAsync(javaDir, true);
         if (entity is { Compability: not JavaCompability.Error }) JavaList.Add(entity);
         else Console.WriteLine("添加的 Java 文件无法运行！");
+    }
+
+    public async Task Refresh()
+    {
+        Console.WriteLine("[Java] 正在刷新 Java");
+        List<JavaEntity> newEntities = [];
+        // 对于用户手动导入的 Java，保留并重新检查可用性
+        var oldManualEntities = JavaList.FindAll(entity => entity.IsUserImport);
+        JavaList.Clear();
+        var searchedEntities = (await SearchJava()).ToList();
+        newEntities.AddRange(searchedEntities);
+        foreach (JavaEntity entity in oldManualEntities)
+            if (searchedEntities.All(javaEntity => javaEntity.DirectoryPath != entity.DirectoryPath))
+                if(await entity.RefreshInfo())
+                    newEntities.Add(entity);
+        JavaList = newEntities;
+        Console.WriteLine("[Java] 刷新 Java 完成");
+        TestOutput();
     }
 
     public static async Task<IEnumerable<JavaEntity>> SearchJava()
@@ -84,11 +111,11 @@ public class Java
         throw new PlatformNotSupportedException();
     }
 
-    public static async Task TestOutput()
+    public void TestOutput()
     {
-        Java javaInstance = await CreateAsync();
-        Console.WriteLine("当前有 " + javaInstance.JavaList.Count + " 个 Java");
-        foreach (JavaEntity? javaEntity in javaInstance.JavaList)
+        if (!IsInitialized) return;
+        Console.WriteLine("当前有 " + JavaList.Count + " 个 Java");
+        foreach (JavaEntity? javaEntity in JavaList)
         {
             Console.WriteLine("--------------------");
             Console.WriteLine("路径: " + javaEntity.DirectoryPath);

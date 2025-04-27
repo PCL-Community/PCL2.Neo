@@ -82,6 +82,6 @@ public partial class MainWindow : Window
 
     private void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
-        Task.Run(Java.TestOutput);
+        Task.Run(App.JavaManager.Refresh);
     }
 }
