@@ -11,10 +11,10 @@ namespace PCL2.Neo.Models.Minecraft.Java;
 /// </summary>
 public class Java
 {
-    public const int JavaListCacheVersion = 0;    // [INFO] Java 缓存版本号，大版本更新后应该增加
+    public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public List<JavaEntity> JavaList { get; private set; } = [];
 
-    private Java() { }  // 私有构造函数
+    private Java() { } // 私有构造函数
 
     /// <summary>
     /// 供外部调用，根据实际情况创建 Java 管理器实例
@@ -37,7 +37,7 @@ public class Java
         try
         {
             // TODO)) 如果本地缓存中已有 Java 列表则读取缓存
-            int readJavaListCacheVersion = 0;   // TODO)) 此数字应该从缓存中读取
+            int readJavaListCacheVersion = 0; // TODO)) 此数字应该从缓存中读取
             if (readJavaListCacheVersion < JavaListCacheVersion)
             {
                 // TODO)) 设置本地版本号为 JavaListCacheVersion
@@ -68,7 +68,7 @@ public class Java
     public async Task ManualAdd(string javaDir)
     {
         var entity = await JavaEntity.CreateJavaEntityAsync(javaDir);
-        if(entity.Compability is not JavaCompability.Error) JavaList.Add(entity);
+        if (entity is { Compability: not JavaCompability.Error }) JavaList.Add(entity);
         else Console.WriteLine("添加的 Java 文件无法运行！");
     }
 
@@ -88,7 +88,7 @@ public class Java
     {
         Java javaInstance = await CreateAsync();
         Console.WriteLine("当前有 " + javaInstance.JavaList.Count + " 个 Java");
-        foreach (JavaEntity javaEntity in javaInstance.JavaList)
+        foreach (JavaEntity? javaEntity in javaInstance.JavaList)
         {
             Console.WriteLine("--------------------");
             Console.WriteLine("路径: " + javaEntity.DirectoryPath);
