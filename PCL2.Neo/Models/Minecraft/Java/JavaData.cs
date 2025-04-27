@@ -170,32 +170,59 @@ public class JavaEntity
         // 针对 Linux 设置兼容性
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
-            using var fileProcess = new Process();
-            fileProcess.StartInfo = new ProcessStartInfo
+            // using var fileProcess = new Process();
+            // fileProcess.StartInfo = new ProcessStartInfo
+            // {
+            //     FileName = "/usr/bin/file",
+            //     Arguments = "-L " + JavaExe,
+            //     UseShellExecute = false,
+            //     RedirectStandardOutput = true
+            // };
+            // fileProcess.Start();
+            // fileProcess.WaitForExit();
+            // var arch = fileProcess.StandardOutput.ReadToEnd().Trim().Replace(JavaExe, "").Split(",")[1];
+            // info.IsFatFile = false; // TODO 需要进一步判断
+            // switch (RuntimeInformation.OSArchitecture)
+            // {
+            //     case Architecture.X64:
+            //         info.Compability = arch.Contains("x86-64") ? JavaCompability.Yes : JavaCompability.No;
+            //         break;
+            //     case Architecture.Arm64:
+            //         if (arch.Contains("ARM aarch64"))
+            //             info.Compability = JavaCompability.Yes;
+            //         else if (arch.Contains("x86-64"))
+            //             info.Compability = JavaCompability.UnderTranslation; // QEMU
+            //         break;
+            //     default:
+            //         Debug.WriteLine("未知的 Linux 系统架构");
+            //         break;
+            // }
+
+            using FileStream fs = new(JavaExe, FileMode.Open, FileAccess.Read);
+            using BinaryReader reader = new(fs);
+            if (reader.ReadByte() == 0x7F &&
+                reader.ReadByte() == 'E' &&
+                reader.ReadByte() == 'L' &&
+                reader.ReadByte() == 'F')
             {
-                FileName = "/usr/bin/file",
-                Arguments = "-L " + javaExe,
-                UseShellExecute = false,
-                RedirectStandardOutput = true
-            };
-            fileProcess.Start();
-            await fileProcess.WaitForExitAsync();
-            var arch = (await fileProcess.StandardOutput.ReadToEndAsync()).Trim().Replace(javaExe, "").Split(",")[1];
-            info.IsFatFile = false; // TODO 需要进一步判断
-            switch (RuntimeInformation.OSArchitecture)
-            {
-                case Architecture.X64:
-                    info.Compability = arch.Contains("x86-64") ? JavaCompability.Yes : JavaCompability.No;
-                    break;
-                case Architecture.Arm64:
-                    if (arch.Contains("ARM aarch64"))
-                        info.Compability = JavaCompability.Yes;
-                    else if (arch.Contains("x86-64"))
-                        info.Compability = JavaCompability.UnderTranslation; // QEMU
-                    break;
-                default:
-                    Debug.WriteLine("未知的 Linux 系统架构");
-                    break;
+                fs.Seek(12, SeekOrigin.Current);
+
+                ushort eMachine = reader.ReadUInt16();
+
+                Architecture architecture = eMachine switch
+                {
+                    0x03 => Architecture.X86,
+                    0x3E => Architecture.X64,
+                    0x28 => Architecture.Arm,
+                    0xB7 => Architecture.Arm64,
+                    0xF3 => Architecture.RiscV64,
+                    0x102 => Architecture.LoongArch64,
+                    // TODO 添加更多的架构判断
+                    _ => throw new NotSupportedException($"Unsupported architecture: 0x{eMachine:X4}")
+                };
+                Console.WriteLine($"{JavaExe}: {architecture}"); // for debug
+
+                info.Compability = architecture == RuntimeInformation.OSArchitecture ? JavaCompability.Yes : JavaCompability.No; // 未判断转译
             }
         }
 
