@@ -59,11 +59,11 @@ public class JavaEntity
     /// 单个Java 实体的工厂函数
     /// </summary>
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
-    public static async Task<JavaEntity> CreateJavaEntityAsync(string directoryPath)
+    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath)
     {
         Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
         var javaInfo = await JavaInfoInitAsync(directoryPath);
-        // if(javaInfo.Compability == JavaCompability.Error) return null;
+        if(javaInfo.Compability == JavaCompability.Error) return null;
         var javaEntity = new JavaEntity(directoryPath, javaInfo);
         return javaEntity;
     }
@@ -122,6 +122,9 @@ public class JavaEntity
                 ? Path.Combine(directoryPath, "javaw.exe")
                 : javaExe,
         };
+
+        if (info.Version == 0)
+            info.Compability = JavaCompability.Error;
 
         // 针对 Windows 设置兼容性，是 64 位则兼容
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

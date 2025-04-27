@@ -24,7 +24,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
             if (platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
             var validPaths = new HashSet<string>();
-            var validEntities = new List<JavaEntity>();
+            var validEntities = new List<JavaEntity?>();
             foreach (string path in javaPaths.Where(Directory.Exists))
             {
                 var foundPaths = await SearchJavaExecutablesAsync(path);
@@ -41,7 +41,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             foreach (string validPath in validPaths)
             {
                 var newEntity = await JavaEntity.CreateJavaEntityAsync(validPath);
-                if (newEntity.Compability is not JavaCompability.Error)
+                if (newEntity is { Compability: not JavaCompability.Error })
                 {
                     validEntities.Add(newEntity);
                 }
