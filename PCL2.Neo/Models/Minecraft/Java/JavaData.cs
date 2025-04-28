@@ -140,7 +140,7 @@ public class JavaRuntime
                 IsFatFile = false,
                 Compability = JavaCompability.Error,
                 JavaExe = javaExe,
-                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                JavaWExe = Const.Os is Const.RunningOs.Windows
                     ? Path.Combine(directoryPath, "javaw.exe")
                     : javaExe,
             };
@@ -151,12 +151,12 @@ public class JavaRuntime
             Version = MatchVersion(runJavaOutput), // 设置版本（Version）
             Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
             IsJre = !File.Exists(Path.Combine(directoryPath,
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
+                Const.Os is Const.RunningOs.Windows ? "javac.exe" : "javac")),
             // Architecture = RuntimeInformation.OSArchitecture,
             IsFatFile = false,
             Compability = JavaCompability.Unknown,
             JavaExe = javaExe,
-            JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            JavaWExe = Const.Os is Const.RunningOs.Windows
                 ? Path.Combine(directoryPath, "javaw.exe")
                 : javaExe,
         };
@@ -165,13 +165,13 @@ public class JavaRuntime
             info.Compability = JavaCompability.Error;
 
         // 针对 Windows 设置兼容性，是 64 位则兼容
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (Const.Os is Const.RunningOs.Windows)
         {
             info.Compability = info.Is64Bit ? JavaCompability.Yes : JavaCompability.No;
         }
 
         // 针对 macOS 的转译问题额外设置兼容性
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        if (Const.Os is Const.RunningOs.MacOs)
         {
             using var lipoProcess = new Process();
             lipoProcess.StartInfo = new ProcessStartInfo

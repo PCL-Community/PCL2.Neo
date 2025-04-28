@@ -16,15 +16,15 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     internal static class Unix
     {
-        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(OSPlatform platform)
+        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(Const.RunningOs platform)
         {
             var javaPaths = new HashSet<string>();
             javaPaths.UnionWith(GetOsKnowDirs(platform));
             if (CheckJavaHome() is { } javaHome) javaPaths.Add(javaHome);
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
-            if (platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
+            if (platform is Const.RunningOs.MacOs) javaPaths.UnionWith(GetJavaHomesFromLibexec());
             var validPaths = new HashSet<string>();
-            var validEntities = new List<JavaRuntime?>();
+            var validEntities = new List<JavaRuntime>();
             foreach (string path in javaPaths.Where(Directory.Exists))
             {
                 var foundPaths = await SearchJavaExecutablesAsync(path);
@@ -50,7 +50,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             return validEntities;
         }
 
-        private static List<string> GetOsKnowDirs(OSPlatform platform)
+        private static List<string> GetOsKnowDirs(Const.RunningOs platform)
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
@@ -66,7 +66,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 "/usr/local/opt",
                 Path.Combine(homeDir, ".sdkman/candidates/java"),
             ]);
-            if (platform == OSPlatform.OSX)
+            if (platform is Const.RunningOs.MacOs)
                 knowDirs.AddRange([
                     "/Library/Java/JavaVirtualMachines",
                     $"{homeDir}/Library/Java/JavaVirtualMachines",

@@ -10,17 +10,17 @@ public static class Const
     /// 平台路径分隔符。
     /// </summary>
     public static readonly char Sep = System.IO.Path.DirectorySeparatorChar;
-        
+
     /// <summary>
     /// 平台换行符。
     /// </summary>
     public static readonly string CrLf = Environment.NewLine;
-    
+
     /// <summary>
     /// 程序的启动路径，以 <see cref="Sep"/> 结尾。
     /// </summary>
     public static readonly string Path = Environment.CurrentDirectory + Sep;
-    
+
     /// <summary>
     /// 包含程序名的完整路径。
     /// </summary>
@@ -36,7 +36,7 @@ public static class Const
         Windows,
         Linux,
         MacOs,
-        Unkonw
+        Unknown
     }
 
     public static readonly RunningOs Os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
@@ -45,5 +45,5 @@ public static class Const
             ? RunningOs.Linux
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? RunningOs.MacOs
-                : RunningOs.Unkonw;
+                : RunningOs.Unknown;
 }

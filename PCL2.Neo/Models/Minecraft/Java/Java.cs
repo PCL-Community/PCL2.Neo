@@ -92,26 +92,26 @@ public sealed class Java
         JavaList.Clear();
         var searchedEntities = (await SearchJava()).ToList();
         newEntities.AddRange(searchedEntities);
-        foreach (JavaRuntime entity in oldManualEntities)
-            if (searchedEntities.All(javaEntity => javaEntity.DirectoryPath != entity.DirectoryPath))
-                if(await entity.RefreshInfo())
-                    newEntities.Add(entity);
+        foreach (var oldRuntime in oldManualEntities.Where(entity =>
+                     searchedEntities.All(javaEntity => javaEntity.DirectoryPath != entity.DirectoryPath)))
+            if (await oldRuntime.RefreshInfo())
+                newEntities.Add(oldRuntime);
+            else
+                Console.WriteLine($"[Java] 用户导入的 Java 已不可用，已自动剔除：{oldRuntime.DirectoryPath}");
         JavaList = newEntities;
         Console.WriteLine("[Java] 刷新 Java 完成");
         IsInitialized = true;
         TestOutput();
     }
 
-    public static async Task<IEnumerable<JavaRuntime>> SearchJava()
+    private static async Task<IEnumerable<JavaRuntime>> SearchJava()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return await Windows.SearchJavaAsync();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return await Unix.SearchJavaAsync(OSPlatform.Linux);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return await Unix.SearchJavaAsync(OSPlatform.OSX);
-
-        throw new PlatformNotSupportedException();
+        return Const.Os switch
+        {
+            Const.RunningOs.Windows => await Windows.SearchJavaAsync(),
+            Const.RunningOs.Linux or Const.RunningOs.MacOs => await Unix.SearchJavaAsync(Const.Os),
+            _ => throw new PlatformNotSupportedException()
+        };
     }
 
     public void TestOutput()
