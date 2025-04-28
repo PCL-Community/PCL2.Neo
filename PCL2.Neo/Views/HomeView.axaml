@@ -44,7 +44,7 @@
                 Name="TestLoading"
                 Width="150" />
             <pc:MyButton Height="50" Margin="10" />
-            <pc:MyButton Height="50" Margin="10" />
+            <pc:MyButton Height="50" Margin="10" Text="搜索 Java" Click="Search_Java_Button"/>
             <pc:MyCard Margin="10" />
         </StackPanel>
     </ScrollViewer>

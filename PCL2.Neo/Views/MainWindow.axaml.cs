@@ -1,22 +1,17 @@
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
 using PCL2.Neo.Helpers;
-using PCL2.Neo.ViewModels;
-using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Linq;
 using System.Threading.Tasks;
-using BounceEaseOut = Avalonia.Animation.Easings.BounceEaseOut;
 using CubicEaseOut = Avalonia.Animation.Easings.CubicEaseOut;
-using ExponentialEaseOut = Avalonia.Animation.Easings.ExponentialEaseOut;
 
 namespace PCL2.Neo.Views;
 
@@ -102,15 +97,5 @@ public partial class MainWindow : Window
             ]);
             await animation.RunAsync();
         }
-    }
-
-    private void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Loading;
-    }
-
-    private void Button2_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Error;
     }
 }
