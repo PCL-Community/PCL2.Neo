@@ -51,40 +51,40 @@
                 <BrushTransition Duration="0:0:0.1" Property="Background" />
             </Transitions>
         </Setter>
-        
+
         <Style Selector="^:white">
-            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="Foreground" Value="{DynamicResource ColorBrushWhite}" />
             <Setter Property="Background" Value="{DynamicResource ColorBrushSemiTransparent}" />
             <Style Selector="^:pointerover">
-                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Foreground" Value="{DynamicResource ColorBrushWhite}" />
                 <Setter Property="Background" Value="#32eaf2fe" />
             </Style>
-            
+
             <Style Selector="^:pressed">
                 <Setter Property="Background" Value="#78EAF2FE" />
             </Style>
-            
+
             <Style Selector="^:checked">
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush3}" />
-                <Setter Property="Background" Value="#FFFFFF" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushWhite}" />
             </Style>
         </Style>
-        
+
         <Style Selector="^:highlight">
             <Setter Property="Foreground" Value="{DynamicResource ColorBrush3}" />
             <Setter Property="Background" Value="{DynamicResource ColorBrushSemiTransparent}" />
-            
+
             <Style Selector="^:pointerover">
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Background" Value="{DynamicResource ColorBrush7}" />
             </Style>
-            
+
             <Style Selector="^:pressed">
                 <Setter Property="Background" Value="{DynamicResource ColorBrush6}" />
             </Style>
-            
+
             <Style Selector="^:checked">
-                <Setter Property="Foreground" Value="#FFFFFF" />
+                <Setter Property="Foreground" Value="{DynamicResource ColorBrushWhite}" />
                 <Setter Property="Background" Value="{DynamicResource ColorBrush3}" />
             </Style>
         </Style>

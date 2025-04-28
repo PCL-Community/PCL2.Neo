@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PCL2.Neo.Tests/PCL2.Neo.Tests.csproj" />
+  <Project Path="PCL2.Neo/PCL2.Neo.csproj" />
+</Solution>

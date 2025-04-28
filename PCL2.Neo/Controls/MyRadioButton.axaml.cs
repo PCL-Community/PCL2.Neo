@@ -30,7 +30,7 @@ public class MyRadioButton : RadioButton
 
         this.Loaded += (_, _) => RefreshColor();
 
-        _shapeLogo.Data = Geometry.Parse(Logo);
+        _shapeLogo.Data = Logo;
         _shapeLogo.RenderTransform = new ScaleTransform { ScaleX = LogoScale, ScaleY = LogoScale };
         _labText.Text = Text;
 
@@ -39,10 +39,10 @@ public class MyRadioButton : RadioButton
 
     public int Uuid = CoreUtils.GetUuid();
 
-    public static readonly StyledProperty<string> LogoProperty = AvaloniaProperty.Register<MyRadioButton, string>(
+    public static readonly StyledProperty<Geometry> LogoProperty = AvaloniaProperty.Register<MyRadioButton, Geometry>(
         nameof(Logo));
 
-    public string Logo
+    public Geometry Logo
     {
         get => GetValue(LogoProperty);
         set
@@ -50,7 +50,7 @@ public class MyRadioButton : RadioButton
             SetValue(LogoProperty, value);
             if (_shapeLogo != null)
             {
-                _shapeLogo.Data = Geometry.Parse(value);
+                _shapeLogo.Data = value;
             }
         }
     }
