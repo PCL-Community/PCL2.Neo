@@ -22,7 +22,7 @@ public sealed class Java
     /// 供外部调用，根据实际情况创建 Java 管理器实例
     /// </summary>
     /// <returns></returns>
-    public static async Task<Java> CreateAsync()
+    public static async Task<Java?> CreateAsync()
     {
         var java = new Java();
         await java.JavaListInit();
@@ -83,6 +83,8 @@ public sealed class Java
 
     public async Task Refresh()
     {
+        if (!IsInitialized) return;
+        IsInitialized = false;
         Console.WriteLine("[Java] 正在刷新 Java");
         List<JavaEntity> newEntities = [];
         // 对于用户手动导入的 Java，保留并重新检查可用性
@@ -96,6 +98,7 @@ public sealed class Java
                     newEntities.Add(entity);
         JavaList = newEntities;
         Console.WriteLine("[Java] 刷新 Java 完成");
+        IsInitialized = true;
         TestOutput();
     }
 

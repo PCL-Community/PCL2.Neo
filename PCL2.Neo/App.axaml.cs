@@ -16,7 +16,7 @@ namespace PCL2.Neo
 {
     public partial class App : Application
     {
-        public static Java JavaManager;
+        public static Java? JavaManager { get; private set; }
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
