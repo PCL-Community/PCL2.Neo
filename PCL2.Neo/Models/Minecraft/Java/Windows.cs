@@ -22,7 +22,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 @"Packages\Microsoft.4297127D64EC6_8wekyb3d8bbwe\LocalCache\Local\runtime")
         ];
 
-        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
+        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
         {
             var javaEntities = new List<string>();
 
@@ -36,12 +36,12 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 .Select(async item => await SearchFolderAsync(item, maxDeep: 6))
                 .SelectMany(it => it.Result);
             javaEntities.AddRange(result);
-            var validEntities = new List<JavaEntity?>();
+            var validEntities = new List<JavaRuntime?>();
             foreach (string validPath in javaEntities)
             {
-                var newEntity = await JavaEntity.CreateJavaEntityAsync(validPath);
+                var newEntity = await JavaRuntime.CreateJavaEntityAsync(validPath);
                 if (newEntity is { Compability: not JavaCompability.Error })
-                    validEntities.Add(await JavaEntity.CreateJavaEntityAsync(validPath));
+                    validEntities.Add(await JavaRuntime.CreateJavaEntityAsync(validPath));
             }
 
             return validEntities;

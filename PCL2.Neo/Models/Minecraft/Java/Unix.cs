@@ -16,7 +16,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
     /// </summary>
     internal static class Unix
     {
-        public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(OSPlatform platform)
+        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(OSPlatform platform)
         {
             var javaPaths = new HashSet<string>();
             javaPaths.UnionWith(GetOsKnowDirs(platform));
@@ -24,7 +24,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
             if (platform == OSPlatform.OSX) javaPaths.UnionWith(GetJavaHomesFromLibexec());
             var validPaths = new HashSet<string>();
-            var validEntities = new List<JavaEntity?>();
+            var validEntities = new List<JavaRuntime?>();
             foreach (string path in javaPaths.Where(Directory.Exists))
             {
                 var foundPaths = await SearchJavaExecutablesAsync(path);
@@ -40,7 +40,7 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
             foreach (string validPath in validPaths)
             {
-                var newEntity = await JavaEntity.CreateJavaEntityAsync(validPath);
+                var newEntity = await JavaRuntime.CreateJavaEntityAsync(validPath);
                 if (newEntity is { Compability: not JavaCompability.Error })
                 {
                     validEntities.Add(newEntity);

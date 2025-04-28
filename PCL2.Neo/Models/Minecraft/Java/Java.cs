@@ -14,7 +14,7 @@ public sealed class Java
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public bool IsInitialized { get; private set; } = false;
 
-    public List<JavaEntity> JavaList { get; private set; } = [];
+    public List<JavaRuntime> JavaList { get; private set; } = [];
 
     private Java() { } // 私有构造函数
 
@@ -76,7 +76,7 @@ public sealed class Java
     public async Task ManualAdd(string javaDir)
     {
         if (!IsInitialized) return;
-        var entity = await JavaEntity.CreateJavaEntityAsync(javaDir, true);
+        var entity = await JavaRuntime.CreateJavaEntityAsync(javaDir, true);
         if (entity is { Compability: not JavaCompability.Error }) JavaList.Add(entity);
         else Console.WriteLine("添加的 Java 文件无法运行！");
     }
@@ -86,13 +86,13 @@ public sealed class Java
         if (!IsInitialized) return;
         IsInitialized = false;
         Console.WriteLine("[Java] 正在刷新 Java");
-        List<JavaEntity> newEntities = [];
+        List<JavaRuntime> newEntities = [];
         // 对于用户手动导入的 Java，保留并重新检查可用性
         var oldManualEntities = JavaList.FindAll(entity => entity.IsUserImport);
         JavaList.Clear();
         var searchedEntities = (await SearchJava()).ToList();
         newEntities.AddRange(searchedEntities);
-        foreach (JavaEntity entity in oldManualEntities)
+        foreach (JavaRuntime entity in oldManualEntities)
             if (searchedEntities.All(javaEntity => javaEntity.DirectoryPath != entity.DirectoryPath))
                 if(await entity.RefreshInfo())
                     newEntities.Add(entity);
@@ -102,7 +102,7 @@ public sealed class Java
         TestOutput();
     }
 
-    public static async Task<IEnumerable<JavaEntity>> SearchJava()
+    public static async Task<IEnumerable<JavaRuntime>> SearchJava()
     {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return await Windows.SearchJavaAsync();
@@ -118,7 +118,7 @@ public sealed class Java
     {
         if (!IsInitialized) return;
         Console.WriteLine("当前有 " + JavaList.Count + " 个 Java");
-        foreach (JavaEntity? javaEntity in JavaList)
+        foreach (JavaRuntime? javaEntity in JavaList)
         {
             Console.WriteLine("--------------------");
             Console.WriteLine("路径: " + javaEntity.DirectoryPath);

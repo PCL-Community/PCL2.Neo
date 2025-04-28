@@ -8,19 +8,37 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
 
+/// <summary>
+/// 描述某个 Java 环境与当前系统是否兼容
+/// </summary>
 public enum JavaCompability
 {
+    /// <summary>
+    /// 未知，例如尚未初始化
+    /// </summary>
     Unknown,
+    /// <summary>
+    /// 能够原生运行
+    /// </summary>
     Yes,
+    /// <summary>
+    /// 不兼容
+    /// </summary>
     No,
+    /// <summary>
+    /// 对于 Win11 on Arm 或者 M 芯片 macOS 可以转译运行
+    /// </summary>
     UnderTranslation,
+    /// <summary>
+    /// 初始化失败或者不是 Java 可执行文件
+    /// </summary>
     Error,
 }
 
 /// <summary>
 /// 每一个 Java 实体的信息类
 /// </summary>
-public class JavaEntity
+public class JavaRuntime
 {
     /// <summary>
     /// 该 Java 实体的父目录，在构造时传入
@@ -32,7 +50,12 @@ public class JavaEntity
     /// </summary>
     private JavaInfo _javaInfo;
 
-    private JavaEntity(string directoryPath, JavaInfo javaInfo)
+    /// <summary>
+    /// 私有构造函数，需要路径和信息
+    /// </summary>
+    /// <param name="directoryPath"></param>
+    /// <param name="javaInfo"></param>
+    private JavaRuntime(string directoryPath, JavaInfo javaInfo)
     {
         DirectoryPath = directoryPath;
         _javaInfo = javaInfo;
@@ -60,18 +83,28 @@ public class JavaEntity
     /// </summary>
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
     /// <param name="isUserImport">是否为用户手动导入</param>
-    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath, bool isUserImport = false)
+    /// <returns>得到的 Java 运行时，如果初始化失败会返回 null，需要在外部判断</returns>
+    public static async Task<JavaRuntime?> CreateJavaEntityAsync(string directoryPath, bool isUserImport = false)
     {
-        Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
+        Debug.WriteLine($"创建 JavaRuntime: {directoryPath}");
         var javaInfo = await JavaInfoInitAsync(directoryPath);
         if(javaInfo.Compability == JavaCompability.Error) return null;
-        var javaEntity = new JavaEntity(directoryPath, javaInfo) { IsUserImport = isUserImport };
+        var javaEntity = new JavaRuntime(directoryPath, javaInfo) { IsUserImport = isUserImport };
         return javaEntity;
     }
 
+    /// <summary>
+    /// 是否为用户手动导入，手动导入的运行时在刷新时不会被刷新掉
+    /// </summary>
     public bool IsUserImport { get; set; }
+    /// <summary>
+    /// Java 数字版本
+    /// </summary>
     public int Version => _javaInfo.Version;
     public bool Is64Bit => _javaInfo.Is64Bit;
+    /// <summary>
+    /// Win11 和 macOS 都有兼具 arm 和 x86_64 兼容的可执行文件，如果是这种通用文件就标记为 True
+    /// </summary>
     public bool IsFatFile => _javaInfo.IsFatFile;
     public JavaCompability Compability => _javaInfo.Compability;
     public bool IsJre => _javaInfo.IsJre;
@@ -82,7 +115,11 @@ public class JavaEntity
     /// </summary>
     public string JavaWExe => _javaInfo.JavaWExe;
 
-
+    /// <summary>
+    /// 异步地初始化 Java 信息
+    /// </summary>
+    /// <param name="directoryPath">需要初始化的 Java 所在的父目录</param>
+    /// <returns>得到的 Java 具体信息，JavaCompability 为 Error 时为无效</returns>
     private static async Task<JavaInfo> JavaInfoInitAsync(string directoryPath)
     {
         Debug.WriteLine("JavaInfoInit...");
