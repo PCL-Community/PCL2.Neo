@@ -19,13 +19,15 @@ namespace PCL2.Neo.Models.Minecraft.Java
         {
             var validPaths = new HashSet<string>();
 
-            var javaPaths = new HashSet<string>();
-            javaPaths.UnionWith(GetOsKnowDirs(platform));
-            if (CheckJavaHome() is { } javaHome) javaPaths.Add(javaHome);
-            if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
-            if (platform is Const.RunningOs.MacOs) javaPaths.UnionWith(GetJavaHomesFromLibexec());
+            var toSearchPaths = new HashSet<string>();
+            toSearchPaths.UnionWith(GetOsDirsToSearch(platform));
+            if (CheckJavaHome() is { } javaHome) toSearchPaths.Add(javaHome);
+            if (CheckWithWhichJava() is { } whichJava) validPaths.Add(whichJava);
+            // if (platform is Const.RunningOs.MacOs) toSearchPaths.UnionWith(GetJavaHomesFromLibexec());
+            validPaths.UnionWith(GetKnownDirsWithoutSearch(platform));
+
             var searchTasks = new List<Task<IEnumerable<string>>>();
-            foreach (string path in javaPaths.Where(Directory.Exists))
+            foreach (string path in toSearchPaths.Where(Directory.Exists))
                 searchTasks.AddRange(SearchJavaExecutablesAsync(path));
 
             var foundPaths = await Task.WhenAll(searchTasks);
@@ -41,35 +43,66 @@ namespace PCL2.Neo.Models.Minecraft.Java
                 .Where(r => r is { Compability: not JavaCompability.Error })!;
         }
 
-        private static List<string> GetOsKnowDirs(Const.RunningOs platform)
+        private static List<string> GetOsDirsToSearch(Const.RunningOs platform)
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
             knowDirs.AddRange([
-                "/usr/lib/jvm",
-                "/usr/java",
-                "/opt/java",
-                "/opt/jdk",
-                "/opt/jre",
-                "/usr/local/java",
-                "/usr/local/jdk",
-                "/usr/local/jre",
-                "/usr/local/opt",
                 Path.Combine(homeDir, ".sdkman/candidates/java"),
             ]);
+            if (platform is Const.RunningOs.Linux)
+                knowDirs.AddRange([
+                    "/usr/lib/jvm",
+                    "/usr/java",
+                    "/opt/java",
+                    "/opt/jdk",
+                    "/opt/jre",
+                    "/usr/local/java",
+                    "/usr/local/jdk",
+                    "/usr/local/jre",
+                    "/usr/local/opt",
+                ]);
             if (platform is Const.RunningOs.MacOs)
                 knowDirs.AddRange([
-                    "/Library/Java/JavaVirtualMachines",
-                    $"{homeDir}/Library/Java/JavaVirtualMachines",
+                    // "/Library/Java/JavaVirtualMachines",
+                    // $"{homeDir}/Library/Java/JavaVirtualMachines",
                     "/System/Library/Frameworks/JavaVM.framework/Versions", // Older macOS Java installs
-                    "/opt/homebrew/opt/java", // Homebrew on Apple Silicon
+                    // "/opt/homebrew/opt/java/libexec", // Homebrew on Apple Silicon
                 ]);
+            return knowDirs.ConvertAll(Path.GetFullPath);
+        }
+
+        private static List<string> GetKnownDirsWithoutSearch(Const.RunningOs platform)
+        {
+            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var knowDirs = new List<string>();
+            if (platform is Const.RunningOs.MacOs)
+            {
+                knowDirs.AddRange([
+                    "/usr/bin",
+                ]);
+                string[] javaVmDirs =
+                [
+                    "/Library/Java/JavaVirtualMachines",
+                    Path.Combine(homeDir, "/Library/Java/JavaVirtualMachines"),
+                    "/opt/homebrew/opt/java/libexec",
+                ];
+                knowDirs.AddRange(from javaVmDir in javaVmDirs
+                    where Directory.Exists(javaVmDir)
+                    from subDir in Directory.GetDirectories(javaVmDir, "*", SearchOption.TopDirectoryOnly)
+                    select Path.Combine(subDir, "Contents", "Home", "bin")
+                    into binPath
+                    where Directory.Exists(binPath)
+                    select binPath);
+            }
+
             return knowDirs.ConvertAll(Path.GetFullPath);
         }
 
         private static string? CheckJavaHome()
         {
             var javaHome = Environment.GetEnvironmentVariable("JAVA_HOME");
+            Console.WriteLine("JAVA_HOME:" + javaHome);
             return string.IsNullOrEmpty(javaHome) ? null : javaHome;
         }
 
