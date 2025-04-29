@@ -24,27 +24,23 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
         {
-            var javaEntities = new List<string>();
+            var foundPaths = new List<string>();
 
-            javaEntities.AddRange(SearchRegister()); // search registries
-            javaEntities.AddRange(SearchEnvironment()); // search path
+            foundPaths.AddRange(SearchRegister()); // search registries
+            foundPaths.AddRange(SearchEnvironment()); // search path
 
-            if (fullSearch) javaEntities.AddRange(await SearchDrives(maxDeep)); // full search mode
+            if (fullSearch) foundPaths.AddRange(await SearchDrives(maxDeep)); // full search mode
 
-            var result = TargetSearchFolders
-                .Where(Path.Exists)
-                .Select(async item => await SearchFolderAsync(item, maxDeep: 6))
-                .SelectMany(it => it.Result);
-            javaEntities.AddRange(result);
-            var validEntities = new List<JavaRuntime?>();
-            foreach (string validPath in javaEntities)
-            {
-                var newEntity = await JavaRuntime.CreateJavaEntityAsync(validPath);
-                if (newEntity is { Compability: not JavaCompability.Error })
-                    validEntities.Add(await JavaRuntime.CreateJavaEntityAsync(validPath));
-            }
+            var result = (await Task.WhenAll(
+                TargetSearchFolders
+                    .Where(Path.Exists)
+                    .Select(item => SearchFolderAsync(item, maxDeep: 6))
+            )).SelectMany(it => it);
 
-            return validEntities;
+            foundPaths.AddRange(result);
+            var validRuntimeTasks = foundPaths.Distinct().Select(validPath => JavaRuntime.CreateJavaEntityAsync(validPath));
+            var validEntities = await Task.WhenAll(validRuntimeTasks);
+            return validEntities.Where(runtime => runtime is {Compability: not JavaCompability.No})!;
         }
 
         private static IEnumerable<string> SearchRegister()

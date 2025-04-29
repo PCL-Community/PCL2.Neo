@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -18,36 +17,28 @@ namespace PCL2.Neo.Models.Minecraft.Java
     {
         public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(Const.RunningOs platform)
         {
+            var validPaths = new HashSet<string>();
+
             var javaPaths = new HashSet<string>();
             javaPaths.UnionWith(GetOsKnowDirs(platform));
             if (CheckJavaHome() is { } javaHome) javaPaths.Add(javaHome);
             if (CheckWithWhichJava() is { } whichJava) javaPaths.Add(whichJava);
             if (platform is Const.RunningOs.MacOs) javaPaths.UnionWith(GetJavaHomesFromLibexec());
-            var validPaths = new HashSet<string>();
-            var validEntities = new List<JavaRuntime>();
+            var searchTasks = new List<Task<IEnumerable<string>>>();
             foreach (string path in javaPaths.Where(Directory.Exists))
+                searchTasks.AddRange(SearchJavaExecutablesAsync(path));
+
+            var foundPaths = await Task.WhenAll(searchTasks);
+            foreach (IEnumerable<string> foundPath in foundPaths)
+            foreach (string path in foundPath)
             {
-                var foundPaths = await SearchJavaExecutablesAsync(path);
-                foreach (string foundPath in foundPaths)
-                {
-                    var directoryName = Path.GetDirectoryName(foundPath);
-                    if (directoryName != null)
-                    {
-                        validPaths.Add(directoryName);
-                    }
-                }
+                var directory = Path.GetDirectoryName(path);
+                if (directory != null)
+                    validPaths.Add(directory);
             }
 
-            foreach (string validPath in validPaths)
-            {
-                var newEntity = await JavaRuntime.CreateJavaEntityAsync(validPath);
-                if (newEntity is { Compability: not JavaCompability.Error })
-                {
-                    validEntities.Add(newEntity);
-                }
-            }
-
-            return validEntities;
+            return (await Task.WhenAll(validPaths.Select(validPath => JavaRuntime.CreateJavaEntityAsync(validPath))))
+                .Where(r => r is { Compability: not JavaCompability.Error })!;
         }
 
         private static List<string> GetOsKnowDirs(Const.RunningOs platform)
