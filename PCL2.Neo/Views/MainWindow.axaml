@@ -19,7 +19,7 @@
     xmlns:pc="using:PCL2.Neo.Controls"
     xmlns:vm="clr-namespace:PCL2.Neo.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid>
+    <Grid Name="PART_RootGrid">
         <Border
             BoxShadow="0 0 15 2 #50000000"
             CornerRadius="8"
@@ -33,6 +33,7 @@
                     <BrushTransition Duration="0:0:0.2" Property="Background" />
                 </Transitions>
             </Border.Transitions>
+            
             <Border ClipToBounds="True" CornerRadius="8">
                 <Grid RowDefinitions="Auto 1*">
                     <!--  title  -->
