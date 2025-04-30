@@ -292,14 +292,16 @@ public class JavaRuntime
             Arguments = "-version",
             UseShellExecute = false,
             CreateNoWindow = true,
-            RedirectStandardError = true, // 这个Java的输出流是tmd stderr！！！
+            RedirectStandardError = true,
             RedirectStandardOutput = true
         };
+        // -version      将产品版本输出到错误流并退出
+        // --version     将产品版本输出到输出流并退出
+        // 但是格式不一样
         javaProcess.Start();
         await javaProcess.WaitForExitAsync();
-
         var output = await javaProcess.StandardError.ReadToEndAsync();
-        return output != string.Empty ? output : await javaProcess.StandardOutput.ReadToEndAsync(); // 就是tmd stderr
+        return output;
     }
 
     private static int MatchVersion(string runJavaOutput)
