@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using PCL2.Neo.Models.Minecraft.Java.WindowsJava;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,18 +25,13 @@ namespace PCL2.Neo.Models.Minecraft.Java
 
         public static async Task<IEnumerable<JavaEntity>> SearchJavaAsync(bool fullSearch = false, int maxDeep = 7)
         {
+            var JavaList = new JavaFetcher().Fetch();
             var javaEntities = new List<string>();
 
-            javaEntities.AddRange(SearchRegister()); // search registries
-            javaEntities.AddRange(SearchEnvironment()); // search path
-
-            if (fullSearch) javaEntities.AddRange(await SearchDrives(maxDeep)); // full search mode
-
-            var result = TargetSearchFolders
-                .Where(Path.Exists)
-                .Select(async item => await SearchFolderAsync(item, maxDeep: 6))
-                .SelectMany(it => it.Result);
-            javaEntities.AddRange(result);
+            foreach (JavaWinEntry javaWinEntry in JavaList)
+            {
+                javaEntities.Add(javaWinEntry.JavaPath);
+            }
 
             return javaEntities.Distinct().Select(it => new JavaEntity(it));
         }
