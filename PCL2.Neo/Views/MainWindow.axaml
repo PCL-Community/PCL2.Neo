@@ -12,13 +12,13 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="PCL2.Neo.Views.MainWindow"
+    x:DataType="vm:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:PCL2.Neo.Controls"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="clr-namespace:PCL2.Neo.ViewModels"
-    x:DataType="vm:MainWindowViewModel">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid>
         <Border
             BoxShadow="0 0 15 2 #50000000"
@@ -233,8 +233,15 @@
                                     Name="TestLoading"
                                     Width="150" />
                                 <pc:MyButton Height="50" Margin="10" />
-                                <pc:MyButton Height="50" Margin="10" Text="搜索 Java" Click="Search_Java_Button"/>
-                                <pc:MyCard Margin="10" />
+                                <pc:MyButton
+                                    Click="Search_Java_Button"
+                                    Height="50"
+                                    Margin="10"
+                                    Text="搜索 Java" />
+                                <Border Background="White" Height="50">
+                                    <TextBlock FontSize="20" Text="测试阴影" />
+                                </Border>
+                                <pc:MyCard Margin="10,0,10,10" ZIndex="2" />
                             </StackPanel>
                         </ScrollViewer>
                     </Grid>

@@ -3,6 +3,7 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Rendering.Composition;
 using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
@@ -10,6 +11,7 @@ using PCL2.Neo.Helpers;
 using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Views;
@@ -43,13 +45,46 @@ public partial class MainWindow : Window
     /// </summary>
     private async void AnimationIn()
     {
-        var animation = new AnimationHelper(
-        [
-            new OpacityAnimation(this, TimeSpan.FromMilliseconds(250), 0d, 1d),
-            new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(600), 60d, 0d, new MyBackEaseOut(EasePower.Weak)),
-            new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(500), -4d, 0d, new MyBackEaseOut(EasePower.Weak))
-        ]);
-        await animation.RunAsync();
+        // var animation = new AnimationHelper(
+        // [
+        //     new OpacityAnimation(this, TimeSpan.FromMilliseconds(250), 0d, 1d),
+        //     new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(600), 60d, 0d, new MyBackEaseOut(EasePower.Weak)),
+        //     new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(500), -4d, 0d, new MyBackEaseOut(EasePower.Weak))
+        // ]);
+        // await animation.RunAsync();
+
+        // AnimationHelper 性能太差，换用 CompositionAnimation
+
+        var mainWindowCompositionVisual = ElementComposition.GetElementVisual(this)!;
+        var compositor = mainWindowCompositionVisual.Compositor;
+
+        var opacityFrameAnimation = compositor.CreateScalarKeyFrameAnimation();
+        opacityFrameAnimation.Duration = TimeSpan.FromMilliseconds(250);
+        opacityFrameAnimation.InsertKeyFrame(0f, 0f);
+        opacityFrameAnimation.InsertKeyFrame(1f, 1f);
+        opacityFrameAnimation.Target = "Opacity";
+
+        var rotateTransformAngleAnimation = compositor.CreateScalarKeyFrameAnimation();
+        rotateTransformAngleAnimation.Duration = TimeSpan.FromMilliseconds(500);
+        rotateTransformAngleAnimation.InsertKeyFrame(0f, -4f, new MyBackEaseOut(EasePower.Weak));
+        rotateTransformAngleAnimation.InsertKeyFrame(1f, 0f, new MyBackEaseOut(EasePower.Weak));
+        rotateTransformAngleAnimation.Target = "RotationAngle";
+
+        var translateTransformYAnimation = compositor.CreateVector3KeyFrameAnimation();
+        translateTransformYAnimation.Duration = TimeSpan.FromMilliseconds(600);
+        translateTransformYAnimation.InsertKeyFrame(0f, new Vector3(0f, 60f, 0f), new MyBackEaseOut(EasePower.Weak));
+        translateTransformYAnimation.InsertKeyFrame(1f, new Vector3(0f, 0f, 0f), new MyBackEaseOut(EasePower.Weak));
+        translateTransformYAnimation.Target = "Offset";
+
+        var animationGroup = compositor.CreateAnimationGroup();
+        animationGroup.Add(opacityFrameAnimation);
+        animationGroup.Add(rotateTransformAngleAnimation);
+        animationGroup.Add(translateTransformYAnimation);
+
+        var size = mainWindowCompositionVisual.Size;
+        mainWindowCompositionVisual.CenterPoint = new Vector3D((float)size.X / 2, (float)size.Y / 2, (float)mainWindowCompositionVisual.CenterPoint.Z);
+
+        mainWindowCompositionVisual.StartAnimationGroup(animationGroup);
     }
     /// <summary>
     /// 关闭窗口的动画。
