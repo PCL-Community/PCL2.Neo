@@ -136,4 +136,10 @@ public sealed class Java
             Console.WriteLine("是否通用: " + javaEntity.IsFatFile);
         }
     }
+
+
+    private void FetchJavaFilesOnline()
+    {
+
+    }
 }
