@@ -1,5 +1,7 @@
+using PCL2.Neo.Helpers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
@@ -82,6 +84,7 @@ public sealed class Java
             existingRuntime.IsUserImport = true;
             return;
         }
+
         var entity = await JavaRuntime.CreateJavaEntityAsync(javaDir, true);
         if (entity is { Compability: not JavaCompability.Error })
         {
@@ -110,6 +113,20 @@ public sealed class Java
                 Console.WriteLine($"[Java] 用户导入的 Java 已不可用，已自动剔除：{oldRuntime.DirectoryPath}");
         JavaList = newEntities;
         Console.WriteLine("[Java] 刷新 Java 完成");
+        if (JavaList.Count == 0)
+        {
+            // TODO)) 提示用户未找到已安装的 java，是否自动下载合适版本，然后再下载
+            var neo2SysDir = Directory.CreateDirectory(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
+            var fetchedJavaDir = await FileHelper.FetchJavaOnline("mac-os-arm64", neo2SysDir.FullName);
+            if (fetchedJavaDir != null)
+            {
+                var runtime = await JavaRuntime.CreateJavaEntityAsync(fetchedJavaDir, true);
+                JavaList.Add(runtime!);
+            }
+        }
+
         IsInitialized = true;
         TestOutput();
     }
@@ -135,11 +152,5 @@ public sealed class Java
             Console.WriteLine("是否兼容: " + javaEntity.Compability);
             Console.WriteLine("是否通用: " + javaEntity.IsFatFile);
         }
-    }
-
-
-    private void FetchJavaFilesOnline()
-    {
-
     }
 }
