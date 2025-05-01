@@ -15,7 +15,7 @@ public class RequestHelper(HttpListenerRequest request)
     {
         var code = Request.QueryString["code"];
         ArgumentNullException.ThrowIfNull(code);
-        authCode = new RedirectAuthCode(int.Parse(code));
+        authCode = new RedirectAuthCode(code);
 
         var file = new FileStream("OAuthRedirectHttpPage.html", FileMode.Open, FileAccess.Read);
 

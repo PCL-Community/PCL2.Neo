@@ -19,7 +19,7 @@ namespace PCL2.Neo.Models.Account.Yggdrasil
         }
 
         /// <inheritdoc />
-        public AccountInfo LogIn()
+        public AccountInfo Login()
         {
             return null;
         }

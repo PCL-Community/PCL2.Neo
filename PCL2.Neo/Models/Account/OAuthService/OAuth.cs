@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.Serialization;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -14,47 +15,126 @@ namespace PCL2.Neo.Models.Account.OAuthService;
 #pragma warning disable IL2026 // fixed by DynamicDependency
 public static class OAuth
 {
-    // todo: add device code auth
+    // todo: add device code auth ( in microsoftAuth.cs )
     // todo: optimize dulicate codes
     public static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(30) };
 
-    public static async void LogIn()
+    #region NotHaveGameException
+
+    public class NotHaveGameException : Exception
+    {
+        /// <inheritdoc />
+        public NotHaveGameException()
+        {
+        }
+
+        /// <inheritdoc />
+        [Obsolete("Obsolete")]
+        protected NotHaveGameException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        /// <inheritdoc />
+        public NotHaveGameException(string? message) : base(message)
+        {
+        }
+
+        /// <inheritdoc />
+        public NotHaveGameException(string? message, Exception? innerException) : base(message, innerException)
+        {
+        }
+    }
+
+    #endregion
+
+    public static async Task<AccountInfo> LogIn()
     {
         try
         {
             var authCode = GetAuthCode();
             var authToken = await GetAuthToken(authCode);
-            var xblToken = await GetRefreshToken(authToken);
-            var xstsToken = await GetXstsToken(xblToken.Token);
-            var minecraftAccessToken = await GetMinecraftAccessToken(xblToken.Uhs, xstsToken);
+            var xboxToken = await GetXboxToken(authToken.AccessToken);
+            var xstsToken = await GetXstsToken(xboxToken.Token);
+            var minecraftAccessToken = await GetMinecraftAccessToken(xboxToken.Uhs, xstsToken);
             var haveGame = await HaveGame(minecraftAccessToken);
+
+            if (!haveGame)
+            {
+                throw new NotHaveGameException("Logined user not have any game!");
+            }
+
             var playerUuidAndName = await GetPlayerUuidAndName(minecraftAccessToken);
+
+            return new AccountInfo()
+            {
+                AccessToken = minecraftAccessToken,
+                RefreshToken = authToken.RefreshToken,
+                UserName = playerUuidAndName.Name,
+                UserProperties = string.Empty,
+                UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
+                Uuid = playerUuidAndName.Uuid
+            };
             // todo: storage this token, uuid, name, etc.
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            throw;
             // todo: log this exception
         }
     }
 
-    private static int GetAuthCode()
+    #region AuthAndRefreshToken
+
+    public record AuthAndRefreshToken(string AccessToken, string RefreshToken);
+
+    #endregion
+
+
+    public static async Task<AuthAndRefreshToken> RefreshToken(string refreshToken)
     {
-        var url = OAuthData.AuthReqData.AuthCodeData;
+        try
+        {
+            var authTokenData = OAuthData.EUrlReqData.RefreshTokenData;
+            authTokenData["refresh_token"] = refreshToken;
+            var content = new FormUrlEncodedContent(authTokenData);
+
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+            using var response = await HttpClient.PostAsync(OAuthData.AuthUrls.AuthTokenUri, content);
+
+            response.EnsureSuccessStatusCode();
+
+            var authToken = await response.Content.ReadFromJsonAsync<OAuthData.ResponceData.AccessTokenResponce>();
+            ArgumentNullException.ThrowIfNull(authToken);
+
+            return new AuthAndRefreshToken(authToken.AccessToken, authToken.RefreshToken);
+        }
+        catch (Exception e)
+        {
+            throw;
+            // todo: log this exception
+        }
+    }
+
+    private static string GetAuthCode()
+    {
+        var url = OAuthData.EUrlReqData.AuthCodeData;
         var redirectServer = new RedirectServer.RedirectServer(5050); // todo: set prot in app configureation
         var authCode = new AuthCode();
         redirectServer.Subscribe(authCode);
 
+        // todo: this code will unuseable in some system. we need handle this error
         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); // todo: time out handle
 
         return authCode.GetAuthCode().Code;
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.AuthReqData))]
+
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.EUrlReqData))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.AuthUrls))]
-    public static async ValueTask<string> GetAuthToken(int authCode)
+    public static async ValueTask<AuthAndRefreshToken> GetAuthToken(string authCode)
     {
-        var authTokenData = OAuthData.AuthReqData.AuthTokenData;
-        authTokenData["authCode"] = authCode.ToString();
+        var authTokenData = OAuthData.EUrlReqData.AuthTokenData;
+        authTokenData["authCode"] = authCode;
         var content = new FormUrlEncodedContent(authTokenData);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
@@ -62,11 +142,10 @@ public static class OAuth
 
         response.EnsureSuccessStatusCode();
 
-        var authToken = await response.Content.ReadFromJsonAsync<OAuthData.ResponceData.AuthCodeResponce>();
-
+        var authToken = await response.Content.ReadFromJsonAsync<OAuthData.ResponceData.AccessTokenResponce>();
         ArgumentNullException.ThrowIfNull(authToken);
 
-        return authToken.AccessToken;
+        return new AuthAndRefreshToken(authToken.AccessToken, authToken.RefreshToken);
     }
 
     #region XblToken
@@ -78,7 +157,7 @@ public static class OAuth
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.RequireData))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.AuthUrls))]
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.ResponceData))]
-    public static async ValueTask<XblToken> GetRefreshToken(string accessToken)
+    public static async ValueTask<XblToken> GetXboxToken(string accessToken)
     {
         var jsonContent = new OAuthData.RequireData.XboxLiveAuthRequire
         {

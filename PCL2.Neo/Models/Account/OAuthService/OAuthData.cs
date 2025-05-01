@@ -12,6 +12,9 @@ public static class OAuthData
         public static readonly Uri AuthCodeUri =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize");
 
+        public static readonly Uri DeviceCode =
+            new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
+
         public static readonly Uri AuthTokenUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
         public static readonly Uri XboxLiveAuth = new("https://user.auth.xboxlive.com/user/authenticate");
         public static readonly Uri XstsAuth = new("https://xsts.auth.xboxlive.com/xsts/authorize");
@@ -23,18 +26,28 @@ public static class OAuthData
         public static readonly Uri PlayerUuidUri = new("https://api.minecraftservices.com/minecraft/profile");
     }
 
-    public static class AuthReqData
+    public static class EUrlReqData
     {
         // todo: optimize this code with class for safe
         public static readonly string ClientId = string.Empty;
-        public static readonly Uri RedirectUri = new("http://127.0.0.1:5050"); // TODO: Updata Uri
+        public static readonly Uri RedirectUri = new("http://127.0.0.1:5050"); // TODO: update Uri
         public static readonly string ClientSecret = string.Empty; // TODO: Set client secret
 
-        public static string AuthCodeData
-        {
-            get => new(
+        public static string AuthCodeData =
+            new(
                 $"{AuthUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access");
-        }
+
+        public static readonly Dictionary<string, string> DeviceCodeData = new()
+        {
+            { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" }
+        };
+
+        public static readonly Dictionary<string, string> UserAuthStateData = new()
+        {
+            { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" },
+            { "client_id", ClientId },
+            { "device_code", string.Empty }
+        };
 
         public static readonly Dictionary<string, string> AuthTokenData = new()
         {
@@ -57,31 +70,31 @@ public static class OAuthData
 
     public static class RequireData
     {
-        public class XboxLiveAuthRequire
+        public record XboxLiveAuthRequire
         {
-            public class PropertiesData
+            public record PropertiesData
             {
-                [JsonPropertyName("AuthMethod")] public string AuthMethod { get; } = "RPS";
-                [JsonPropertyName("SiteName")] public string SiteName { get; } = "user.auth.xboxlive.com";
+                [JsonPropertyName("AuthMethod")] public static string AuthMethod => "RPS";
+                [JsonPropertyName("SiteName")] public static string SiteName => "user.auth.xboxlive.com";
                 [JsonPropertyName("RpsTicket")] public required string RpsTicket { get; set; }
             }
 
             [JsonPropertyName("PropertiesData")] public PropertiesData Properties { get; set; }
-            [JsonPropertyName("RelyingParty")] public string RelyingParty { get; } = "http://auth.xboxlive.com";
-            [JsonPropertyName("TokenType")] public string TokenType { get; } = "JWT";
+            [JsonPropertyName("RelyingParty")] public static string RelyingParty => "http://auth.xboxlive.com";
+            [JsonPropertyName("TokenType")] public static string TokenType => "JWT";
         }
 
-        public class XstsRequire
+        public record XstsRequire
         {
-            public class PropertiesData
+            public record PropertiesData
             {
-                public string SandboxId { get; } = "RETAIL";
+                public static string SandboxId => "RETAIL";
                 public required List<string> UserTokens { get; set; }
             }
 
             public PropertiesData Properties { get; set; }
-            public string RelyingParty { get; } = "rp://api.minecraftservices.com/";
-            public string TokenType { get; } = "JWT";
+            public static string RelyingParty => "rp://api.minecraftservices.com/";
+            public static string TokenType => "JWT";
         }
 
         public class MiecraftAccessTokenRequire
@@ -92,7 +105,7 @@ public static class OAuthData
 
     public static class ResponceData
     {
-        public class AuthCodeResponce
+        public record AccessTokenResponce
         {
             [JsonPropertyName("token_type")] public string TokenType { get; set; }
             [JsonPropertyName("scope")] public string Scopr { get; set; }
@@ -102,11 +115,43 @@ public static class OAuthData
             [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; }
         }
 
-        public class XboxResponce
+        public record DeviceCodeResponce(
+            [property: JsonPropertyName("device_code")]
+            string DeviceCode,
+            [property: JsonPropertyName("user_code")]
+            string UserCode,
+            [property: JsonPropertyName("verification_uri")]
+            string VerificationUri,
+            [property: JsonPropertyName("expires_in")]
+            int ExpiresIn,
+            [property: JsonPropertyName("interval")]
+            int Interval,
+            [property: JsonPropertyName("message")]
+            string Message
+        );
+
+        public record UserAuthStateResponce(
+            [property: JsonPropertyName("token_type")]
+            string TokenType,
+            [property: JsonPropertyName("scope")] string Scope,
+            [property: JsonPropertyName("expires_in")]
+            int ExpiresIn,
+            [property: JsonPropertyName("access_token")]
+            string AccessToken,
+            [property: JsonPropertyName("refresh_token")]
+            string RefreshToken,
+            [property: JsonPropertyName("error")] string Error,
+            [property: JsonPropertyName("error_description")]
+            string ErrorDescription,
+            [property: JsonPropertyName("correlation_id")]
+            string CorrelationId
+        );
+
+        public record XboxResponce
         {
-            public class DisplayClainsData
+            public record DisplayClainsData
             {
-                public class XuiData
+                public record XuiData
                 {
                     [JsonPropertyName("uhs")] public string Uhs { get; set; }
                 }
@@ -120,7 +165,7 @@ public static class OAuthData
             [JsonPropertyName("DisplayClaims")] public DisplayClainsData DisplayClains { get; set; }
         }
 
-        public class MinecraftAccessTokenResponce
+        public record MinecraftAccessTokenResponce
         {
             [JsonPropertyName("username")] public string Username { get; set; }
             [JsonPropertyName("roles")] public List<object> Roles { get; set; }
@@ -129,9 +174,9 @@ public static class OAuthData
             [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
         }
 
-        public class CheckHaveGameResponce
+        public record CheckHaveGameResponce
         {
-            public class Item
+            public record Item
             {
                 [JsonPropertyName("name")] public string Name { get; set; }
                 [JsonPropertyName("signature")] public string Signature { get; set; }
@@ -142,9 +187,9 @@ public static class OAuthData
             [JsonPropertyName("keyId")] public string KeyId { get; set; }
         }
 
-        public class MinecraftPlayerUuidResponse
+        public record MinecraftPlayerUuidResponse
         {
-            public class Skin
+            public record Skin
             {
                 [JsonPropertyName("id")] public string Id { get; set; }
 

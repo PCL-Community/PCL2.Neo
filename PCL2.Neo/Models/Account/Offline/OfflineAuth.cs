@@ -19,7 +19,7 @@ public class OfflineAuth : IAuthenticator
     }
 
     /// <inheritdoc />
-    public AccountInfo LogIn()
+    public AccountInfo Login()
     {
         return null;
     }

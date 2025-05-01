@@ -8,7 +8,7 @@ namespace PCL2.Neo.Models.Account
 {
     public interface IAuthenticator
     {
-        AccountInfo LogIn();
+        AccountInfo Login();
         string GetIdentifier();
         void ClearCache();
         string GetCharchter();

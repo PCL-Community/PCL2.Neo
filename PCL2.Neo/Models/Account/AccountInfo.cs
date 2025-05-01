@@ -20,7 +20,6 @@ namespace PCL2.Neo.Models.Account
         public required string Uuid { get; set; }
         public required string UserName { get; init; }
         public required string UserType { get; init; }
-        public required string UseProperties { get; init; }
-        public required string UseProperites { get; init; }
+        public required string UserProperties { get; init; }
     }
 }
