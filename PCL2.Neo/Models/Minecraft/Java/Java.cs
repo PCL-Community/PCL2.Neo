@@ -76,8 +76,18 @@ public sealed class Java
     public async Task ManualAdd(string javaDir)
     {
         if (!IsInitialized) return;
+        if (JavaList.FirstOrDefault(runtime => runtime.DirectoryPath == javaDir) is { } existingRuntime)
+        {
+            Console.WriteLine("选择的 Java 在列表中已存在，将其标记为手动导入。");
+            existingRuntime.IsUserImport = true;
+            return;
+        }
         var entity = await JavaRuntime.CreateJavaEntityAsync(javaDir, true);
-        if (entity is { Compability: not JavaCompability.Error }) JavaList.Add(entity);
+        if (entity is { Compability: not JavaCompability.Error })
+        {
+            JavaList.Add(entity);
+            Console.WriteLine("已成功添加！");
+        }
         else Console.WriteLine("添加的 Java 文件无法运行！");
     }
 

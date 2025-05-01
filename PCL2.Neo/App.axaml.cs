@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using PCL2.Neo.Helpers;
 using PCL2.Neo.Models.Minecraft.Java;
 using PCL2.Neo.Utils;
@@ -17,6 +19,8 @@ namespace PCL2.Neo
     public partial class App : Application
     {
         public static Java? JavaManager { get; private set; }
+        public static IStorageProvider StorageProvider { get; private set; } = null!;
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
@@ -24,21 +28,18 @@ namespace PCL2.Neo
 
         public override void OnFrameworkInitializationCompleted()
         {
-            Task.Run(SetupJavaManager);
+            Task.Run(async () => JavaManager = await Java.CreateAsync());
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
                 desktop.MainWindow = new MainWindow();
+                IStorageProvider storageProvider = TopLevel.GetTopLevel(desktop.MainWindow)!.StorageProvider;
+                StorageProvider = storageProvider;
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        private async Task SetupJavaManager()
-        {
-            JavaManager = await Java.CreateAsync();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

@@ -129,9 +129,8 @@ public class JavaRuntime
         {
             runJavaOutput = await GetRunJavaOutputAsync(javaExe);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            Console.WriteLine(e);
             return new JavaInfo
             {
                 Version = 0,
