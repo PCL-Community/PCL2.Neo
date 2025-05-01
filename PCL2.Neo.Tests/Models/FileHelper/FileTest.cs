@@ -15,7 +15,8 @@ public class FileTest
 
     [Test]
     public async Task Fetch()
-    {
-        await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64","/Users/amagicpear/Downloads/PCL2Test");
+    {   
+        // await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64","/Users/amagicpear/Downloads/PCL2Test");
+        await Helpers.FileHelper.FetchJavaOnline("windows-x64",@"C:\Users\AMagicPear\Downloads\PCL2Test");
     }
 }

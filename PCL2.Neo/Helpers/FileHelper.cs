@@ -16,6 +16,8 @@ namespace PCL2.Neo.Helpers;
 /// </summary>
 public static class FileHelper
 {
+    private static readonly HttpClient _httpClient = new();
+
     /// <summary>
     /// 打开系统文件选择框选择一个文件
     /// </summary>
@@ -62,28 +64,58 @@ public static class FileHelper
     /// <param name="localFilePath">本地文件地址</param>
     /// <param name="sha1">文件sha1值</param>
     /// <param name="passStreamDown">是否向外传递下载的文件流</param>
+    /// <param name="maxRetries">最大重试次数</param>
     /// <returns>向外传递的文件流</returns>
-    public static async Task<FileStream?> DownloadFileAsync(Uri uri, string localFilePath, string? sha1 = null,
-        bool passStreamDown = false)
+    public static async Task<FileStream?> DownloadFileAsync(
+    Uri uri, string localFilePath, string? sha1 = null, bool passStreamDown = false, int maxRetries = 3)
     {
-        Console.WriteLine($"Downloading {localFilePath}...");
         ArgumentNullException.ThrowIfNull(uri);
-        var httpClient = new HttpClient();
-        var response = await httpClient.GetAsync(uri);
-        response.EnsureSuccessStatusCode();
-        var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-        await response.Content.CopyToAsync(fileStream);
-
-        // 检验文件 SHA-1 是否匹配
-        if (!string.IsNullOrEmpty(sha1))
+        Console.WriteLine($"Downloading {localFilePath}...");
+        int attempt = 0;
+        const int baseDelayMs = 500;
+        while (true)
         {
-            bool isSha1Match = await CheckSha1(fileStream, sha1);
-            if (!isSha1Match)
-                throw new FileNotFoundException($"File {localFilePath} does not match sha1: {sha1}");
+            try
+            {
+                using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                try
+                {
+                    await response.Content.CopyToAsync(fileStream);
+                    if (!string.IsNullOrEmpty(sha1))
+                    {
+                        fileStream.Position = 0;
+                        bool isSha1Match = await CheckSha1(fileStream, sha1);
+                        if (!isSha1Match)
+                            throw new IOException($"SHA-1 mismatch for file: {localFilePath}");
+                    }
+                    if (passStreamDown)
+                    {
+                        fileStream.Position = 0;
+                        return fileStream;
+                    }
+                    fileStream.Close();
+                    return null;
+                }
+                catch
+                {
+                    fileStream.Dispose();
+                    throw;
+                }
+            }
+            catch (Exception ex) when (attempt < maxRetries)
+            {
+                attempt++;
+                int delay = baseDelayMs * (1 << (attempt - 1)); // 500, 1000, 2000...
+                Console.WriteLine($"Attempt {attempt} failed: {ex.Message}. Retrying in {delay} ms...");
+                await Task.Delay(delay);
+            }
+            catch
+            {
+                throw; // 最终失败，抛出异常
+            }
         }
-
-        if (!passStreamDown) fileStream.Close();
-        return passStreamDown ? fileStream : null;
     }
 
     /// <summary>
@@ -198,8 +230,8 @@ public static class FileHelper
         // TODO)) 根据 RunningOS 推导 platform
         Uri metaUrl = new(
             "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json");
-        var httpClient = new HttpClient();
-        var allJson = await httpClient.GetStringAsync(metaUrl);
+        // var httpClient = new HttpClient();
+        var allJson = await _httpClient.GetStringAsync(metaUrl);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -213,7 +245,7 @@ public static class FileHelper
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await httpClient.GetStringAsync(manifestUri);
+                    manifestJson = await _httpClient.GetStringAsync(manifestUri);
                 }
             }
 
