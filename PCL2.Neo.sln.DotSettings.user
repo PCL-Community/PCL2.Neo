@@ -39,6 +39,8 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=95a7c32b_002D520d_002D4ed1_002Db22f_002Df3b6e550fab3/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="ArgumentsParsingTest" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::438856D4-C249-4E5F-8AC1-07B5EF401DC0::net9.0::PCL2.Neo.Tests.Utils.PeHeaderReaderTest.GetMachineTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::438856D4-C249-4E5F-8AC1-07B5EF401DC0::net9.0::PCL2.Neo.Tests.Models.Account.OAuthService.RedirectServer.RedirectServerTests.ServerTest&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::438856D4-C249-4E5F-8AC1-07B5EF401DC0::net9.0::PCL2.Neo.Tests.Models.Account.OAuthTests.AuthInfoTest&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

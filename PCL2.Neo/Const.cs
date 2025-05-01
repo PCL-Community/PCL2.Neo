@@ -39,11 +39,35 @@ public static class Const
         Unkonw
     }
 
-    public static readonly RunningOs Os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-        ? RunningOs.Windows
-        : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-            ? RunningOs.Linux
-            : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? RunningOs.MacOs
-                : RunningOs.Unkonw;
+    private static RunningOs? _os;
+
+    public static RunningOs Os
+    {
+        get
+        {
+            if (_os != null)
+            {
+                return _os.Value;
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _os = RunningOs.Windows;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                _os = RunningOs.Linux;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                _os = RunningOs.MacOs;
+            }
+            else
+            {
+                _os = RunningOs.Unkonw;
+            }
+
+            return _os.Value;
+        }
+    }
 }

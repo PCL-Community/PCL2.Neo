@@ -166,7 +166,7 @@ public class MetadataFile
 #nullable disable
 #pragma warning disable IL2026
 
-        #region Arguments
+        #region Argument
 
         if (_rawMetadata.ContainsKey("arguments"))
         {

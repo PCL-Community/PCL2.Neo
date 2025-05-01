@@ -122,9 +122,10 @@ namespace PCL2.Neo.Models.Minecraft.Java
         private static Task<IEnumerable<string>> SearchDirves(int maxDeep)
         {
             var readyDrive = DriveInfo.GetDrives()
-                .Where(d => d is { IsReady: true, DriveType: DriveType.Fixed })
-                .Where(d => d.Name != @"C:\");
+                .Where(d => d is { IsReady: true, DriveType: DriveType.Fixed });
+            //.Where(d => d.Name != @"C:\");
             // Discussion: Unknow the searching should ignore Drive C: https://github.com/PCL-Community/PCL2.Neo/discussions/58
+            // Discussion was closed. Dickding to not ignore C: drive.
 
             var rootFolders = readyDrive
                 .Select(d => d.RootDirectory)

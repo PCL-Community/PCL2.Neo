@@ -54,4 +54,10 @@
   <ItemGroup>
     <None Include="G:\PCL2.Neo\PCL2.Neo\.editorconfig" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resource\OAuthRedirectHttpPage.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
