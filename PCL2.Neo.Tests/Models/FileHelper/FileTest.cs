@@ -1,4 +1,4 @@
-using PCL2.Neo.Helpers;
+using PCL2.Neo.Models.Minecraft.Java;
 
 namespace PCL2.Neo.Tests.Models.FileHelper;
 
@@ -17,6 +17,7 @@ public class FileTest
     public async Task Fetch()
     {
         await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
+            Java.MojangJavaVersion.Δ,
             (completed, total) =>
             {
                 Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");

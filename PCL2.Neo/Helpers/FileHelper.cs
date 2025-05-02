@@ -1,8 +1,8 @@
 using Avalonia.Platform.Storage;
+using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
@@ -232,8 +232,10 @@ public static class FileHelper
     /// <param name="destinationFolder">目标文件夹</param>
     /// <param name="progressCallback">显示进度的回调函数</param>
     /// <param name="cancellationToken">用于中断下载</param>
+    /// <param name="version">要下载的版本，有α、β、γ、δ等</param>
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
     public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
+        Java.MojangJavaVersion version,
         Action<int, int>? progressCallback = null, CancellationToken cancellationToken = default)
     {
         Uri metaUrl = new(
@@ -244,7 +246,7 @@ public static class FileHelper
         {
             var root = document.RootElement;
             if (root.TryGetProperty(platform, out JsonElement platformElement) &&
-                platformElement.TryGetProperty("java-runtime-gamma", out var gammaArray) &&
+                platformElement.TryGetProperty(version.Value, out var gammaArray) &&
                 gammaArray.GetArrayLength() > 0 &&
                 gammaArray[0].TryGetProperty("manifest", out JsonElement manifestElement) &&
                 manifestElement.TryGetProperty("url", out var manifestUriElement))
@@ -324,6 +326,7 @@ public static class FileHelper
             try { await finishedTask; }
             catch (Exception ex) { Console.WriteLine(ex); }
         }
+
         await Task.WhenAll(tasks);
 
 #pragma warning disable CA1416

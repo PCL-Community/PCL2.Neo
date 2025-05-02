@@ -21,6 +21,23 @@ public sealed class Java
 
     private Java() { } // 私有构造函数
 
+    public readonly struct MojangJavaVersion
+    {
+        public static readonly MojangJavaVersion Α = new("java-runtime-alpha");
+        public static readonly MojangJavaVersion Β = new("java-runtime-beta");
+        public static readonly MojangJavaVersion Δ = new("java-runtime-delta");
+        public static readonly MojangJavaVersion Γ = new("java-runtime-gamma");
+        public static readonly MojangJavaVersion Γs = new("java-runtime-gamma-snapshot");
+        public static readonly MojangJavaVersion Legacy = new("jre-legacy");
+
+        public string Value { get; }
+
+        private MojangJavaVersion(string value) => Value = value;
+
+        public override string ToString() => Value;
+    }
+
+
     /// <summary>
     /// 供外部调用，根据实际情况创建 Java 管理器实例
     /// </summary>
@@ -34,7 +51,7 @@ public sealed class Java
 
     /// <summary>
     /// 初始化 Java 列表，但除非没有 Java，否则不进行检查。
-    /// TODO)) 更换为 Logger.cs 中的 logger
+    /// <remarks> TODO)) 更换为 Logger.cs 中的 logger </remarks>
     /// </summary>
     private async Task JavaListInit()
     {
@@ -122,6 +139,7 @@ public sealed class Java
                     "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
             var cts = new CancellationTokenSource();
             var fetchedJavaDir = await FileHelper.FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
+                MojangJavaVersion.Α,
                 (completed, total) =>
                 {
                     Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");
