@@ -6,18 +6,8 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.Yggdrasil
 {
-    public class YggdrasilAuth : IAuthenticator
+    public class YggdrasilAuth : IAccount
     {
-        /// <inheritdoc />
-        public void GetAccessToken()
-        {
-        }
-
-        /// <inheritdoc />
-        public void Refresh()
-        {
-        }
-
         /// <inheritdoc />
         public AccountInfo Login()
         {
@@ -25,9 +15,8 @@ namespace PCL2.Neo.Models.Account.Yggdrasil
         }
 
         /// <inheritdoc />
-        public string GetIdentifier()
+        public void Refresh(string refreshToken)
         {
-            return null;
         }
 
         /// <inheritdoc />
@@ -36,7 +25,7 @@ namespace PCL2.Neo.Models.Account.Yggdrasil
         }
 
         /// <inheritdoc />
-        public string GetCharchter()
+        public string GetSkins(string uuid)
         {
             return null;
         }

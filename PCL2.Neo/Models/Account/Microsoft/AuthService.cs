@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using PCL2.Neo.Models.Account.OAuthService;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.Microsoft;
 
 public partial class MicrosoftAuth
 {
-    private static AccountInfo AuthCodeLogin()
-    {
-    }
+    private static async Task<AccountInfo> AuthCodeLogin() => await DeviceCode.Login();
 
-    private static AccountInfo DeviceCodeLogin()
-    {
-    }
+    private static async Task<AccountInfo> DeviceCodeLogin() => await OAuth.LogIn();
 }

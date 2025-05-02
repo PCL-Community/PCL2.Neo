@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account
 {
-    public interface IAuthenticator
+    public interface IAccount
     {
         AccountInfo Login();
-        string GetIdentifier();
+        Task<AccountInfo> Refresh(string refreshToken);
         void ClearCache();
-        string GetCharchter();
+        string GetSkins(string uuid);
         AccountInfo PlayOffline();
     }
 }

@@ -6,18 +6,8 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.Offline;
 
-public class OfflineAuth : IAuthenticator
+public class OfflineAuth : IAccount
 {
-    /// <inheritdoc />
-    public void GetAccessToken()
-    {
-    }
-
-    /// <inheritdoc />
-    public void Refresh()
-    {
-    }
-
     /// <inheritdoc />
     public AccountInfo Login()
     {
@@ -25,9 +15,8 @@ public class OfflineAuth : IAuthenticator
     }
 
     /// <inheritdoc />
-    public string GetIdentifier()
+    public void Refresh(string refreshToken)
     {
-        return null;
     }
 
     /// <inheritdoc />
@@ -36,7 +25,7 @@ public class OfflineAuth : IAuthenticator
     }
 
     /// <inheritdoc />
-    public string GetCharchter()
+    public string GetSkins(string uuid)
     {
         return null;
     }

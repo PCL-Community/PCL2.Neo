@@ -1,3 +1,4 @@
+using PCL2.Neo.Models.Account.OAuthService;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.Microsoft;
 
-public partial class MicrosoftAuth : IAuthenticator
+public partial class MicrosoftAuth : IAccount
 {
     public enum LoginType : byte
     {
@@ -16,11 +17,12 @@ public partial class MicrosoftAuth : IAuthenticator
 
     // todo: refresh token
     // todo: storeage user profile
-    public AccountInfo Login(LoginType type) =>
+    public async Task<AccountInfo> Login(LoginType type) =>
         type switch
         {
-            LoginType.DeviceCode => DeviceCodeLogin(),
-            LoginType.AuthCode => AuthCodeLogin(),
+            LoginType.DeviceCode => await DeviceCodeLogin(),
+            LoginType.AuthCode => await AuthCodeLogin(),
+
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
 
@@ -30,10 +32,21 @@ public partial class MicrosoftAuth : IAuthenticator
         throw new NotImplementedException("This method is not implemented. Please use Login(LoginType) to instead.");
     }
 
-    /// <inheritdoc />
-    public string GetIdentifier()
+    public async Task<AccountInfo> Refresh(string refreshToken)
     {
-        return null;
+        var tokens = await OAuth.RefreshToken(refreshToken);
+        var minecraftAccessToken = await OAuth.GetMinecraftToken(tokens.AccessToken);
+        var playerUuidAndName = await OAuth.GetPlayerUuidAndName(minecraftAccessToken);
+
+        return new AccountInfo
+        {
+            AccessToken = minecraftAccessToken,
+            RefreshToken = tokens.RefreshToken,
+            Uuid = playerUuidAndName.Uuid,
+            UserName = playerUuidAndName.Name,
+            UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
+            UserProperties = string.Empty
+        };
     }
 
     /// <inheritdoc />
@@ -42,7 +55,7 @@ public partial class MicrosoftAuth : IAuthenticator
     }
 
     /// <inheritdoc />
-    public string GetCharchter()
+    public string GetSkins(string uuid)
     {
         return null;
     }

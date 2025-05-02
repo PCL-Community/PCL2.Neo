@@ -2,76 +2,47 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Timer = System.Timers.Timer;
 
 namespace PCL2.Neo.Models.Account.OAuthService;
+
 #pragma warning disable IL2026 // fixed by DynamicDependency
 public static class DeviceCode
 {
     public enum UserAuthMessage : byte
     {
-        AuthorizationPending,
+        AuthorizationDeclined,
         BadVerificationCode,
-        ExpiredToken
+        ExpiredToken,
+        Success
     }
 
-    private static readonly ManualResetEvent IsUserAuthed = new ManualResetEvent(false);
+    public record Result<TResult, TMessage>(bool IsSuccess, TMessage Message, TResult Res);
+
+    public class AuthorizationException(string message) : Exception(message);
+
+    private static readonly ManualResetEvent IsUserAuthed = new(false);
     private static Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>? _useAuthResult;
     private static Timer? _timer;
 
-    public record Result<TResult, TMessage>(bool IsSuccess, TMessage Message, TResult Res);
 
     public static async Task<AccountInfo> Login()
     {
         var codePair = await GetCodePair();
-        _timer = new Timer(codePair.Interval);
-        _timer.Elapsed += async (_, _) =>
-        {
-            if (await PollingServer(codePair))
-            {
-                IsUserAuthed.Set();
-            }
-        };
-        _timer.Enabled = true;
-        _timer.AutoReset = true;
-        _timer.Start();
+        InitializeTimer(codePair.Interval, codePair.DeviceCode);
 
         IsUserAuthed.WaitOne();
+        ValidateAuthResult();
 
-        ArgumentNullException.ThrowIfNull(_useAuthResult);
-
-        if (_useAuthResult.IsSuccess == false)
-        {
-            switch (_useAuthResult.Message) // todo: handle error
-            {
-                case UserAuthMessage.AuthorizationPending:
-                    break;
-                case UserAuthMessage.BadVerificationCode:
-                    break;
-                case UserAuthMessage.ExpiredToken:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        (string accessToken, string refreshToken) = (_useAuthResult.Res.AccessToken, _useAuthResult.Res.RefreshToken);
-        var xboxToken = await OAuth.GetXboxToken(accessToken);
-        var xstsToken = await OAuth.GetXstsToken(xboxToken.Token);
-        var minecraftAccessToken = await OAuth.GetMinecraftAccessToken(xboxToken.Uhs, xstsToken);
-        var haveGame = await OAuth.HaveGame(minecraftAccessToken);
-
-        if (!haveGame)
-        {
-            throw new OAuth.NotHaveGameException("Logined user not have any game!");
-        }
-
+        (string accessToken, string refreshToken) =
+            (_useAuthResult!.Res.AccessToken, _useAuthResult.Res.RefreshToken);
+        var minecraftAccessToken = await OAuth.GetMinecraftToken(accessToken);
         var playerUuidAndName = await OAuth.GetPlayerUuidAndName(minecraftAccessToken);
 
-        return new AccountInfo()
+        return new AccountInfo
         {
             AccessToken = minecraftAccessToken,
             RefreshToken = refreshToken,
@@ -82,74 +53,103 @@ public static class DeviceCode
         };
     }
 
+    private static void InitializeTimer(double interval, string deviceCode)
+    {
+        _timer = new Timer(interval) { AutoReset = true, Enabled = true };
+        _timer.Elapsed += async (_, _) =>
+        {
+            if (await PollingServer(deviceCode))
+            {
+                IsUserAuthed.Set();
+            }
+        };
+        _timer.Start();
+    }
+
+    private static void ValidateAuthResult()
+    {
+        ArgumentNullException.ThrowIfNull(_useAuthResult);
+
+        if (_useAuthResult?.IsSuccess == false)
+        {
+            throw _useAuthResult.Message switch
+            {
+                UserAuthMessage.AuthorizationDeclined =>
+                    new AuthorizationException("User was denied the authorization"),
+                UserAuthMessage.BadVerificationCode => new AuthorizationException("Bad Verification Code"),
+                UserAuthMessage.ExpiredToken => new AuthorizationException("Authorization time out"),
+                _ => new ArgumentOutOfRangeException()
+            };
+        }
+    }
+
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors,
         typeof(OAuthData.ResponceData.DeviceCodeResponce))]
     private static async Task<OAuthData.ResponceData.DeviceCodeResponce> GetCodePair()
     {
-        var content = new FormUrlEncodedContent(OAuthData.EUrlReqData.DeviceCodeData);
-        content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
+        var content = new FormUrlEncodedContent(OAuthData.EUrlReqData.DeviceCodeData)
+        {
+            Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
+        };
 
-        using var response = await OAuth.HttpClient.PostAsync(OAuthData.AuthUrls.DeviceCode, content);
-
-        response.EnsureSuccessStatusCode();
-
-        var result = await response.Content.ReadFromJsonAsync<OAuthData.ResponceData.DeviceCodeResponce>();
-        ArgumentNullException.ThrowIfNull(result);
-
-        return result;
+        return await OAuth.SendHttpRequestAsync<OAuthData.ResponceData.DeviceCodeResponce>(HttpMethod.Post,
+            OAuthData.AuthUrls.DeviceCode, content, JsonSerializerOptions.Web);
     }
 
-    /// <summary>
-    /// Stop timer and set IsUserAuthed to true. Only call this method when the polling is failed.
-    /// </summary>
+    private static async Task<bool> PollingServer(string deviceCode)
+    {
+        var data = OAuthData.EUrlReqData.UserAuthStateData;
+        data["device_code"] = deviceCode;
+
+        var content = new FormUrlEncodedContent(data)
+        {
+            Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
+        };
+
+        var result = await OAuth.SendHttpRequestAsync<OAuthData.ResponceData.UserAuthStateResponce>(HttpMethod.Post,
+            OAuthData.AuthUrls.AuthTokenUri, content, JsonSerializerOptions.Web);
+
+        return HandlePollingResult(result);
+    }
+
+    private static bool HandlePollingResult(OAuthData.ResponceData.UserAuthStateResponce result)
+    {
+        _useAuthResult = result.Error switch
+        {
+            "authorization_declined" => CreateAuthResult(false, UserAuthMessage.AuthorizationDeclined, result),
+            "expired_token" => CreateAuthResult(false, UserAuthMessage.ExpiredToken, result),
+            "bad_verification_code" => CreateAuthResult(false, UserAuthMessage.BadVerificationCode, result),
+            "slow_down" => AdjustTimerInterval(),
+            "authorization_pending" => null,
+            _ => CreateAuthResult(true, UserAuthMessage.Success, result)
+        };
+
+        if (_useAuthResult?.IsSuccess == false)
+        {
+            return false;
+        }
+
+        StopTimer();
+        return true;
+    }
+
+    private static Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage> CreateAuthResult(
+        bool isSuccess, UserAuthMessage message, OAuthData.ResponceData.UserAuthStateResponce result)
+    {
+        return new Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>(isSuccess, message, result);
+    }
+
+    private static Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>? AdjustTimerInterval()
+    {
+        if (_timer != null) _timer.Interval += 1000;
+        return null;
+    }
+
     private static void StopTimer()
     {
         _timer?.Stop();
         _timer?.Dispose();
         _timer = null;
-
         IsUserAuthed.Set();
-    }
-
-    private static async Task<bool> PollingServer(OAuthData.ResponceData.DeviceCodeResponce pair)
-    {
-        var data = OAuthData.EUrlReqData.UserAuthStateData;
-        data["device_code"] = pair.DeviceCode;
-        var content = new FormUrlEncodedContent(data);
-        content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
-
-        using var response = await OAuth.HttpClient.PostAsync(OAuthData.AuthUrls.AuthTokenUri, content);
-
-        response.EnsureSuccessStatusCode();
-
-        var result = await response.Content.ReadFromJsonAsync<OAuthData.ResponceData.UserAuthStateResponce>();
-        ArgumentNullException.ThrowIfNull(result);
-
-        switch (result.Error)
-        {
-            case "authorization_pending":
-                _useAuthResult =
-                    new Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>(false,
-                        UserAuthMessage.AuthorizationPending, result);
-                StopTimer();
-                return false;
-            case "expired_token":
-                _useAuthResult =
-                    new Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>(false,
-                        UserAuthMessage.ExpiredToken, result);
-                StopTimer();
-                return false;
-            case "slow_down":
-                _timer.Interval = _timer.Interval += 1000;
-                break;
-            case "bad_verification_code":
-                _useAuthResult =
-                    new Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>(false,
-                        UserAuthMessage.BadVerificationCode, result);
-                StopTimer();
-                return false;
-        }
-
-        return true;
     }
 }
