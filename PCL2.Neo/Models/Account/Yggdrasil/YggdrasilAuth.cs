@@ -9,13 +9,12 @@ namespace PCL2.Neo.Models.Account.Yggdrasil
     public class YggdrasilAuth : IAccount
     {
         /// <inheritdoc />
-        public AccountInfo Login()
+        public void Login()
         {
-            return null;
         }
 
         /// <inheritdoc />
-        public void Refresh(string refreshToken)
+        public Task Refresh(string refreshToken)
         {
         }
 
@@ -25,7 +24,7 @@ namespace PCL2.Neo.Models.Account.Yggdrasil
         }
 
         /// <inheritdoc />
-        public string GetSkins(string uuid)
+        public string GetSkin(string uuid)
         {
             return null;
         }

@@ -1,5 +1,6 @@
 using PCL2.Neo.Models.Account.OAuthService.RedirectServer;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -53,16 +54,20 @@ public static class OAuth
             var authToken = await GetAuthToken(authCode);
             var minecraftAccessToken = await GetMinecraftToken(authToken.AccessToken);
 
-            var playerUuidAndName = await GetPlayerUuidAndName(minecraftAccessToken);
+            var playerUuidAndName = await GetPlayerUuid(minecraftAccessToken);
 
             return new AccountInfo
             {
                 AccessToken = minecraftAccessToken,
-                RefreshToken = authToken.RefreshToken,
+                OAuthToken =
+                    new AccountInfo.OAuthTokenData(authToken.AccessToken, authToken.RefreshToken,
+                        new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(authToken.ExpiresIn))),
                 UserName = playerUuidAndName.Name,
                 UserProperties = string.Empty,
                 UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
-                Uuid = playerUuidAndName.Uuid
+                Uuid = playerUuidAndName.Uuid,
+                Capes = CollectCapes(playerUuidAndName.Capes),
+                Skins = CollectSkins(playerUuidAndName.Skins)
             };
         }
         catch (Exception e)
@@ -72,6 +77,40 @@ public static class OAuth
         }
     }
 
+    public static List<AccountInfo.Skin> CollectSkins(
+        IEnumerable<OAuthData.ResponceData.MinecraftPlayerUuidResponse.Skin> skins) =>
+        (skins.Select(skin => new
+            {
+                skin,
+                state = skin.State switch
+                {
+                    "ACTIVE" => AccountInfo.State.Active,
+                    "INACTIVE" => AccountInfo.State.Inactive,
+                    _ => throw new ArgumentOutOfRangeException()
+                }
+            })
+            .Select(t => new { t, url = new Uri(t.skin.Url) })
+            .Select(t =>
+                new AccountInfo.Skin(t.t.skin.Id, t.url, t.t.skin.Variant, t.t.skin.TextureKey,
+                    t.t.state)))
+        .ToList();
+
+    public static List<AccountInfo.Cape> CollectCapes(
+        IEnumerable<OAuthData.ResponceData.MinecraftPlayerUuidResponse.Cape> capes) =>
+        (capes.Select(cape => new
+        {
+            cape,
+            state = cape.State switch
+            {
+                "ACTIVE" => AccountInfo.State.Active,
+                "INACTIVE" => AccountInfo.State.Inactive,
+                _ => throw new ArgumentOutOfRangeException()
+            }
+        }))
+        .Select(t => new { t, url = new Uri(t.cape.Url) })
+        .Select(t =>
+            new AccountInfo.Cape(t.t.cape.Id, t.t.state, t.url, t.t.cape.Alias))
+        .ToList();
 
     public static async Task<string> GetMinecraftToken(string accessToken)
     {
@@ -121,7 +160,7 @@ public static class OAuth
         // 设置授权头
         if (!string.IsNullOrEmpty(bearerToken))
         {
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer ", bearerToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
         }
 
         // 发送请求
@@ -135,12 +174,12 @@ public static class OAuth
         return result;
     }
 
-    public static async Task<AuthAndRefreshToken> RefreshToken(string refreshToken)
+    public static async Task<OAuthData.ResponceData.AccessTokenResponce> RefreshToken(string refreshToken)
     {
         var authTokenData = OAuthData.EUrlReqData.RefreshTokenData;
         authTokenData["refresh_token"] = refreshToken;
 
-        return await SendHttpRequestAsync<AuthAndRefreshToken>(
+        return await SendHttpRequestAsync<OAuthData.ResponceData.AccessTokenResponce>(
             HttpMethod.Post,
             OAuthData.AuthUrls.AuthTokenUri,
             new FormUrlEncodedContent(authTokenData));
@@ -160,12 +199,12 @@ public static class OAuth
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.EUrlReqData))]
-    public static async ValueTask<AuthAndRefreshToken> GetAuthToken(string authCode)
+    public static async ValueTask<OAuthData.ResponceData.AccessTokenResponce> GetAuthToken(string authCode)
     {
         var authTokenData = OAuthData.EUrlReqData.AuthTokenData;
         authTokenData["authCode"] = authCode;
 
-        return await SendHttpRequestAsync<AuthAndRefreshToken>(
+        return await SendHttpRequestAsync<OAuthData.ResponceData.AccessTokenResponce>(
             HttpMethod.Post,
             OAuthData.AuthUrls.AuthTokenUri,
             new FormUrlEncodedContent(authTokenData));
@@ -235,19 +274,10 @@ public static class OAuth
         return response.Items.Any(it => !string.IsNullOrEmpty(it.Signature));
     }
 
-    #region PlayerUuidAndName
-
-    public record PlayerUuidAndName(string Uuid, string Name);
-
-    #endregion
-
-    public static async ValueTask<PlayerUuidAndName> GetPlayerUuidAndName(string accessToken)
-    {
-        var response = await SendHttpRequestAsync<OAuthData.ResponceData.MinecraftPlayerUuidResponse>(
+    public static async ValueTask<OAuthData.ResponceData.MinecraftPlayerUuidResponse>
+        GetPlayerUuid(string accessToken) =>
+        await SendHttpRequestAsync<OAuthData.ResponceData.MinecraftPlayerUuidResponse>(
             HttpMethod.Get,
             OAuthData.AuthUrls.PlayerUuidUri,
             bearerToken: accessToken);
-
-        return new PlayerUuidAndName(response.Id, response.Name);
-    }
 }

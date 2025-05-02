@@ -199,16 +199,25 @@ public static class OAuthData
 
                 [JsonPropertyName("variant")] public string Variant { get; set; }
 
+                [JsonPropertyName("textureKey")] public string TextureKey { get; set; }
+
                 [JsonPropertyName("alias")] public string Alias { get; set; }
             }
 
-            [JsonPropertyName("id")] public string Id { get; set; }
+            public record Cape(
+                [property: JsonPropertyName("id")] string Id,
+                [property: JsonPropertyName("state")] string State,
+                [property: JsonPropertyName("url")] string Url,
+                [property: JsonPropertyName("alias")] string Alias
+            );
+
+            [JsonPropertyName("id")] public string Uuid { get; set; }
 
             [JsonPropertyName("name")] public string Name { get; set; }
 
             [JsonPropertyName("skins")] public List<Skin> Skins { get; set; }
 
-            [JsonPropertyName("capes")] public List<object> Capes { get; set; } // todo: set type of capes
+            [JsonPropertyName("capes")] public List<Cape> Capes { get; set; }
         }
     }
 #nullable enable

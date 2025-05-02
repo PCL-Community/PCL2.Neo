@@ -1,8 +1,5 @@
 using PCL2.Neo.Models.Account.OAuthService;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.Microsoft;
@@ -15,35 +12,39 @@ public partial class MicrosoftAuth : IAccount
         AuthCode
     }
 
-    // todo: refresh token
-    // todo: storeage user profile
-    public async Task<AccountInfo> Login(LoginType type) =>
-        type switch
+    public AccountInfo? AccountInfo;
+
+    public async Task Login(LoginType type)
+    {
+        AccountInfo = type switch
         {
             LoginType.DeviceCode => await DeviceCodeLogin(),
             LoginType.AuthCode => await AuthCodeLogin(),
 
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
+    }
 
     /// <inheritdoc />
-    public AccountInfo Login()
+    public void Login()
     {
         throw new NotImplementedException("This method is not implemented. Please use Login(LoginType) to instead.");
     }
 
-    public async Task<AccountInfo> Refresh(string refreshToken)
+    public async Task Refresh(string refreshToken)
     {
         var tokens = await OAuth.RefreshToken(refreshToken);
         var minecraftAccessToken = await OAuth.GetMinecraftToken(tokens.AccessToken);
-        var playerUuidAndName = await OAuth.GetPlayerUuidAndName(minecraftAccessToken);
+        var playerUuid = await OAuth.GetPlayerUuid(minecraftAccessToken);
 
-        return new AccountInfo
+        AccountInfo = new AccountInfo
         {
             AccessToken = minecraftAccessToken,
-            RefreshToken = tokens.RefreshToken,
-            Uuid = playerUuidAndName.Uuid,
-            UserName = playerUuidAndName.Name,
+            OAuthToken =
+                new AccountInfo.OAuthTokenData(tokens.AccessToken, tokens.RefreshToken,
+                    new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(tokens.ExpiresIn))),
+            Uuid = playerUuid.Uuid,
+            UserName = playerUuid.Name,
             UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
             UserProperties = string.Empty
         };
@@ -52,12 +53,12 @@ public partial class MicrosoftAuth : IAccount
     /// <inheritdoc />
     public void ClearCache()
     {
+        AccountInfo = null;
     }
 
     /// <inheritdoc />
-    public string GetSkins(string uuid)
+    public string GetSkin(string uuid, string savePath)
     {
-        return null;
     }
 
     /// <inheritdoc />

@@ -37,19 +37,24 @@ public static class DeviceCode
         IsUserAuthed.WaitOne();
         ValidateAuthResult();
 
-        (string accessToken, string refreshToken) =
-            (_useAuthResult!.Res.AccessToken, _useAuthResult.Res.RefreshToken);
+        string accessToken = _useAuthResult!.Res.AccessToken;
+        string refreshToken = _useAuthResult.Res.RefreshToken;
+        var expires = _useAuthResult.Res.ExpiresIn;
         var minecraftAccessToken = await OAuth.GetMinecraftToken(accessToken);
-        var playerUuidAndName = await OAuth.GetPlayerUuidAndName(minecraftAccessToken);
+        var playerInfo = await OAuth.GetPlayerUuid(minecraftAccessToken);
 
         return new AccountInfo
         {
             AccessToken = minecraftAccessToken,
-            RefreshToken = refreshToken,
-            UserName = playerUuidAndName.Name,
+            OAuthToken =
+                new AccountInfo.OAuthTokenData(accessToken, refreshToken,
+                    new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(expires))),
+            UserName = playerInfo.Name,
             UserProperties = string.Empty,
             UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
-            Uuid = playerUuidAndName.Uuid
+            Uuid = playerInfo.Uuid,
+            Capes = OAuth.CollectCapes(playerInfo.Capes),
+            Skins = OAuth.CollectSkins(playerInfo.Skins)
         };
     }
 
