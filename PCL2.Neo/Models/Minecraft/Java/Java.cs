@@ -119,7 +119,8 @@ public sealed class Java
             var neo2SysDir = Directory.CreateDirectory(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
-            var fetchedJavaDir = await FileHelper.FetchJavaOnline("mac-os-arm64", neo2SysDir.FullName);
+            var fetchedJavaDir = await FileHelper.
+                FetchJavaOnline(Const.Platform, neo2SysDir.FullName);
             if (fetchedJavaDir != null)
             {
                 var runtime = await JavaRuntime.CreateJavaEntityAsync(fetchedJavaDir, true);

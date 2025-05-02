@@ -46,4 +46,40 @@ public static class Const
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? RunningOs.MacOs
                 : RunningOs.Unknown;
+
+    public static readonly Architecture Architecture = RuntimeInformation.ProcessArchitecture;
+
+    /// <summary>
+    /// 根据 MOJANG API 命名
+    /// </summary>
+    public static string Platform
+    {
+        get
+        {
+            return Os switch
+            {
+                RunningOs.Windows => Architecture switch
+                {
+                    Architecture.X64 => "windows-x64",
+                    Architecture.X86 => "windows-x86",
+                    Architecture.Arm64 => "windows-arm64",
+                    _ => "unknown"
+                },
+                RunningOs.Linux => Architecture switch
+                {
+                    Architecture.X64 => "linux",
+                    Architecture.X86 => "linux-i386",
+                    _ => "unknown"
+                },
+                RunningOs.MacOs => Architecture switch
+                {
+                    Architecture.X64 => "mac-os",
+                    Architecture.Arm64 => "mac-os-arm64",
+                    _ => "unknown"
+                },
+                RunningOs.Unknown => "unknown",
+                _ => "unknown"
+            };
+        }
+    }
 }

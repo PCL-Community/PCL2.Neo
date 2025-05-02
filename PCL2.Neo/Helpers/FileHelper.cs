@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -16,7 +18,7 @@ namespace PCL2.Neo.Helpers;
 /// </summary>
 public static class FileHelper
 {
-    private static readonly HttpClient _httpClient = new();
+    private static readonly HttpClient HttpClient = new();
 
     /// <summary>
     /// 打开系统文件选择框选择一个文件
@@ -67,7 +69,7 @@ public static class FileHelper
     /// <param name="maxRetries">最大重试次数</param>
     /// <returns>向外传递的文件流</returns>
     public static async Task<FileStream?> DownloadFileAsync(
-    Uri uri, string localFilePath, string? sha1 = null, bool passStreamDown = false, int maxRetries = 3)
+        Uri uri, string localFilePath, string? sha1 = null, bool passStreamDown = false, int maxRetries = 3)
     {
         ArgumentNullException.ThrowIfNull(uri);
         Console.WriteLine($"Downloading {localFilePath}...");
@@ -77,7 +79,7 @@ public static class FileHelper
         {
             try
             {
-                using var response = await _httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await HttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
                 response.EnsureSuccessStatusCode();
                 var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 try
@@ -90,11 +92,13 @@ public static class FileHelper
                         if (!isSha1Match)
                             throw new IOException($"SHA-1 mismatch for file: {localFilePath}");
                     }
+
                     if (passStreamDown)
                     {
                         fileStream.Position = 0;
                         return fileStream;
                     }
+
                     fileStream.Close();
                     return null;
                 }
@@ -110,10 +114,6 @@ public static class FileHelper
                 int delay = baseDelayMs * (1 << (attempt - 1)); // 500, 1000, 2000...
                 Console.WriteLine($"Attempt {attempt} failed: {ex.Message}. Retrying in {delay} ms...");
                 await Task.Delay(delay);
-            }
-            catch
-            {
-                throw; // 最终失败，抛出异常
             }
         }
     }
@@ -137,7 +137,8 @@ public static class FileHelper
     /// 在 Unix 系统中给予可执行文件运行权限
     /// </summary>
     /// <param name="path">文件路径</param>
-    [SuppressMessage("Interoperability", "CA1416:验证平台兼容性")]
+    [SupportedOSPlatform(nameof(OSPlatform.OSX))]
+    [SupportedOSPlatform(nameof(OSPlatform.Linux))]
     private static void SetFileExecutableUnix(string path)
     {
         if (Const.Os is Const.RunningOs.Windows) return;
@@ -192,7 +193,7 @@ public static class FileHelper
     /// <summary>
     /// 整合函数：下载并解压，然后删去原压缩文件
     /// </summary>
-    public static async Task DownloadAndDeCompressFileAsync(Uri uri, string localFilePath, string sha1Raw,
+    private static async Task DownloadAndDeCompressFileAsync(Uri uri, string localFilePath, string sha1Raw,
         string sha1Lzma)
     {
         var stream = await DownloadFileAsync(uri, localFilePath + ".lzma", sha1Lzma, true);
@@ -230,8 +231,7 @@ public static class FileHelper
         // TODO)) 根据 RunningOS 推导 platform
         Uri metaUrl = new(
             "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json");
-        // var httpClient = new HttpClient();
-        var allJson = await _httpClient.GetStringAsync(metaUrl);
+        var allJson = await HttpClient.GetStringAsync(metaUrl);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -245,7 +245,7 @@ public static class FileHelper
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await _httpClient.GetStringAsync(manifestUri);
+                    manifestJson = await HttpClient.GetStringAsync(manifestUri);
                 }
             }
 
@@ -307,13 +307,17 @@ public static class FileHelper
         }
 
         await Task.WhenAll(tasks);
-        foreach (string executableFile in executableFiles)
+#pragma warning disable CA1416
+        if (Const.Os is not Const.RunningOs.Windows)
         {
-            if (string.IsNullOrEmpty(executableFile))
-                throw new FileNotFoundException();
-            SetFileExecutableUnix(executableFile);
+            foreach (string executableFile in executableFiles)
+            {
+                if (string.IsNullOrEmpty(executableFile) || !File.Exists(executableFile))
+                    throw new FileNotFoundException();
+                SetFileExecutableUnix(executableFile);
+            }
         }
-
+#pragma warning restore CA1416
         var targetFolder = Const.Os switch
         {
             Const.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
