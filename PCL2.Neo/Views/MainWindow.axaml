@@ -154,7 +154,7 @@
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
                             <pc:MyRadioButton
-                                IsChecked="True"
+                                IsChecked="{Binding IsNavBtn1Checked}"
                                 Logo="{StaticResource BtnTitleSelect0}"
                                 LogoScale="0.95"
                                 Margin="5,0"
@@ -164,6 +164,7 @@
                                 Text="{DynamicResource LangTitleHome}"
                                 Command="{Binding NavigateToHome}" />
                             <pc:MyRadioButton
+                                IsChecked="{Binding IsNavBtn2Checked}"
                                 Logo="{DynamicResource BtnTitleSelect1}"
                                 LogoScale="0.9"
                                 Margin="5,0"
@@ -173,6 +174,7 @@
                                 Text="{DynamicResource LangTitleDownload}"
                                 Command="{Binding NavigateToDownload}" />
                             <pc:MyRadioButton
+                                IsChecked="{Binding IsNavBtn3Checked}"
                                 Logo="{StaticResource BtnTitleSelect2}"
                                 LogoScale="1.05"
                                 Margin="5,0"
@@ -181,6 +183,7 @@
                                 Tag="2"
                                 Text="{DynamicResource LangTitleLink}" />
                             <pc:MyRadioButton
+                                IsChecked="{Binding IsNavBtn4Checked}"
                                 Logo="{DynamicResource BtnTitleSelect3}"
                                 LogoScale="1.1"
                                 Margin="5,0"
@@ -189,6 +192,7 @@
                                 Tag="3"
                                 Text="{DynamicResource LangTitleSetup}" />
                             <pc:MyRadioButton
+                                IsChecked="{Binding IsNavBtn5Checked}"
                                 Logo="{StaticResource BtnTitleSelect4}"
                                 LogoScale="0.93"
                                 Margin="5,0"
@@ -207,19 +211,13 @@
                                 Background="WhiteSmoke"
                                 Width="250"
                                 ZIndex="1"
-                                BoxShadow="0 0 15 0 DarkGray">
-                        </Border>
+                                BoxShadow="0 0 15 0 DarkGray" />
                         <UserControl Grid.Column="0" Name="LeftNavigationControl"
                                      Content="{Binding CurrentViewModel}"
-                                     ZIndex="2">
-                            <UserControl.DataTemplates>
-                                <local:LeftViewLocator />
-                            </UserControl.DataTemplates>
-                        </UserControl>
+                                     ZIndex="2" />
                         <UserControl Grid.Column="1" Name="RightNavigationControl"
                                      ZIndex="0"
-                                     Content="{Binding CurrentViewModel}">
-                        </UserControl>
+                                     Content="{Binding CurrentSubViewModel}" />
                     </Grid>
 
                     <Grid

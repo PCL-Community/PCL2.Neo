@@ -11,8 +11,17 @@ namespace PCL2.Neo.ViewModels
         private Window? _window;
         public NavigationService NavigationService { get; }
 
+        // quite shitty, maybe consider using enum and converters
+        [ObservableProperty] private bool _isNavBtn1Checked = true;
+        [ObservableProperty] private bool _isNavBtn2Checked;
+        [ObservableProperty] private bool _isNavBtn3Checked;
+        [ObservableProperty] private bool _isNavBtn4Checked;
+        [ObservableProperty] private bool _isNavBtn5Checked;
+
         [ObservableProperty]
         private ViewModelBase? _currentViewModel;
+        [ObservableProperty]
+        private ViewModelBase? _currentSubViewModel;
 
         // 为了设计时的DataContext
         public MainWindowViewModel()
@@ -29,6 +38,19 @@ namespace PCL2.Neo.ViewModels
             this.NavigationService.CurrentViewModelChanged += x =>
             {
                 CurrentViewModel = x;
+                switch (x)
+                {
+                    case HomeViewModel:
+                        IsNavBtn1Checked = true;
+                        break;
+                    case DownloadViewModel:
+                        IsNavBtn2Checked = true;
+                        break;
+                }
+            };
+            this.NavigationService.CurrentSubViewModelChanged += x =>
+            {
+                CurrentSubViewModel = x;
             };
             this.NavigationService.Goto<HomeViewModel>();
         }

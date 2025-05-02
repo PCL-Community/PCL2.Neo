@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using PCL2.Neo.Services;
 using PCL2.Neo.ViewModels;
+using PCL2.Neo.ViewModels.Download;
+using PCL2.Neo.ViewModels.Home;
 using PCL2.Neo.Views;
 using System;
 
@@ -21,10 +23,15 @@ namespace PCL2.Neo
 
         private static IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddTransient<MainWindowViewModel>()
+
             .AddTransient<HomeViewModel>()
+            .AddTransient<HomeSubViewModel>()
+
             .AddTransient<DownloadViewModel>()
-            .AddSingleton<NavigationService>(s =>
-                new NavigationService(t => (ViewModelBase)s.GetRequiredService(t)))
+            .AddTransient<DownloadGameViewModel>()
+            .AddTransient<DownloadModViewModel>()
+
+            .AddSingleton<NavigationService>(s => new NavigationService(s))
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()
