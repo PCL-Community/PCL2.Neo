@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Helpers;
@@ -67,9 +68,11 @@ public static class FileHelper
     /// <param name="sha1">文件sha1值</param>
     /// <param name="passStreamDown">是否向外传递下载的文件流</param>
     /// <param name="maxRetries">最大重试次数</param>
+    /// <param name="cancellationToken">用于取消</param>
     /// <returns>向外传递的文件流</returns>
     public static async Task<FileStream?> DownloadFileAsync(
-        Uri uri, string localFilePath, string? sha1 = null, bool passStreamDown = false, int maxRetries = 3)
+        Uri uri, string localFilePath, string? sha1 = null, bool passStreamDown = false, int maxRetries = 3,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(uri);
         Console.WriteLine($"Downloading {localFilePath}...");
@@ -79,12 +82,13 @@ public static class FileHelper
         {
             try
             {
-                using var response = await HttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead);
+                using var response =
+                    await HttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 try
                 {
-                    await response.Content.CopyToAsync(fileStream);
+                    await response.Content.CopyToAsync(fileStream, cancellationToken);
                     if (!string.IsNullOrEmpty(sha1))
                     {
                         fileStream.Position = 0;
@@ -113,7 +117,7 @@ public static class FileHelper
                 attempt++;
                 int delay = baseDelayMs * (1 << (attempt - 1)); // 500, 1000, 2000...
                 Console.WriteLine($"Attempt {attempt} failed: {ex.Message}. Retrying in {delay} ms...");
-                await Task.Delay(delay);
+                await Task.Delay(delay, cancellationToken);
             }
         }
     }
@@ -194,9 +198,10 @@ public static class FileHelper
     /// 整合函数：下载并解压，然后删去原压缩文件
     /// </summary>
     private static async Task DownloadAndDeCompressFileAsync(Uri uri, string localFilePath, string sha1Raw,
-        string sha1Lzma)
+        string sha1Lzma, CancellationToken cancellationToken = default)
     {
-        var stream = await DownloadFileAsync(uri, localFilePath + ".lzma", sha1Lzma, true);
+        var stream = await DownloadFileAsync(uri, localFilePath + ".lzma", sha1Lzma, true,
+            cancellationToken: cancellationToken);
         if (stream != null)
         {
             var outStream = DecompressFile(stream, localFilePath);
@@ -225,13 +230,15 @@ public static class FileHelper
     /// </summary>
     /// <param name="platform">平台</param>
     /// <param name="destinationFolder">目标文件夹</param>
+    /// <param name="progressCallback">显示进度的回调函数</param>
+    /// <param name="cancellationToken">用于中断下载</param>
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
-    public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder)
+    public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
+        Action<int, int>? progressCallback = null, CancellationToken cancellationToken = default)
     {
-        // TODO)) 根据 RunningOS 推导 platform
         Uri metaUrl = new(
             "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json");
-        var allJson = await HttpClient.GetStringAsync(metaUrl);
+        var allJson = await HttpClient.GetStringAsync(metaUrl, cancellationToken);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -245,7 +252,7 @@ public static class FileHelper
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await HttpClient.GetStringAsync(manifestUri);
+                    manifestJson = await HttpClient.GetStringAsync(manifestUri, cancellationToken);
                 }
             }
 
@@ -295,18 +302,30 @@ public static class FileHelper
             }
 
             string localFilePath = Path.Combine(destinationFolder,
-                filePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
+                filePath.Replace("/", Const.Sep.ToString()));
             if (isExecutable) executableFiles.Add(localFilePath);
             Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)!);
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
             // 要分类讨论，sb MOJANG
             if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
-                tasks.Add(DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!));
+                tasks.Add(DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
+                    cancellationToken));
             else
-                tasks.Add(DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw));
+                tasks.Add(DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
+                    cancellationToken: cancellationToken));
         }
 
+        int completed = 0;
+        int total = tasks.Count;
+        while (total - completed > 0)
+        {
+            var finishedTask = await Task.WhenAny(tasks);
+            progressCallback?.Invoke(++completed, total);
+            try { await finishedTask; }
+            catch (Exception ex) { Console.WriteLine(ex); }
+        }
         await Task.WhenAll(tasks);
+
 #pragma warning disable CA1416
         if (Const.Os is not Const.RunningOs.Windows)
         {

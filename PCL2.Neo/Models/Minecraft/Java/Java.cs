@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
 
@@ -119,8 +120,13 @@ public sealed class Java
             var neo2SysDir = Directory.CreateDirectory(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
-            var fetchedJavaDir = await FileHelper.
-                FetchJavaOnline(Const.Platform, neo2SysDir.FullName);
+            var cts = new CancellationTokenSource();
+            var fetchedJavaDir = await FileHelper.FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
+                (completed, total) =>
+                {
+                    Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");
+                    // TODO)) UI 显示下载进度
+                }, cts.Token);
             if (fetchedJavaDir != null)
             {
                 var runtime = await JavaRuntime.CreateJavaEntityAsync(fetchedJavaDir, true);

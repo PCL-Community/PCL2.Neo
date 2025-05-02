@@ -15,8 +15,12 @@ public class FileTest
 
     [Test]
     public async Task Fetch()
-    {   
-        // await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64","/Users/amagicpear/Downloads/PCL2Test");
-        await Helpers.FileHelper.FetchJavaOnline("windows-x64",@"C:\Users\AMagicPear\Downloads\PCL2Test");
+    {
+        await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
+            (completed, total) =>
+            {
+                Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");
+            });
+        // await Helpers.FileHelper.FetchJavaOnline("windows-x64",@"C:\Users\AMagicPear\Downloads\PCL2Test");
     }
 }
