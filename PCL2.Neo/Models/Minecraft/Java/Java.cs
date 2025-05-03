@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Runtime.InteropServices;
 using System.Threading;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Diagnostics;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
 
 /// <summary>
 /// 测试
 /// </summary>
-public sealed class Java
+public sealed partial class Java
 {
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public bool IsInitialized { get; private set; } = false;
@@ -20,22 +22,6 @@ public sealed class Java
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
     private Java() { } // 私有构造函数
-
-    public readonly struct MojangJavaVersion
-    {
-        public static readonly MojangJavaVersion Α = new("java-runtime-alpha");
-        public static readonly MojangJavaVersion Β = new("java-runtime-beta");
-        public static readonly MojangJavaVersion Δ = new("java-runtime-delta");
-        public static readonly MojangJavaVersion Γ = new("java-runtime-gamma");
-        public static readonly MojangJavaVersion Γs = new("java-runtime-gamma-snapshot");
-        public static readonly MojangJavaVersion Legacy = new("jre-legacy");
-
-        public string Value { get; }
-
-        private MojangJavaVersion(string value) => Value = value;
-
-        public override string ToString() => Value;
-    }
 
 
     /// <summary>
@@ -138,7 +124,7 @@ public sealed class Java
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
             var cts = new CancellationTokenSource();
-            var fetchedJavaDir = await FileHelper.FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
+            var fetchedJavaDir = await FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
                 MojangJavaVersion.Α,
                 (completed, total) =>
                 {

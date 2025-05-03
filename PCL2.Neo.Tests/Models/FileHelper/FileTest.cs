@@ -1,4 +1,5 @@
 using PCL2.Neo.Models.Minecraft.Java;
+using PCL2.Neo.Models.Minecraft.Mod;
 
 namespace PCL2.Neo.Tests.Models.FileHelper;
 
@@ -16,12 +17,24 @@ public class FileTest
     [Test]
     public async Task Fetch()
     {
-        await Helpers.FileHelper.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
+        await Java.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
             Java.MojangJavaVersion.Δ,
             (completed, total) =>
             {
                 Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");
             });
         // await Helpers.FileHelper.FetchJavaOnline("windows-x64",@"C:\Users\AMagicPear\Downloads\PCL2Test");
+    }
+
+    [Test]
+    public void ModPackTest()
+    {
+        ModPack.InstallPackModrinth("/Users/amagicpear/Downloads/1.20.4-Fabric 0.15.3/modpack.mrpack","/Users/amagicpear/Downloads/TestModPack");
+    }
+
+    [Test]
+    public void MojangVersionTest()
+    {
+        Console.WriteLine(Java.MojangJavaVersion.Δ.Value);
     }
 }

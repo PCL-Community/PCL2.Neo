@@ -1,14 +1,10 @@
 using Avalonia.Platform.Storage;
-using PCL2.Neo.Models.Minecraft.Java;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,7 +15,7 @@ namespace PCL2.Neo.Helpers;
 /// </summary>
 public static class FileHelper
 {
-    private static readonly HttpClient HttpClient = new();
+    public static readonly HttpClient HttpClient = new();
 
     /// <summary>
     /// 打开系统文件选择框选择一个文件
@@ -143,7 +139,7 @@ public static class FileHelper
     /// <param name="path">文件路径</param>
     [SupportedOSPlatform(nameof(OSPlatform.OSX))]
     [SupportedOSPlatform(nameof(OSPlatform.Linux))]
-    private static void SetFileExecutableUnix(string path)
+    public static void SetFileExecutableUnix(string path)
     {
         if (Const.Os is Const.RunningOs.Windows) return;
         try
@@ -166,7 +162,7 @@ public static class FileHelper
     /// <param name="inStream">被压缩的文件流</param>
     /// <param name="outputFile">输出文件路径</param>
     /// <returns>解压后的文件流</returns>
-    private static FileStream? DecompressFile(FileStream inStream, string outputFile)
+    private static FileStream? DecompressLZMA(FileStream inStream, string outputFile)
     {
         inStream.Position = 0;
         var outStream = new FileStream(outputFile, FileMode.Create, FileAccess.ReadWrite);
@@ -197,14 +193,14 @@ public static class FileHelper
     /// <summary>
     /// 整合函数：下载并解压，然后删去原压缩文件
     /// </summary>
-    private static async Task DownloadAndDeCompressFileAsync(Uri uri, string localFilePath, string sha1Raw,
+    public static async Task DownloadAndDeCompressFileAsync(Uri uri, string localFilePath, string sha1Raw,
         string sha1Lzma, CancellationToken cancellationToken = default)
     {
         var stream = await DownloadFileAsync(uri, localFilePath + ".lzma", sha1Lzma, true,
             cancellationToken: cancellationToken);
         if (stream != null)
         {
-            var outStream = DecompressFile(stream, localFilePath);
+            var outStream = DecompressLZMA(stream, localFilePath);
             if (outStream == null)
             {
                 Console.WriteLine("outStream 为空");
@@ -223,131 +219,5 @@ public static class FileHelper
         }
 
         File.Delete(localFilePath + ".lzma");
-    }
-
-    /// <summary>
-    /// 从 MOJANG 官方下载 JRE
-    /// </summary>
-    /// <param name="platform">平台</param>
-    /// <param name="destinationFolder">目标文件夹</param>
-    /// <param name="progressCallback">显示进度的回调函数</param>
-    /// <param name="cancellationToken">用于中断下载</param>
-    /// <param name="version">要下载的版本，有α、β、γ、δ等</param>
-    /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
-    public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
-        Java.MojangJavaVersion version,
-        Action<int, int>? progressCallback = null, CancellationToken cancellationToken = default)
-    {
-        Uri metaUrl = new(
-            "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json");
-        var allJson = await HttpClient.GetStringAsync(metaUrl, cancellationToken);
-        string manifestJson = string.Empty;
-        using (var document = JsonDocument.Parse(allJson))
-        {
-            var root = document.RootElement;
-            if (root.TryGetProperty(platform, out JsonElement platformElement) &&
-                platformElement.TryGetProperty(version.Value, out var gammaArray) &&
-                gammaArray.GetArrayLength() > 0 &&
-                gammaArray[0].TryGetProperty("manifest", out JsonElement manifestElement) &&
-                manifestElement.TryGetProperty("url", out var manifestUriElement))
-            {
-                var manifestUri = manifestUriElement.GetString();
-                if (!string.IsNullOrEmpty(manifestUri))
-                {
-                    manifestJson = await HttpClient.GetStringAsync(manifestUri, cancellationToken);
-                }
-            }
-
-            if (string.IsNullOrEmpty(manifestJson))
-            {
-                Console.WriteLine("未找到平台 Java 清单");
-                return null;
-            }
-        }
-
-        var manifest = JsonNode.Parse(manifestJson)?.AsObject();
-        if (manifest == null || !manifest.TryGetPropertyValue("files", out var filesNode))
-        {
-            Console.WriteLine("无效的清单文件");
-            return null;
-        }
-
-        var files = filesNode!.AsObject();
-        var tasks = new List<Task>(files.Count);
-        var executableFiles = new List<string>(files.Count);
-        foreach ((string filePath, JsonNode? value) in files)
-        {
-            var fileInfo = value!.AsObject();
-            if (!fileInfo.TryGetPropertyValue("type", out var typeNode) || typeNode!.ToString() != "file")
-                continue;
-            if (!fileInfo.TryGetPropertyValue("downloads", out var downloadsNode))
-                continue;
-            var downloads = downloadsNode!.AsObject();
-            bool isExecutable = fileInfo.TryGetPropertyValue("executable", out var execNode) &&
-                                execNode!.GetValue<bool>();
-            string? urlRaw = null, sha1Raw = null, urlLzma = null, sha1Lzma = null;
-            if (downloads.TryGetPropertyValue("raw", out var rawNode))
-            {
-                var raw = rawNode!.AsObject();
-                urlRaw = raw["url"]!.ToString();
-                sha1Raw = raw["sha1"]!.ToString();
-            }
-
-            Debug.Assert(rawNode != null && !string.IsNullOrEmpty(urlRaw) && !string.IsNullOrEmpty(sha1Raw),
-                "rawNode 不存在");
-
-            if (downloads.TryGetPropertyValue("lzma", out var lzmaNode))
-            {
-                var lzma = lzmaNode!.AsObject();
-                urlLzma = lzma["url"]!.ToString();
-                sha1Lzma = lzma["sha1"]!.ToString();
-            }
-
-            string localFilePath = Path.Combine(destinationFolder,
-                filePath.Replace("/", Const.Sep.ToString()));
-            if (isExecutable) executableFiles.Add(localFilePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)!);
-            // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
-            // 要分类讨论，sb MOJANG
-            if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
-                tasks.Add(DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
-                    cancellationToken));
-            else
-                tasks.Add(DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
-                    cancellationToken: cancellationToken));
-        }
-
-        int completed = 0;
-        int total = tasks.Count;
-        while (total - completed > 0)
-        {
-            var finishedTask = await Task.WhenAny(tasks);
-            progressCallback?.Invoke(++completed, total);
-            try { await finishedTask; }
-            catch (Exception ex) { Console.WriteLine(ex); }
-        }
-
-        await Task.WhenAll(tasks);
-
-#pragma warning disable CA1416
-        if (Const.Os is not Const.RunningOs.Windows)
-        {
-            foreach (string executableFile in executableFiles)
-            {
-                if (string.IsNullOrEmpty(executableFile) || !File.Exists(executableFile))
-                    throw new FileNotFoundException();
-                SetFileExecutableUnix(executableFile);
-            }
-        }
-#pragma warning restore CA1416
-        var targetFolder = Const.Os switch
-        {
-            Const.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
-            Const.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Unknown => throw new ArgumentOutOfRangeException(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        return targetFolder;
     }
 }
