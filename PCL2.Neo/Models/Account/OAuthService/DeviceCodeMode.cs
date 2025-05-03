@@ -1,3 +1,4 @@
+using PCL2.Neo.Utils;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
@@ -10,7 +11,7 @@ using Timer = System.Timers.Timer;
 namespace PCL2.Neo.Models.Account.OAuthService;
 
 #pragma warning disable IL2026 // fixed by DynamicDependency
-public static class DeviceCode
+public static class DeviceCodeMode // todo: remake this device code auth
 {
     public enum UserAuthMessage : byte
     {
@@ -32,7 +33,7 @@ public static class DeviceCode
     public static async Task<AccountInfo> Login()
     {
         var codePair = await GetCodePair();
-        InitializeTimer(codePair.Interval, codePair.DeviceCode);
+        Initialize(codePair.Interval, codePair.DeviceCode);
 
         IsUserAuthed.WaitOne();
         ValidateAuthResult();
@@ -41,7 +42,7 @@ public static class DeviceCode
         string refreshToken = _useAuthResult.Res.RefreshToken;
         var expires = _useAuthResult.Res.ExpiresIn;
         var minecraftAccessToken = await OAuth.GetMinecraftToken(accessToken);
-        var playerInfo = await OAuth.GetPlayerUuid(minecraftAccessToken);
+        var playerInfo = await MinecraftInfo.GetPlayerUuid(minecraftAccessToken);
 
         return new AccountInfo
         {
@@ -53,21 +54,39 @@ public static class DeviceCode
             UserProperties = string.Empty,
             UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
             Uuid = playerInfo.Uuid,
-            Capes = OAuth.CollectCapes(playerInfo.Capes),
-            Skins = OAuth.CollectSkins(playerInfo.Skins)
+            Capes = MinecraftInfo.CollectCapes(playerInfo.Capes),
+            Skins = MinecraftInfo.CollectSkins(playerInfo.Skins)
         };
     }
 
-    private static void InitializeTimer(double interval, string deviceCode)
+    private static FormUrlEncodedContent? _content;
+
+    private static void Initialize(double interval, string deviceCode)
     {
         _timer = new Timer(interval) { AutoReset = true, Enabled = true };
         _timer.Elapsed += async (_, _) =>
         {
-            if (await PollingServer(deviceCode))
+            /*
+             * todo: Pre initialize request body
+             * fix return value error
+             */
+
+
+            if (await PollingServer(_content!))
             {
                 IsUserAuthed.Set();
             }
         };
+
+
+        var data = OAuthData.FormUrlReqData.UserAuthStateData;
+        data["device_code"] = deviceCode;
+
+        _content = new FormUrlEncodedContent(data)
+        {
+            Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
+        };
+
         _timer.Start();
     }
 
@@ -75,7 +94,7 @@ public static class DeviceCode
     {
         ArgumentNullException.ThrowIfNull(_useAuthResult);
 
-        if (_useAuthResult?.IsSuccess == false)
+        if (_useAuthResult.IsSuccess == false)
         {
             throw _useAuthResult.Message switch
             {
@@ -92,27 +111,19 @@ public static class DeviceCode
         typeof(OAuthData.ResponceData.DeviceCodeResponce))]
     private static async Task<OAuthData.ResponceData.DeviceCodeResponce> GetCodePair()
     {
-        var content = new FormUrlEncodedContent(OAuthData.EUrlReqData.DeviceCodeData)
+        var content = new FormUrlEncodedContent(OAuthData.FormUrlReqData.DeviceCodeData)
         {
             Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
         };
 
-        return await OAuth.SendHttpRequestAsync<OAuthData.ResponceData.DeviceCodeResponce>(HttpMethod.Post,
-            OAuthData.AuthUrls.DeviceCode, content, JsonSerializerOptions.Web);
+        return await Net.SendHttpRequestAsync<OAuthData.ResponceData.DeviceCodeResponce>(HttpMethod.Post,
+            OAuthData.RequestUrls.DeviceCode, content, JsonSerializerOptions.Web);
     }
 
-    private static async Task<bool> PollingServer(string deviceCode)
+    private static async Task<bool> PollingServer(FormUrlEncodedContent content)
     {
-        var data = OAuthData.EUrlReqData.UserAuthStateData;
-        data["device_code"] = deviceCode;
-
-        var content = new FormUrlEncodedContent(data)
-        {
-            Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
-        };
-
-        var result = await OAuth.SendHttpRequestAsync<OAuthData.ResponceData.UserAuthStateResponce>(HttpMethod.Post,
-            OAuthData.AuthUrls.AuthTokenUri, content, JsonSerializerOptions.Web);
+        var result = await Net.SendHttpRequestAsync<OAuthData.ResponceData.UserAuthStateResponce>(HttpMethod.Post,
+            OAuthData.RequestUrls.TokenUri, content, JsonSerializerOptions.Web);
 
         return HandlePollingResult(result);
     }
@@ -129,7 +140,7 @@ public static class DeviceCode
             _ => CreateAuthResult(true, UserAuthMessage.Success, result)
         };
 
-        if (_useAuthResult?.IsSuccess == false)
+        if (_useAuthResult == null)
         {
             return false;
         }
@@ -139,10 +150,8 @@ public static class DeviceCode
     }
 
     private static Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage> CreateAuthResult(
-        bool isSuccess, UserAuthMessage message, OAuthData.ResponceData.UserAuthStateResponce result)
-    {
-        return new Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>(isSuccess, message, result);
-    }
+        bool isSuccess, UserAuthMessage message, OAuthData.ResponceData.UserAuthStateResponce result) =>
+        new(isSuccess, message, result);
 
     private static Result<OAuthData.ResponceData.UserAuthStateResponce, UserAuthMessage>? AdjustTimerInterval()
     {

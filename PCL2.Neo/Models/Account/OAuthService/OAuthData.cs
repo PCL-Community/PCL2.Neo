@@ -7,7 +7,7 @@ namespace PCL2.Neo.Models.Account.OAuthService;
 public static class OAuthData
 {
 #nullable disable
-    public static class AuthUrls
+    public static class RequestUrls
     {
         public static readonly Uri AuthCodeUri =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize");
@@ -15,18 +15,18 @@ public static class OAuthData
         public static readonly Uri DeviceCode =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
 
-        public static readonly Uri AuthTokenUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
+        public static readonly Uri TokenUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
         public static readonly Uri XboxLiveAuth = new("https://user.auth.xboxlive.com/user/authenticate");
         public static readonly Uri XstsAuth = new("https://xsts.auth.xboxlive.com/xsts/authorize");
 
-        public static readonly Uri McAccessTokenUri =
+        public static readonly Uri MinecraftAccessTokenUri =
             new("https://api.minecraftservices.com/authentication/login_with_xbox");
 
         public static readonly Uri CheckHasMc = new("https://api.minecraftservices.com/entitlements/mcstore");
         public static readonly Uri PlayerUuidUri = new("https://api.minecraftservices.com/minecraft/profile");
     }
 
-    public static class EUrlReqData
+    public static class FormUrlReqData
     {
         // todo: optimize this code with class for safe
         public static readonly string ClientId = string.Empty;
@@ -35,7 +35,7 @@ public static class OAuthData
 
         public static string AuthCodeData =
             new(
-                $"{AuthUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access");
+                $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access");
 
         public static readonly Dictionary<string, string> DeviceCodeData = new()
         {
@@ -74,27 +74,27 @@ public static class OAuthData
         {
             public record PropertiesData
             {
-                [JsonPropertyName("AuthMethod")] public static string AuthMethod => "RPS";
-                [JsonPropertyName("SiteName")] public static string SiteName => "user.auth.xboxlive.com";
+                [JsonPropertyName("AuthMethod")] public static string AuthMethod = "RPS";
+                [JsonPropertyName("SiteName")] public static string SiteName = "user.auth.xboxlive.com";
                 [JsonPropertyName("RpsTicket")] public required string RpsTicket { get; set; }
             }
 
             [JsonPropertyName("PropertiesData")] public PropertiesData Properties { get; set; }
             [JsonPropertyName("RelyingParty")] public static string RelyingParty => "http://auth.xboxlive.com";
-            [JsonPropertyName("TokenType")] public static string TokenType => "JWT";
+            [JsonPropertyName("TokenType")] public static string TokenType = "JWT";
         }
 
         public record XstsRequire
         {
             public record PropertiesData
             {
-                public static string SandboxId => "RETAIL";
+                public static string SandboxId = "RETAIL";
                 public required List<string> UserTokens { get; set; }
             }
 
             public PropertiesData Properties { get; set; }
-            public static string RelyingParty => "rp://api.minecraftservices.com/";
-            public static string TokenType => "JWT";
+            public static string RelyingParty = "rp://api.minecraftservices.com/";
+            public static string TokenType = "JWT";
         }
 
         public class MiecraftAccessTokenRequire
@@ -220,5 +220,4 @@ public static class OAuthData
             [JsonPropertyName("capes")] public List<Cape> Capes { get; set; }
         }
     }
-#nullable enable
 }
