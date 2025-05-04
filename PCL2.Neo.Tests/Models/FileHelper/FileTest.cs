@@ -19,22 +19,27 @@ public class FileTest
     {
         await Java.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
             Java.MojangJavaVersion.Δ,
-            (completed, total) =>
+            new Progress<(int, int)>((value) =>
             {
-                Console.WriteLine($"下载进度：已下载{completed}/总文件数{total}");
-            });
+                Console.WriteLine($"下载进度：已下载{value.Item1}/总文件数{value.Item2}");
+            }));
         // await Helpers.FileHelper.FetchJavaOnline("windows-x64",@"C:\Users\AMagicPear\Downloads\PCL2Test");
     }
 
     [Test]
     public void ModPackTest()
     {
-        ModPack.InstallPackModrinth("/Users/amagicpear/Downloads/1.20.4-Fabric 0.15.3/modpack.mrpack","/Users/amagicpear/Downloads/TestModPack");
+        ModPack.InstallPackModrinth("/Users/amagicpear/Downloads/1.20.4-Fabric 0.15.3/modpack.mrpack", "/Users/amagicpear/Downloads/TestModPack");
     }
 
     [Test]
     public void MojangVersionTest()
     {
         Console.WriteLine(Java.MojangJavaVersion.Δ.Value);
+    }
+
+    [Test]
+    public async Task SelectFileTest(){
+        // await Helpers.FileHelper.SelectFile("Test");
     }
 }

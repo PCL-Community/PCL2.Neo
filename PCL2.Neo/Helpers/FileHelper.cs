@@ -1,4 +1,6 @@
 using Avalonia.Platform.Storage;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using PCL2.Neo.Services;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -16,45 +18,6 @@ namespace PCL2.Neo.Helpers;
 public static class FileHelper
 {
     public static readonly HttpClient HttpClient = new();
-
-    /// <summary>
-    /// 打开系统文件选择框选择一个文件
-    /// </summary>
-    /// <param name="title">文件选择框的标题</param>
-    /// <returns>获得文件的路径</returns>
-    public static async Task<string?> SelectFile(string title)
-    {
-        var storageProvider = App.StorageProvider;
-        var files = await storageProvider.OpenFilePickerAsync(
-            new FilePickerOpenOptions { Title = title, AllowMultiple = false });
-        if (files.Count < 1)
-            return null;
-        var file = files[0];
-        return file.Path.LocalPath;
-    }
-
-    /// <summary>
-    /// 检查是否拥有某一文件夹的 I/O 权限。如果文件夹不存在，会返回 False。
-    /// </summary>
-    /// <param name="path">文件夹路径</param>
-    /// <returns></returns>
-    public static bool CheckPermission(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path)) return false;
-        path = Path.GetFullPath(path);
-        try
-        {
-            var testFile = Path.Combine(path, Path.GetRandomFileName());
-            using (File.Create(testFile)) { }
-
-            File.Delete(testFile);
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
 
     /// <summary>
     /// 从某个 URL 下载并保存文件
@@ -88,7 +51,7 @@ public static class FileHelper
                     if (!string.IsNullOrEmpty(sha1))
                     {
                         fileStream.Position = 0;
-                        bool isSha1Match = await CheckSha1(fileStream, sha1);
+                        bool isSha1Match = await fileStream.CheckSha1(sha1);
                         if (!isSha1Match)
                             throw new IOException($"SHA-1 mismatch for file: {localFilePath}");
                     }
@@ -124,7 +87,7 @@ public static class FileHelper
     /// <param name="fileStream">文件流</param>
     /// <param name="sha1">SHA-1</param>
     /// <returns>是否匹配</returns>
-    private static async Task<bool> CheckSha1(FileStream fileStream, string sha1)
+    private static async Task<bool> CheckSha1(this FileStream fileStream, string sha1)
     {
         using var sha1Provider = System.Security.Cryptography.SHA1.Create();
         fileStream.Position = 0; // 重置文件流位置
@@ -139,7 +102,7 @@ public static class FileHelper
     /// <param name="path">文件路径</param>
     [SupportedOSPlatform(nameof(OSPlatform.OSX))]
     [SupportedOSPlatform(nameof(OSPlatform.Linux))]
-    public static void SetFileExecutableUnix(string path)
+    public static void SetFileExecutableUnix(this string path)
     {
         if (Const.Os is Const.RunningOs.Windows) return;
         try
@@ -162,7 +125,7 @@ public static class FileHelper
     /// <param name="inStream">被压缩的文件流</param>
     /// <param name="outputFile">输出文件路径</param>
     /// <returns>解压后的文件流</returns>
-    private static FileStream? DecompressLZMA(FileStream inStream, string outputFile)
+    private static FileStream? DecompressLZMA(this FileStream inStream, string outputFile)
     {
         inStream.Position = 0;
         var outStream = new FileStream(outputFile, FileMode.Create, FileAccess.ReadWrite);
@@ -200,14 +163,14 @@ public static class FileHelper
             cancellationToken: cancellationToken);
         if (stream != null)
         {
-            var outStream = DecompressLZMA(stream, localFilePath);
+            var outStream = stream.DecompressLZMA(localFilePath);
             if (outStream == null)
             {
                 Console.WriteLine("outStream 为空");
                 return;
             }
 
-            var match = await CheckSha1(outStream, sha1Raw);
+            var match = await outStream.CheckSha1(sha1Raw);
             if (!match)
             {
                 Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");

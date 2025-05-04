@@ -43,7 +43,7 @@ public sealed partial class Java
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
     public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
         MojangJavaVersion version,
-        IProgress<(int, int)>? progress, CancellationToken cancellationToken = default)
+        IProgress<ValueTuple<int, int>>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
         Uri metaUrl = new(MetaUrl);
@@ -146,7 +146,7 @@ public sealed partial class Java
             {
                 if (string.IsNullOrEmpty(executableFile) || !File.Exists(executableFile))
                     throw new FileNotFoundException();
-                FileHelper.SetFileExecutableUnix(executableFile);
+                executableFile.SetFileExecutableUnix();
             });
         }
 #pragma warning restore CA1416

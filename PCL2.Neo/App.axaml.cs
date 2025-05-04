@@ -21,8 +21,8 @@ namespace PCL2.Neo
 {
     public partial class App : Application
     {
-        public static Java? JavaManager { get; private set; }
-        public static IStorageProvider StorageProvider { get; private set; } = null!;
+        // public static Java? JavaManager { get; private set; }
+        // public static IStorageProvider StorageProvider { get; private set; } = null!;
 
         public override void Initialize()
         {
@@ -40,6 +40,7 @@ namespace PCL2.Neo
             .AddTransient<DownloadModViewModel>()
 
             .AddSingleton<NavigationService>(s => new NavigationService(s))
+            .AddSingleton<StorageService>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()
