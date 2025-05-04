@@ -19,7 +19,6 @@
     xmlns:pc="using:PCL2.Neo.Controls"
     xmlns:vm="using:PCL2.Neo.ViewModels"
     xmlns:local="using:PCL2.Neo"
-    xmlns:vm="clr-namespace:PCL2.Neo.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid Name="GridRoot">
         <Border
