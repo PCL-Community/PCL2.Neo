@@ -50,6 +50,8 @@
             <SolidColorBrush x:Key="ColorBrushMsgBox">#fbfbfb</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushMsgBoxText">#5c5c5c</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushMemory">#000000</SolidColorBrush>
+            <SolidColorBrush x:Key="ColorBrushMyCard">#cdffffff</SolidColorBrush>
+            <SolidColorBrush x:Key="ColorBrushMyCardMouseOver">#e6ffffff</SolidColorBrush>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="ColorBrush1">#ebebeb</SolidColorBrush>
@@ -101,6 +103,8 @@
             <SolidColorBrush x:Key="ColorBrushMsgBox">#2b2b2b</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushMsgBoxText">#ebebeb</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushMemory">#ffffff</SolidColorBrush>
+            <SolidColorBrush x:Key="ColorBrushMyCard">#eb2b2b2b</SolidColorBrush>
+            <SolidColorBrush x:Key="ColorBrushMyCardMouseOver">#f5303030</SolidColorBrush>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 </ResourceDictionary>
