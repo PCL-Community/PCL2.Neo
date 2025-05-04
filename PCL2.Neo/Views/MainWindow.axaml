@@ -19,7 +19,7 @@
     xmlns:pc="using:PCL2.Neo.Controls"
     xmlns:vm="clr-namespace:PCL2.Neo.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Name="PART_RootGrid">
+    <Grid Name="GridRoot">
         <Border
             BoxShadow="0 0 15 2 #50000000"
             CornerRadius="8"
@@ -33,7 +33,7 @@
                     <BrushTransition Duration="0:0:0.2" Property="Background" />
                 </Transitions>
             </Border.Transitions>
-            
+
             <Border ClipToBounds="True" CornerRadius="8">
                 <Grid RowDefinitions="Auto 1*">
                     <!--  title  -->
@@ -257,5 +257,58 @@
                 </Grid>
             </Border>
         </Border>
+        <Grid Margin="10" Name="GridResize">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="8" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="0"
+                Name="TopLeft" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="0"
+                Name="TopRight" />
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="2"
+                Name="BottomLeft" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="2"
+                Name="BottomRight" />
+            <Border
+                Background="Transparent"
+                Grid.Column="1"
+                Grid.Row="0"
+                Name="Top" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="1"
+                Name="Right" />
+            <Border
+                Background="Transparent"
+                Grid.Column="1"
+                Grid.Row="2"
+                Name="Bottom" />
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="1"
+                Name="Left" />
+        </Grid>
     </Grid>
 </Window>

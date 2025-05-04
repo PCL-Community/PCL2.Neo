@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using PCL2.Neo.Controls.MyMsg;
+using PCL2.Neo.Helpers;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo.ViewModels
 {
@@ -7,7 +9,7 @@ namespace PCL2.Neo.ViewModels
     {
         private Window? _window;
 
-        // 为了设计时的DataContext
+        // 为了设计时的 DataContext
         public MainWindowViewModel()
         {
         }
@@ -27,7 +29,7 @@ namespace PCL2.Neo.ViewModels
             _window.WindowState = WindowState.Minimized;
         }
 
-        public void ShowMessageBox(IMessageBox messageBox)
+        public void ShowMessageBox((MessageBoxParam, TaskCompletionSource<MessageBoxResult>) messageBoxParam)
         {
 
         }

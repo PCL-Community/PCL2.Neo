@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition;
+using Avalonia.Rendering.Composition.Animations;
 using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
@@ -12,6 +14,7 @@ using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Views;
@@ -22,27 +25,60 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        NavBackgroundBorder.PointerPressed += OnNavPointerPressed;
+        NavBackgroundBorder.PointerPressed += (i, e) =>
+        {
+            if (e.GetCurrentPoint(i as Control).Properties.IsLeftButtonPressed)
+            {
+                this.BeginMoveDrag(e);
+            }
+        };
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            SetupSide("Left", StandardCursorType.LeftSide, WindowEdge.West);
+            SetupSide("Right", StandardCursorType.RightSide, WindowEdge.East);
+            SetupSide("Top", StandardCursorType.TopSide, WindowEdge.North);
+            SetupSide("Bottom", StandardCursorType.BottomSide, WindowEdge.South);
+            SetupSide("TopLeft", StandardCursorType.TopLeftCorner, WindowEdge.NorthWest);
+            SetupSide("TopRight", StandardCursorType.TopRightCorner, WindowEdge.NorthEast);
+            SetupSide("BottomLeft", StandardCursorType.BottomLeftCorner, WindowEdge.SouthWest);
+            SetupSide("BottomRight", StandardCursorType.BottomRightCorner, WindowEdge.SouthEast);
+        }
 
         new ThemeHelper(this).Refresh(Application.Current!.ActualThemeVariant);
 
         BtnTitleClose.Click += async (_, _) =>
         {
-            await AnimationOut();
+            AnimationOut();
+            await Task.Delay(180);
             Close();
         };
 
         BtnTitleMin.Click += (_, _) => WindowState = WindowState.Minimized;
-        PART_RootGrid.Opacity = 0;//在此处初始化透明度，不然将闪现
+
+        GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
+        this.Loaded += (_, _) => AnimationIn();
     }
-    private void OnNavPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void OnNavPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        this.BeginMoveDrag(e);
+
+    }
+
+    private void SetupSide(string name, StandardCursorType cursor, WindowEdge edge)
+    {
+        var ctl = this.Get<Control>(name);
+        ctl.Cursor = new Cursor(cursor);
+        ctl.PointerPressed += (i, e) =>
+        {
+            if (e.GetCurrentPoint(i as Control).Properties.IsLeftButtonPressed)
+            {
+                BeginResizeDrag(edge, e);
+            }
+        };
     }
     /// <summary>
     /// 进入窗口的动画。
     /// </summary>
-    private void AnimationIn()
+    private async void AnimationIn()
     {
         // var animation = new AnimationHelper(
         // [
@@ -53,23 +89,25 @@ public partial class MainWindow : Window
         // await animation.RunAsync();
 
         // AnimationHelper 性能太差，换用 CompositionAnimation
-        var mainWindowCompositionVisual = ElementComposition.GetElementVisual(PART_RootGrid)!;
+        await Task.Delay(100);
+
+        var mainWindowCompositionVisual = ElementComposition.GetElementVisual(GridRoot)!;
         var compositor = mainWindowCompositionVisual.Compositor;
 
         var opacityFrameAnimation = compositor.CreateScalarKeyFrameAnimation();
-        opacityFrameAnimation.Duration = TimeSpan.FromSeconds(0.75);
+        opacityFrameAnimation.Duration = TimeSpan.FromMilliseconds(250);
         opacityFrameAnimation.InsertKeyFrame(0f, 0f, new CubicEaseOut());
         opacityFrameAnimation.InsertKeyFrame(1f, 1f, new CubicEaseOut());
         opacityFrameAnimation.Target = "Opacity";
 
         var rotateTransformAngleAnimation = compositor.CreateScalarKeyFrameAnimation();
-        rotateTransformAngleAnimation.Duration = TimeSpan.FromSeconds(0.75);
-        rotateTransformAngleAnimation.InsertKeyFrame(0f, -0.06f, new MyBackEaseOut(EasePower.Weak));//
-        rotateTransformAngleAnimation.InsertKeyFrame(1f, 0f, new MyBackEaseOut(EasePower.Weak));//
+        rotateTransformAngleAnimation.Duration = TimeSpan.FromMilliseconds(500);
+        rotateTransformAngleAnimation.InsertKeyFrame(0f, -0.06f, new MyBackEaseOut(EasePower.Weak));
+        rotateTransformAngleAnimation.InsertKeyFrame(1f, 0f, new MyBackEaseOut(EasePower.Weak));
         rotateTransformAngleAnimation.Target = "RotationAngle";
 
         var translateTransformYAnimation = compositor.CreateVector3KeyFrameAnimation();
-        translateTransformYAnimation.Duration = TimeSpan.FromSeconds(0.75);
+        translateTransformYAnimation.Duration = TimeSpan.FromMilliseconds(600);
         translateTransformYAnimation.InsertKeyFrame(0f, new Vector3(0f, 60f, 0f), new MyBackEaseOut(EasePower.Weak));
         translateTransformYAnimation.InsertKeyFrame(1f, new Vector3(0f, 0f, 0f), new MyBackEaseOut(EasePower.Weak));
         translateTransformYAnimation.Target = "Offset";
@@ -87,26 +125,67 @@ public partial class MainWindow : Window
     /// <summary>
     /// 关闭窗口的动画。
     /// </summary>
-    private async Task AnimationOut()
+    private void AnimationOut()
     {
         if (this.MainBorder.RenderTransform is null)
         {
-            var animation = new AnimationHelper(
-            [
-                new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
-                new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
-                new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
-                new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
-                new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(180), 0.6d, new QuadraticEaseInOut())
-            ]);
-            await animation.RunAsync();
+            // var animation = new AnimationHelper(
+            // [
+            //     new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
+            //     new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
+            //     new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
+            //     new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
+            //     new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(180), 0.6d, new QuadraticEaseInOut())
+            // ]);
+            // await animation.RunAsync();
+
+            // AnimationHelper 性能太差，换用 CompositionAnimation
+
+            var mainWindowCompositionVisual = ElementComposition.GetElementVisual(GridRoot)!;
+            var compositor = mainWindowCompositionVisual.Compositor;
+
+            var opacityFrameAnimation = compositor.CreateScalarKeyFrameAnimation();
+            opacityFrameAnimation.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
+            opacityFrameAnimation.DelayTime = TimeSpan.FromMilliseconds(40);
+            opacityFrameAnimation.Duration = TimeSpan.FromMilliseconds(140);
+            opacityFrameAnimation.InsertKeyFrame(0f, 1f, new QuadraticEaseOut());
+            opacityFrameAnimation.InsertKeyFrame(1f, 0f, new QuadraticEaseOut());
+            opacityFrameAnimation.Target = "Opacity";
+
+            var rotateTransformAngleAnimation = compositor.CreateScalarKeyFrameAnimation();
+            rotateTransformAngleAnimation.Duration = TimeSpan.FromMilliseconds(180);
+            rotateTransformAngleAnimation.InsertKeyFrame(0f, 0f, new QuadraticEaseOut());
+            rotateTransformAngleAnimation.InsertKeyFrame(1f, 0.0006f, new QuadraticEaseOut());
+            rotateTransformAngleAnimation.Target = "RotationAngle";
+
+            var translateTransformYAnimation = compositor.CreateVector3KeyFrameAnimation();
+            translateTransformYAnimation.Duration = TimeSpan.FromMilliseconds(180);
+            translateTransformYAnimation.InsertKeyFrame(0f, new Vector3(0f, 0f, 0f), new QuadraticEaseOut());
+            translateTransformYAnimation.InsertKeyFrame(1f, new Vector3(0f, 20f, 0f), new QuadraticEaseOut());
+            translateTransformYAnimation.Target = "Offset";
+
+            var scaleTransformAnimation = compositor.CreateVector3KeyFrameAnimation();
+            scaleTransformAnimation.Duration = TimeSpan.FromMilliseconds(180);
+            scaleTransformAnimation.InsertKeyFrame(0f, new Vector3(1f, 1f, 1f), new QuadraticEaseOut());
+            scaleTransformAnimation.InsertKeyFrame(1f, new Vector3(0.88f, 0.88f, 1f), new QuadraticEaseOut());
+            scaleTransformAnimation.Target = "Scale";
+
+            var animationGroup = compositor.CreateAnimationGroup();
+            animationGroup.Add(opacityFrameAnimation);
+            animationGroup.Add(rotateTransformAngleAnimation);
+            animationGroup.Add(translateTransformYAnimation);
+            animationGroup.Add(scaleTransformAnimation);
+
+            var size = mainWindowCompositionVisual.Size;
+            mainWindowCompositionVisual.CenterPoint = new Vector3D((float)size.X / 2, (float)size.Y / 2, (float)mainWindowCompositionVisual.CenterPoint.Z);
+
+            mainWindowCompositionVisual.StartAnimationGroup(animationGroup);
         }
     }
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
         this.TestLoading.State = MyLoading.LoadingState.Loading;
-        AnimationIn();
     }
 
     private void Button2_OnClick(object? sender, RoutedEventArgs e)
@@ -143,11 +222,5 @@ public partial class MainWindow : Window
         {
             Console.WriteLine($"搜索失败: {ex.Message}");
         }
-    }
-
-    protected override void OnLoaded(RoutedEventArgs e)
-    {
-        base.OnLoaded(e);
-        AnimationIn();
     }
 }
