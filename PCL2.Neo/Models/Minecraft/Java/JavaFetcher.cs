@@ -37,13 +37,13 @@ public sealed partial class Java
     /// </summary>
     /// <param name="platform">平台</param>
     /// <param name="destinationFolder">目标文件夹</param>
-    /// <param name="progressCallback">显示进度的回调函数</param>
+    /// <param name="progress">显示进度</param>
     /// <param name="cancellationToken">用于中断下载</param>
     /// <param name="version">要下载的版本，有α、β、γ、δ等</param>
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
     public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
-        Java.MojangJavaVersion version,
-        Action<int, int>? progressCallback = null, CancellationToken cancellationToken = default)
+        MojangJavaVersion version,
+        IProgress<(int, int)>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
         Uri metaUrl = new(MetaUrl);
@@ -124,14 +124,17 @@ public sealed partial class Java
                     cancellationToken: cancellationToken));
         }
 
-        int completed = 0;
-        int total = tasks.Count;
-        while (total - completed > 0)
+        if (progress != null)
         {
-            var finishedTask = await Task.WhenAny(tasks);
-            progressCallback?.Invoke(++completed, total);
-            try { await finishedTask; }
-            catch (Exception ex) { Console.WriteLine(ex); }
+            int completed = 0;
+            int total = tasks.Count;
+            while (total - completed > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks);
+                progress.Report((++completed, total));
+                try { await finishedTask; }
+                catch (Exception ex) { Console.WriteLine(ex); }
+            }
         }
 
         await Task.WhenAll(tasks);
@@ -139,12 +142,12 @@ public sealed partial class Java
 #pragma warning disable CA1416
         if (Const.Os is not Const.RunningOs.Windows)
         {
-            foreach (string executableFile in executableFiles)
+            Parallel.ForEach(executableFiles, executableFile =>
             {
                 if (string.IsNullOrEmpty(executableFile) || !File.Exists(executableFile))
                     throw new FileNotFoundException();
                 FileHelper.SetFileExecutableUnix(executableFile);
-            }
+            });
         }
 #pragma warning restore CA1416
         var targetFolder = Const.Os switch
