@@ -35,8 +35,9 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.7.1" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,5 +46,23 @@
 
   <ItemGroup>
     <UpToDateCheckInput Remove="Controls\Style\ListBoxStyle.axaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\HomeView.axaml.cs">
+      <DependentUpon>HomeLeftView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Home\HomeSubView.axaml.cs">
+      <DependentUpon>HomeRightView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Download\DownloadGameView.axaml.cs">
+      <DependentUpon>DownloadRightView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\Download\DownloadModView.axaml.cs">
+      <DependentUpon>DownloadModView.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

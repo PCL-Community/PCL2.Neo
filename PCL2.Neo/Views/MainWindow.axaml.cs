@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -10,12 +11,12 @@ using PCL2.Neo.Animations;
 using PCL2.Neo.Animations.Easings;
 using PCL2.Neo.Controls;
 using PCL2.Neo.Helpers;
-using PCL2.Neo.Models.Minecraft.Java;
 using System;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using CubicEaseOut = Avalonia.Animation.Easings.CubicEaseOut;
 
 namespace PCL2.Neo.Views;
 
@@ -55,14 +56,37 @@ public partial class MainWindow : Window
 
         BtnTitleMin.Click += (_, _) => WindowState = WindowState.Minimized;
 
-        GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
+        LeftNavigationControl.Loaded += (_, _) =>
+        {
+            LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
+            AnimationHelper? lastAnimation = null;
+            LeftNavigationControl.Presenter!.PropertyChanged += async (_, e) =>
+            {
+                if (e.Property != ContentPresenter.ChildProperty)
+                    return;
+                var oldValue = e.OldValue as Control;
+                var newValue = e.NewValue as Control;
+                lastAnimation?.CancelAndClear();
+                var previousScaleTransform =
+                    (LeftNavigationControlBorder.RenderTransform as TransformGroup)?.Children
+                    .FirstOrDefault(x => x is ScaleTransform) as ScaleTransform;
+                var previousScaleX = previousScaleTransform?.ScaleX ?? 1d;
+                LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
+                var scale = oldValue?.Width / newValue?.Width * previousScaleX ?? 1d;
+                lastAnimation = new AnimationHelper(
+                [
+                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder, TimeSpan.FromMilliseconds(300), scale,
+                        1d, new CubicEaseOut())
+                ]);
+                await lastAnimation.RunAsync();
+            };
+        };
+
+
+         GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
-    private void OnNavPointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-
-    }
-
+       
     private void SetupSide(string name, StandardCursorType cursor, WindowEdge edge)
     {
         var ctl = this.Get<Control>(name);
@@ -180,47 +204,6 @@ public partial class MainWindow : Window
             mainWindowCompositionVisual.CenterPoint = new Vector3D((float)size.X / 2, (float)size.Y / 2, (float)mainWindowCompositionVisual.CenterPoint.Z);
 
             mainWindowCompositionVisual.StartAnimationGroup(animationGroup);
-        }
-    }
-
-    private void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Loading;
-    }
-
-    private void Button2_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Error;
-    }
-
-    private async void Search_Java_Button(object? sender, RoutedEventArgs e)
-    {
-        try
-        {
-            var javas = await Java.SearchJava();
-            Console.WriteLine($"找到 {javas.Count()} 个Java环境:");
-
-            foreach (var java in javas)
-            {
-                try
-                {
-                    Console.WriteLine("----------------------");
-                    Console.WriteLine($"路径: {java.DirectoryPath}");
-                    var version = java.Version;
-                    Console.WriteLine($"版本: Java {version}");
-                    Console.WriteLine($"位数: {(java.Is64Bit ? "64位" : "32位")}");
-                    Console.WriteLine($"类型: {(java.IsJre ? "JRE" : "JDK")}");
-                    Console.WriteLine($"可用: {java.Compability}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"处理Java信息时出错: {ex.Message}");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"搜索失败: {ex.Message}");
         }
     }
 }
