@@ -82,11 +82,10 @@ public partial class MainWindow : Window
             };
         };
 
-
          GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
-       
+
     private void SetupSide(string name, StandardCursorType cursor, WindowEdge edge)
     {
         var ctl = this.Get<Control>(name);
@@ -151,59 +150,56 @@ public partial class MainWindow : Window
     /// </summary>
     private void AnimationOut()
     {
-        if (this.MainBorder.RenderTransform is null)
-        {
-            // var animation = new AnimationHelper(
-            // [
-            //     new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
-            //     new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
-            //     new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
-            //     new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
-            //     new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(180), 0.6d, new QuadraticEaseInOut())
-            // ]);
-            // await animation.RunAsync();
+        // var animation = new AnimationHelper(
+        // [
+        //     new OpacityAnimation(this, TimeSpan.FromMilliseconds(140), TimeSpan.FromMilliseconds(40), 0d, new QuadraticEaseOut()),
+        //     new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
+        //     new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(180), 0.88d),
+        //     new TranslateTransformYAnimation(this, TimeSpan.FromMilliseconds(180), 20d, new QuadraticEaseOut()),
+        //     new RotateTransformAngleAnimation(this, TimeSpan.FromMilliseconds(180), 0.6d, new QuadraticEaseInOut())
+        // ]);
+        // await animation.RunAsync();
 
-            // AnimationHelper 性能太差，换用 CompositionAnimation
+        // AnimationHelper 性能太差，换用 CompositionAnimation
 
-            var mainWindowCompositionVisual = ElementComposition.GetElementVisual(GridRoot)!;
-            var compositor = mainWindowCompositionVisual.Compositor;
+        var mainWindowCompositionVisual = ElementComposition.GetElementVisual(GridRoot)!;
+        var compositor = mainWindowCompositionVisual.Compositor;
 
-            var opacityFrameAnimation = compositor.CreateScalarKeyFrameAnimation();
-            opacityFrameAnimation.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
-            opacityFrameAnimation.DelayTime = TimeSpan.FromMilliseconds(40);
-            opacityFrameAnimation.Duration = TimeSpan.FromMilliseconds(140);
-            opacityFrameAnimation.InsertKeyFrame(0f, 1f, new QuadraticEaseOut());
-            opacityFrameAnimation.InsertKeyFrame(1f, 0f, new QuadraticEaseOut());
-            opacityFrameAnimation.Target = "Opacity";
+        var opacityFrameAnimation = compositor.CreateScalarKeyFrameAnimation();
+        opacityFrameAnimation.DelayBehavior = AnimationDelayBehavior.SetInitialValueBeforeDelay;
+        opacityFrameAnimation.DelayTime = TimeSpan.FromMilliseconds(40);
+        opacityFrameAnimation.Duration = TimeSpan.FromMilliseconds(140);
+        opacityFrameAnimation.InsertKeyFrame(0f, 1f, new QuadraticEaseOut());
+        opacityFrameAnimation.InsertKeyFrame(1f, 0f, new QuadraticEaseOut());
+        opacityFrameAnimation.Target = "Opacity";
 
-            var rotateTransformAngleAnimation = compositor.CreateScalarKeyFrameAnimation();
-            rotateTransformAngleAnimation.Duration = TimeSpan.FromMilliseconds(180);
-            rotateTransformAngleAnimation.InsertKeyFrame(0f, 0f, new QuadraticEaseOut());
-            rotateTransformAngleAnimation.InsertKeyFrame(1f, 0.0006f, new QuadraticEaseOut());
-            rotateTransformAngleAnimation.Target = "RotationAngle";
+        var rotateTransformAngleAnimation = compositor.CreateScalarKeyFrameAnimation();
+        rotateTransformAngleAnimation.Duration = TimeSpan.FromMilliseconds(180);
+        rotateTransformAngleAnimation.InsertKeyFrame(0f, 0f, new QuadraticEaseOut());
+        rotateTransformAngleAnimation.InsertKeyFrame(1f, 0.0006f, new QuadraticEaseOut());
+        rotateTransformAngleAnimation.Target = "RotationAngle";
 
-            var translateTransformYAnimation = compositor.CreateVector3KeyFrameAnimation();
-            translateTransformYAnimation.Duration = TimeSpan.FromMilliseconds(180);
-            translateTransformYAnimation.InsertKeyFrame(0f, new Vector3(0f, 0f, 0f), new QuadraticEaseOut());
-            translateTransformYAnimation.InsertKeyFrame(1f, new Vector3(0f, 20f, 0f), new QuadraticEaseOut());
-            translateTransformYAnimation.Target = "Offset";
+        var translateTransformYAnimation = compositor.CreateVector3KeyFrameAnimation();
+        translateTransformYAnimation.Duration = TimeSpan.FromMilliseconds(180);
+        translateTransformYAnimation.InsertKeyFrame(0f, new Vector3(0f, 0f, 0f), new QuadraticEaseOut());
+        translateTransformYAnimation.InsertKeyFrame(1f, new Vector3(0f, 20f, 0f), new QuadraticEaseOut());
+        translateTransformYAnimation.Target = "Offset";
 
-            var scaleTransformAnimation = compositor.CreateVector3KeyFrameAnimation();
-            scaleTransformAnimation.Duration = TimeSpan.FromMilliseconds(180);
-            scaleTransformAnimation.InsertKeyFrame(0f, new Vector3(1f, 1f, 1f), new QuadraticEaseOut());
-            scaleTransformAnimation.InsertKeyFrame(1f, new Vector3(0.88f, 0.88f, 1f), new QuadraticEaseOut());
-            scaleTransformAnimation.Target = "Scale";
+        var scaleTransformAnimation = compositor.CreateVector3KeyFrameAnimation();
+        scaleTransformAnimation.Duration = TimeSpan.FromMilliseconds(180);
+        scaleTransformAnimation.InsertKeyFrame(0f, new Vector3(1f, 1f, 1f), new QuadraticEaseOut());
+        scaleTransformAnimation.InsertKeyFrame(1f, new Vector3(0.88f, 0.88f, 1f), new QuadraticEaseOut());
+        scaleTransformAnimation.Target = "Scale";
 
-            var animationGroup = compositor.CreateAnimationGroup();
-            animationGroup.Add(opacityFrameAnimation);
-            animationGroup.Add(rotateTransformAngleAnimation);
-            animationGroup.Add(translateTransformYAnimation);
-            animationGroup.Add(scaleTransformAnimation);
+        var animationGroup = compositor.CreateAnimationGroup();
+        animationGroup.Add(opacityFrameAnimation);
+        animationGroup.Add(rotateTransformAngleAnimation);
+        animationGroup.Add(translateTransformYAnimation);
+        animationGroup.Add(scaleTransformAnimation);
 
-            var size = mainWindowCompositionVisual.Size;
-            mainWindowCompositionVisual.CenterPoint = new Vector3D((float)size.X / 2, (float)size.Y / 2, (float)mainWindowCompositionVisual.CenterPoint.Z);
+        var size = mainWindowCompositionVisual.Size;
+        mainWindowCompositionVisual.CenterPoint = new Vector3D((float)size.X / 2, (float)size.Y / 2, (float)mainWindowCompositionVisual.CenterPoint.Z);
 
-            mainWindowCompositionVisual.StartAnimationGroup(animationGroup);
-        }
+        mainWindowCompositionVisual.StartAnimationGroup(animationGroup);
     }
 }

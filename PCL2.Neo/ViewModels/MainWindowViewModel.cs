@@ -81,7 +81,7 @@ namespace PCL2.Neo.ViewModels
             _window.WindowState = WindowState.Minimized;
         }
 
-        public void ShowMessageBox(IMessageBox messageBox)
+        public void ShowMessageBox((MessageBoxParam, TaskCompletionSource<MessageBoxResult>) messageBox)
         {
 
         }
