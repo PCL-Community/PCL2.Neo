@@ -136,6 +136,12 @@ public class JavaEntity
         {
             var executableArchitecture = ArchitectureUtils.GetExecutableArchitecture(javaExe);
 
+            if (executableArchitecture == ArchitectureUtils.Architecture.FatFile)
+            {
+                info.Compability = JavaCompability.Yes;
+                info.IsFatFile = true;
+            }
+
             if (executableArchitecture.ToString() == RuntimeInformation.OSArchitecture.ToString())
             {
                 info.Compability = JavaCompability.Yes;
