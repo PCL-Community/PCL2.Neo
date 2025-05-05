@@ -8,6 +8,7 @@ using PCL2.Neo.Models.Minecraft.Java;
 using PCL2.Neo.Services;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace PCL2.Neo.Views.Home;
 
@@ -31,6 +32,6 @@ public partial class HomeSubView : UserControl
     private void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
         // var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
-        Ioc.Default.GetService<IJavaManager>()?.Refresh();
+        Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().Refresh);
     }
 }
