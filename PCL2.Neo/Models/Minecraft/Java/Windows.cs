@@ -94,7 +94,7 @@ public static class Windows
         paths.Sort((string x, string s) => x.CompareTo(s));
 
         var validPaths = paths.Where(x => !string.IsNullOrWhiteSpace(x) && !x.Contains("javapath_target_") && File.Exists(x))
-            .Select(Path.GetDirectoryName);
+            .Select(Path.GetDirectoryName).Distinct();
         return [.. (await Task.WhenAll(validPaths.Select(static validPath => JavaRuntime.CreateJavaEntityAsync(validPath!))))
         .Where(r => r is { Compability: not JavaCompability.Error })!];
     }
