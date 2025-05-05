@@ -31,6 +31,6 @@ public partial class HomeSubView : UserControl
     private void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
         // var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
-        Ioc.Default.GetService<JavaManager>()?.Refresh();
+        Ioc.Default.GetService<IJavaManager>()?.Refresh();
     }
 }

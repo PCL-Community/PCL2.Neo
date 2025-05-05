@@ -42,7 +42,7 @@ namespace PCL2.Neo
 
             .AddSingleton<NavigationService>(s => new NavigationService(s))
             .AddSingleton<StorageService>()
-            .AddSingleton<JavaManager>()
+            .AddSingleton<IJavaManager,JavaManager>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()
@@ -50,7 +50,7 @@ namespace PCL2.Neo
             Ioc.Default.ConfigureServices(ConfigureServices());
 
             var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
-            Task.Run(Ioc.Default.GetRequiredService<JavaManager>().JavaListInit);
+            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.

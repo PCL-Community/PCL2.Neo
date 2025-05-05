@@ -14,7 +14,7 @@ namespace PCL2.Neo.Models.Minecraft.Java;
 /// <summary>
 /// 测试
 /// </summary>
-public sealed partial class JavaManager
+public sealed partial class JavaManager : IJavaManager
 {
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public bool IsInitialized { get; private set; } = false;
