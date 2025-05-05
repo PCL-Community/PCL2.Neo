@@ -17,8 +17,8 @@ public class FileTest
     [Test]
     public async Task Fetch()
     {
-        await Java.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
-            Java.MojangJavaVersion.Δ,
+        await JavaManager.FetchJavaOnline("mac-os-arm64", "/Users/amagicpear/Downloads/PCL2Test",
+            JavaManager.MojangJavaVersion.Δ,
             new Progress<(int, int)>((value) =>
             {
                 Console.WriteLine($"下载进度：已下载{value.Item1}/总文件数{value.Item2}");
@@ -35,7 +35,7 @@ public class FileTest
     [Test]
     public void MojangVersionTest()
     {
-        Console.WriteLine(Java.MojangJavaVersion.Δ.Value);
+        Console.WriteLine(JavaManager.MojangJavaVersion.Δ.Value);
     }
 
     [Test]

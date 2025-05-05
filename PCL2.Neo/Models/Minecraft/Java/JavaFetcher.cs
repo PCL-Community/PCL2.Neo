@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
 
-public sealed partial class Java
+public sealed partial class JavaManager
 {
     private static string MetaUrl
     {

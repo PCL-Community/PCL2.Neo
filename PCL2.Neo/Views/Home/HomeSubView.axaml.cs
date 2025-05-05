@@ -28,10 +28,9 @@ public partial class HomeSubView : UserControl
         this.TestLoading.State = MyLoading.LoadingState.Error;
     }
 
-    private async void Search_Java_Button(object? sender, RoutedEventArgs e)
+    private void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
-        // _ = App.JavaManager.Refresh();
-        // IStorageProvider test = TopLevel.GetTopLevel(this)!.StorageProvider;
-        var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
+        // var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
+        Ioc.Default.GetService<JavaManager>()?.Refresh();
     }
 }

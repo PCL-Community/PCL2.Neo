@@ -14,32 +14,18 @@ namespace PCL2.Neo.Models.Minecraft.Java;
 /// <summary>
 /// 测试
 /// </summary>
-public sealed partial class Java
+public sealed partial class JavaManager
 {
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public bool IsInitialized { get; private set; } = false;
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
-    private Java() { } // 私有构造函数
-
-
-    /// <summary>
-    /// 供外部调用，根据实际情况创建 Java 管理器实例
-    /// </summary>
-    /// <returns></returns>
-    public static async Task<Java?> CreateAsync()
-    {
-        var java = new Java();
-        await java.JavaListInit();
-        return java;
-    }
-
     /// <summary>
     /// 初始化 Java 列表，但除非没有 Java，否则不进行检查。
     /// <remarks> TODO)) 更换为 Logger.cs 中的 logger </remarks>
     /// </summary>
-    private async Task JavaListInit()
+    public async Task JavaListInit()
     {
         if (IsInitialized) return;
         JavaList = [];

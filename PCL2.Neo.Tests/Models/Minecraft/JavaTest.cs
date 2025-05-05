@@ -7,7 +7,8 @@ namespace PCL2.Neo.Tests.Models.Minecraft
         [Test]
         public async Task Test()
         {
-            Java? javaInstance = await Java.CreateAsync();
+            JavaManager javaInstance = new();
+            await javaInstance.JavaListInit();
             Console.WriteLine("当前有 " + javaInstance.JavaList.Count + " 个 Java");
             foreach (JavaRuntime? javaEntity in javaInstance.JavaList)
             {
