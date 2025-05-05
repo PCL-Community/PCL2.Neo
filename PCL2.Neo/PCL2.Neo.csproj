@@ -16,7 +16,7 @@
     <CFBundleExecutable>PCL2.Neo</CFBundleExecutable>
     <CFBundleIconFile>Assets/Icon.ico</CFBundleIconFile>
     <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
