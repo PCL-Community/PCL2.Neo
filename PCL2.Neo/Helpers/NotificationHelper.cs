@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using PCL2.Neo.Controls.MyMsg;
 using PCL2.Neo.ViewModels;
 using System;
 using System.Collections.Concurrent;
@@ -30,7 +29,7 @@ namespace PCL2.Neo.Helpers
         Error
     }
 
-    public class MessageBoxReturn
+    public class MessageBoxResult
     {
         public bool Button1Clicked;
         public bool Button2Clicked;
@@ -41,7 +40,7 @@ namespace PCL2.Neo.Helpers
     }
     public static class NotificationHelper
     {
-        private static ConcurrentQueue<IMessageBox> _messageBoxQueue = new();
+        private static ConcurrentQueue<(MessageBoxParam, TaskCompletionSource<MessageBoxResult>)> _messageBoxQueue = new();
         private static SemaphoreSlim _messageBoxSemaphore = new(1, 1);
 
         #region MessageBox 重载
@@ -50,8 +49,8 @@ namespace PCL2.Neo.Helpers
         /// 在主窗口上展示一个 MessageBox。
         /// </summary>
         /// <param name="message">展示的内容。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(string message)
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(string message)
         {
             return await ShowMessageBoxAsync(message, "提示");
         }
@@ -60,8 +59,8 @@ namespace PCL2.Neo.Helpers
         /// </summary>
         /// <param name="message">展示的内容。</param>
         /// <param name="title">标题。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(string message, string title = "提示")
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(string message, string title = "提示")
         {
             return await ShowMessageBoxAsync(
                 message,
@@ -78,8 +77,8 @@ namespace PCL2.Neo.Helpers
         /// <param name="button1Text">第一个按钮要展示的内容。</param>
         /// <param name="button2Text">第二个按钮要展示的内容。如果为空，那么没有此按钮。</param>
         /// <param name="button3Text">第三个按钮要展示的内容。如果为空，那么没有此按钮。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(
             string message,
             string title = "提示",
             string button1Text = "确定",
@@ -103,8 +102,8 @@ namespace PCL2.Neo.Helpers
         /// <param name="button2Text">第二个按钮要展示的内容。如果为空，那么没有此按钮。</param>
         /// <param name="button3Text">第三个按钮要展示的内容。如果为空，那么没有此按钮。</param>
         /// <param name="type">MessageBox 的类型。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(
             string message,
             string title = "提示",
             string button1Text = "确定",
@@ -131,8 +130,8 @@ namespace PCL2.Neo.Helpers
         /// <param name="button3Text">第三个按钮要展示的内容。如果为空，那么没有此按钮。</param>
         /// <param name="buttonPressedAction">按钮按下时执行的 Action。返回 int 值代表第几个按钮。</param>
         /// <param name="type">MessageBox 的类型。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(
             string message,
             string title = "提示",
             string button1Text = "确定",
@@ -169,8 +168,8 @@ namespace PCL2.Neo.Helpers
         /// <param name="isCloseWhenButton1Pressed">按下第一个按钮时是否关闭 MessageBox。</param>
         /// <param name="isCloseWhenButton2Pressed">按下第二个按钮时是否关闭 MessageBox。</param>
         /// <param name="isCloseWhenButton3Pressed">按下第三个按钮时是否关闭 MessageBox。</param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxAsync(
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxAsync(
             string message,
             string title = "提示",
             string button1Text = "确定",
@@ -201,13 +200,14 @@ namespace PCL2.Neo.Helpers
         /// 在主窗口上展示一个 MessageBox。
         /// </summary>
         /// <param name="param"></param>
-        /// <returns>返回 MessageBoxReturn，代表第几个按钮。</returns>
-        public static async Task<MessageBoxReturn> ShowMessageBoxIndirectAsync(MessageBoxParam param)
+        /// <returns>返回 MessageBoxResult，代表第几个按钮。</returns>
+        public static async Task<MessageBoxResult> ShowMessageBoxIndirectAsync(MessageBoxParam param)
         {
-            _messageBoxQueue.Enqueue(new MyMsgText(param));
+            var tcs = new TaskCompletionSource<MessageBoxResult>();
+            _messageBoxQueue.Enqueue((param, tcs));
 
 
-            return new MessageBoxReturn();
+            return new MessageBoxResult();
         }
 
         private static async Task ProcessMessageBoxQueueAsync()
@@ -221,7 +221,7 @@ namespace PCL2.Neo.Helpers
                 {
                     if (Application.Current is not null && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
                     {
-                        ((MainWindowViewModel)desktop.MainWindow!.DataContext!).ShowMessageBox(messageBox);
+                        ((MainWindowViewModel)desktop.MainWindow!.DataContext!).ShowMessageBox((messageBox.Item1, messageBox.Item2));
                     }
                 }
             }

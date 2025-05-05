@@ -23,7 +23,7 @@
                         Background="{DynamicResource ColorBrush1}"
                         CornerRadius="6"
                         Effect="blur(3)"
-                        Margin="-1,-1,-1,-2.5"
+                        Margin="-1,-1,-1,-2"
                         Name="BorderShadow"
                         Opacity="0.1">
                         <Border.Transitions>
