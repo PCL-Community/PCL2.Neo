@@ -138,7 +138,8 @@ public class JavaRuntime
         }
 
         // 设置slug Version
-        info.SlugVersion = int.TryParse(info.Version.Split('.')[0], out var slugVersion) ? slugVersion : 0;
+        var versionSplit = info.Version.Split('.');
+        info.SlugVersion = int.TryParse(versionSplit[0] == "1" ? versionSplit[1] : versionSplit[0], out int slugVersion) ? slugVersion : 0;
 
         // 若架构未被设置，读取PE/ELF/Mach-O文件头获得架构
         if (info.Architecture == ExeArchitectureUtils.ExeArchitecture.Unknown)
