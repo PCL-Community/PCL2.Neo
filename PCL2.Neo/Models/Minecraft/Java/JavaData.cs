@@ -1,5 +1,6 @@
 using PCL2.Neo.Utils;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -87,45 +88,68 @@ public class JavaEntity
     {
         Debug.WriteLine("JavaInfoInit...");
         var javaExe = Path.Combine(directoryPath, "java");
-        string runJavaOutput;
-        try
+        JavaInfo info;
+        var executableArchitecture = ArchitectureUtils.GetExecutableArchitecture(javaExe);
+        if (File.Exists(Path.Join("release")))
         {
-            runJavaOutput = await GetRunJavaOutputAsync(javaExe);
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            return new JavaInfo
+            Dictionary<string, string> release = PropertiesUtils.ReadProperties(Path.Join("release"));
+            info = new JavaInfo
             {
-                Version = 0,
-                Is64Bit = false,
-                IsJre = false,
+                Version = int.Parse(release["JAVA_VERSION"]),
+                Is64Bit = executableArchitecture == ArchitectureUtils.Architecture.X64 ||
+                          executableArchitecture == ArchitectureUtils.Architecture.Arm64,
+                IsJre = !File.Exists(Path.Combine(directoryPath,
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
                 IsFatFile = false,
-                Compability = JavaCompability.Error,
+                Compability = JavaCompability.Unknown,
                 JavaExe = javaExe,
                 JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? Path.Combine(directoryPath, "javaw.exe")
                     : javaExe,
             };
         }
-
-        var info = new JavaInfo
+        else
         {
-            Version = MatchVersion(runJavaOutput), // 设置版本（Version）
-            Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
-            IsJre = !File.Exists(Path.Combine(directoryPath,
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
-            // Architecture = RuntimeInformation.OSArchitecture,
-            IsFatFile = false,
-            Compability = JavaCompability.Unknown,
-            JavaExe = javaExe,
-            JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? Path.Combine(directoryPath, "javaw.exe")
-                : javaExe,
-        };
+            string runJavaOutput;
+            try
+            {
+                runJavaOutput = await GetRunJavaOutputAsync(javaExe);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new JavaInfo
+                {
+                    Version = 0,
+                    Is64Bit = false,
+                    IsJre = false,
+                    IsFatFile = false,
+                    Compability = JavaCompability.Error,
+                    JavaExe = javaExe,
+                    JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                        ? Path.Combine(directoryPath, "javaw.exe")
+                        : javaExe,
+                };
+            }
 
-        if (info.Version == 0)
-            info.Compability = JavaCompability.Error;
+            info = new JavaInfo
+            {
+                Version = MatchVersion(runJavaOutput), // 设置版本（Version）
+                Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
+                IsJre = !File.Exists(Path.Combine(directoryPath,
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
+                // Architecture = RuntimeInformation.OSArchitecture,
+                IsFatFile = false,
+                Compability = JavaCompability.Unknown,
+                JavaExe = javaExe,
+                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? Path.Combine(directoryPath, "javaw.exe")
+                    : javaExe,
+            };
+
+            if (info.Version == 0)
+                info.Compability = JavaCompability.Error;
+        }
 
         // 针对 Windows 设置兼容性，是 64 位则兼容
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -134,7 +158,6 @@ public class JavaEntity
         }
         else
         {
-            var executableArchitecture = ArchitectureUtils.GetExecutableArchitecture(javaExe);
 
             if (executableArchitecture == ArchitectureUtils.Architecture.FatFile)
             {
@@ -152,13 +175,13 @@ public class JavaEntity
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    if (RuntimeInformation.OSArchitecture == Architecture.Arm64)
+                    if (RuntimeInformation.OSArchitecture == Architecture.Arm64) // Arm64 架构的 Mac 可以通过 Rosetta 运行 X64 架构的可执行文件
                     {
                         info.Compability = JavaCompability.UnderTranslation;
                     }
                 }
 
-                // TODO)) 判断其他系统的转译
+                // TODO)) 判断其他系统的转译支持
             }
         }
 
