@@ -1,4 +1,5 @@
 using PCL2.Neo.Helpers;
+using PCL2.Neo.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -110,7 +111,10 @@ public sealed partial class JavaManager : IJavaManager
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "PCL2.Neo", "Java")); // TODO)) 此处的路径等配置文件的模块写好了以后应该从配置文件中获取
             var cts = new CancellationTokenSource();
-            var progress = new Progress<(int, int)>(value => Console.WriteLine($"下载进度：已下载{value.Item1}/总文件数{value.Item2}")); // TODO)) 后续这个 progress 可以设置成在 UI 上显示
+            var progress =
+                new Progress<(int, int)>(value =>
+                    Console.WriteLine(
+                        $"下载进度：已下载{value.Item1}/总文件数{value.Item2}")); // TODO)) 后续这个 progress 可以设置成在 UI 上显示
             var fetchedJavaDir = await FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
                 MojangJavaVersion.Α, progress, cts.Token);
             if (fetchedJavaDir != null)
@@ -143,7 +147,10 @@ public sealed partial class JavaManager : IJavaManager
             Console.WriteLine("--------------------");
             Console.WriteLine("路径: " + javaEntity.DirectoryPath);
             Console.WriteLine("是否兼容: " + javaEntity.Compability);
-            Console.WriteLine("是否通用: " + javaEntity.IsFatFile);
+            Console.WriteLine("架构：" + javaEntity.Architecture);
+            Console.WriteLine("发行商：" + javaEntity.Implementor);
+            Console.WriteLine("版本：" + javaEntity.Version);
+            Console.WriteLine("数字版本：" + javaEntity.SlugVersion);
         }
     }
 }
