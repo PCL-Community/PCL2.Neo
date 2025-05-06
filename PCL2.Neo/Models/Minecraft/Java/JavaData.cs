@@ -163,7 +163,8 @@ public class JavaEntity
             {
                 info.Compability = JavaCompability.Yes;
                 info.IsFatFile = true;
-            } else if (executableArchitecture.ToString() == RuntimeInformation.OSArchitecture.ToString())
+            }
+            else if (executableArchitecture.ToString() == RuntimeInformation.OSArchitecture.ToString())
             {
                 info.Compability = JavaCompability.Yes;
             }
