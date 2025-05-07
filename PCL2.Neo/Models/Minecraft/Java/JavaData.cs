@@ -99,7 +99,7 @@ public class JavaRuntime
     private static async Task<JavaInfo> JavaInfoInitAsync(string directoryPath)
     {
         // 首先直接设置JavaExe、JavawExe、releaseFile、javac的路径
-        var javaExe = Path.Combine(directoryPath, "java");
+        var javaExe = Path.Combine(directoryPath, Const.Os is Const.RunningOs.Windows ? "java.exe" : "java");
         string? releaseFile = null;
         var parentDir = Directory.GetParent(directoryPath);
         if (parentDir != null) releaseFile = Path.Combine(parentDir.FullName, "release");
@@ -227,7 +227,7 @@ public class JavaRuntime
                 };
             }
 
-            if (!string.IsNullOrEmpty(implementor) && !string.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(implementor) && !string.IsNullOrEmpty(version) && osArch is not ExeArchitectureUtils.ExeArchitecture.Unknown)
                 break;
         }
 
