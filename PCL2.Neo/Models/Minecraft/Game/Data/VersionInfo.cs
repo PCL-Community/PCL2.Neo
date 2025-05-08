@@ -23,21 +23,34 @@ namespace PCL2.Neo.Models.Minecraft.Game.Data
         NeoForge = 12
     }
 
-    public enum VersionType : byte
+    public enum VersionCardType : byte
     {
         Auto = 0,
         Hide = 1,
-        Modable = 2,
+        Moddable = 2,
         Normal = 3,
         Unusual = 4,
-        FoolDay = 5
+        FoolsDay = 5,
+        Error = 6,
     }
 
-    public record GameVersion
+    public record GameVersionNum(byte Sub, byte? Fix = null) : IComparable<GameVersionNum>
     {
-        public byte Major { get; set; } = 1;
-        public byte Sub { get; set; }
-        public byte Fix { get; set; }
+        private readonly (byte Major, byte Sub, int Fix) _version = (1, Sub, Fix ?? 0);
+
+        public byte Major => _version.Major;
+        public byte Sub => _version.Sub;
+        public byte? Fix => _version.Fix > 0 ? (byte)_version.Fix : null;
+
+        public int CompareTo(GameVersionNum? other)
+        {
+            return other == null ? 1 : (Major, Sub, Fix ?? 0).CompareTo((other.Major, other.Sub, other.Fix ?? 0));
+        }
+
+        public override string ToString()
+        {
+            return Fix.HasValue ? $"{Major}.{Sub}.{Fix}" : $"{Major}.{Sub}";
+        }
     }
 
     public enum ModLoader : byte
@@ -49,5 +62,19 @@ namespace PCL2.Neo.Models.Minecraft.Game.Data
         LiteLoader = 4,
         Rift = 5,
         Quilt = 6
+    }
+
+    public enum McVersionState
+    {
+        Error,
+        Vanilla,
+        Snapshot,
+        FoolsDay,
+        OptiFine,
+        Legacy,
+        Forge,
+        NeoForge,
+        LiteLoader,
+        Fabric,
     }
 }
