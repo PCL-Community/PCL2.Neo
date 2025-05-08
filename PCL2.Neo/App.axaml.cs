@@ -1,44 +1,68 @@
-using System;
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using PCL2.Neo.Services;
+using Avalonia.Platform.Storage;
 using PCL2.Neo.Helpers;
 using PCL2.Neo.Models.Minecraft.Java;
 using PCL2.Neo.Utils;
 using PCL2.Neo.ViewModels;
+using PCL2.Neo.ViewModels.Download;
+using PCL2.Neo.ViewModels.Home;
 using PCL2.Neo.Views;
+using System;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo
 {
     public partial class App : Application
     {
-        public static Java JavaManager;
+        // public static Java? JavaManager { get; private set; }
+        // public static IStorageProvider StorageProvider { get; private set; } = null!;
+
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
+        private static IServiceProvider ConfigureServices() => new ServiceCollection()
+            .AddTransient<MainWindowViewModel>()
+
+            .AddTransient<HomeViewModel>()
+            .AddTransient<HomeSubViewModel>()
+
+            .AddTransient<DownloadViewModel>()
+            .AddTransient<DownloadGameViewModel>()
+            .AddTransient<DownloadModViewModel>()
+
+            .AddSingleton<NavigationService>(s => new NavigationService(s))
+            .AddSingleton<StorageService>()
+            .AddSingleton<IJavaManager,JavaManager>()
+            .BuildServiceProvider();
+
         public override void OnFrameworkInitializationCompleted()
         {
-            Task.Run(SetupJavaManager);
+            Ioc.Default.ConfigureServices(ConfigureServices());
+
+            var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
+            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow();
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = vm
+                };
             }
 
             base.OnFrameworkInitializationCompleted();
-        }
-
-        private async Task SetupJavaManager()
-        {
-            JavaManager = await Java.CreateAsync();
         }
 
         private void DisableAvaloniaDataAnnotationValidation()

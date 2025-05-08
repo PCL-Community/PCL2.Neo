@@ -1,27 +1,16 @@
 using PCL2.Neo.Utils;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Minecraft.Java;
 
-public enum JavaCompability
-{
-    Unknown,
-    Yes,
-    No,
-    UnderTranslation,
-    Error,
-}
-
 /// <summary>
 /// 每一个 Java 实体的信息类
 /// </summary>
-public class JavaEntity
+public class JavaRuntime
 {
     /// <summary>
     /// 该 Java 实体的父目录，在构造时传入
@@ -33,7 +22,12 @@ public class JavaEntity
     /// </summary>
     private JavaInfo _javaInfo;
 
-    private JavaEntity(string directoryPath, JavaInfo javaInfo)
+    /// <summary>
+    /// 私有构造函数，需要路径和信息
+    /// </summary>
+    /// <param name="directoryPath"></param>
+    /// <param name="javaInfo"></param>
+    private JavaRuntime(string directoryPath, JavaInfo javaInfo)
     {
         DirectoryPath = directoryPath;
         _javaInfo = javaInfo;
@@ -44,16 +38,17 @@ public class JavaEntity
     /// </summary>
     private class JavaInfo
     {
-        public int Version { get; init; }
+        public string Version { get; set; } = string.Empty;
+        public int SlugVersion { get; set; } = 0;
 
-        public bool Is64Bit { get; init; }
+        public ExeArchitectureUtils.ExeArchitecture Architecture { get; set; } =
+            ExeArchitectureUtils.ExeArchitecture.Unknown;
 
-        // public Architecture Architecture { get; set; }
-        public bool IsJre { get; init; }
-        public bool IsFatFile { get; set; }
-        public JavaCompability Compability { get; set; }
-        public required string JavaExe { get; set; }
+        public bool IsJre { get; set; }
+        public JavaCompability Compability { get; set; } = JavaCompability.Unknown;
+        public required string JavaExe { get; init; }
         public required string JavaWExe { get; init; }
+        public string? Implementor { get; set; }
     }
 
     /// <summary>
@@ -61,54 +56,72 @@ public class JavaEntity
     /// </summary>
     /// <param name="directoryPath">Java 可执行文件的父目录</param>
     /// <param name="isUserImport">是否为用户手动导入</param>
-    public static async Task<JavaEntity?> CreateJavaEntityAsync(string directoryPath, bool isUserImport = false)
+    /// <returns>得到的 Java 运行时，如果初始化失败会返回 null，需要在外部判断</returns>
+    public static async Task<JavaRuntime?> CreateJavaEntityAsync(string directoryPath, bool isUserImport = false)
     {
-        Debug.WriteLine($"创建 JavaEntity: {directoryPath}");
+        Debug.WriteLine($"创建 JavaRuntime: {directoryPath}");
         var javaInfo = await JavaInfoInitAsync(directoryPath);
-        if(javaInfo.Compability == JavaCompability.Error) return null;
-        var javaEntity = new JavaEntity(directoryPath, javaInfo) { IsUserImport = isUserImport };
+        if (javaInfo.Compability == JavaCompability.Error) return null;
+        var javaEntity = new JavaRuntime(directoryPath, javaInfo) { IsUserImport = isUserImport };
         return javaEntity;
     }
 
+    /// <summary>
+    /// 是否为用户手动导入，手动导入的运行时在刷新时不会被刷新掉
+    /// </summary>
     public bool IsUserImport { get; set; }
-    public int Version => _javaInfo.Version;
-    public bool Is64Bit => _javaInfo.Is64Bit;
-    public bool IsFatFile => _javaInfo.IsFatFile;
+
+    public string Version => _javaInfo.Version;
+
+    /// <summary>
+    /// Java 数字版本
+    /// </summary>
+    public int SlugVersion => _javaInfo.SlugVersion;
+
+    public bool Is64Bit => _javaInfo.Architecture.Is64Bit();
+    public ExeArchitectureUtils.ExeArchitecture Architecture => _javaInfo.Architecture;
     public JavaCompability Compability => _javaInfo.Compability;
     public bool IsJre => _javaInfo.IsJre;
-    public string JavaExe => Path.Combine(DirectoryPath, "java");
+    public string JavaExe => _javaInfo.JavaExe;
 
     /// <summary>
     /// Windows 特有的 javaw.exe
     /// </summary>
     public string JavaWExe => _javaInfo.JavaWExe;
 
+    public string? Implementor => _javaInfo.Implementor;
 
+    /// <summary>
+    /// 异步地初始化 Java 信息
+    /// </summary>
+    /// <param name="directoryPath">需要初始化的 Java 所在的父目录</param>
+    /// <returns>得到的 Java 具体信息，JavaCompability 为 Error 时为无效</returns>
     private static async Task<JavaInfo> JavaInfoInitAsync(string directoryPath)
     {
-        Debug.WriteLine("JavaInfoInit...");
-        var javaExe = Path.Combine(directoryPath, "java");
-        JavaInfo info;
-        var executableArchitecture = ArchitectureUtils.GetExecutableArchitecture(javaExe);
-        if (File.Exists(Path.Join("release")))
+        // 首先直接设置JavaExe、JavawExe、releaseFile、javac的路径
+        var javaExe = Path.Combine(directoryPath, Const.Os is Const.RunningOs.Windows ? "java.exe" : "java");
+        string? releaseFile = null;
+        var parentDir = Directory.GetParent(directoryPath);
+        if (parentDir != null) releaseFile = Path.Combine(parentDir.FullName, "release");
+        var javacPath = Const.Os is Const.RunningOs.Windows
+            ? Path.Combine(directoryPath, "javac.exe")
+            : Path.Combine(directoryPath, "javac");
+        var info = new JavaInfo
         {
-            Dictionary<string, string> release = PropertiesUtils.ReadProperties(Path.Join("release"));
-            info = new JavaInfo
-            {
-                Version = int.Parse(release["JAVA_VERSION"]),
-                Is64Bit = executableArchitecture == ArchitectureUtils.Architecture.X64 ||
-                          executableArchitecture == ArchitectureUtils.Architecture.Arm64,
-                IsJre = !File.Exists(Path.Combine(directoryPath,
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
-                IsFatFile = false,
-                Compability = JavaCompability.Unknown,
-                JavaExe = javaExe,
-                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? Path.Combine(directoryPath, "javaw.exe")
-                    : javaExe,
-            };
+            JavaExe = javaExe,
+            JavaWExe = Const.Os is Const.RunningOs.Windows ? Path.Combine(directoryPath, "javaw.exe") : javaExe,
+            IsJre = !File.Exists(javacPath)
+        };
+
+        // 尝试读取RELEASE文件的信息
+        if (releaseFile != null && File.Exists(releaseFile))
+        {
+            var readResult = ReadReleaseFile(releaseFile);
+            (info.Implementor, info.Version, info.Architecture) = readResult;
         }
-        else
+
+        // 若版本未被设置，运行 java -version 获取版本
+        if (string.IsNullOrWhiteSpace(info.Version))
         {
             string runJavaOutput;
             try
@@ -118,72 +131,22 @@ public class JavaEntity
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return new JavaInfo
-                {
-                    Version = 0,
-                    Is64Bit = false,
-                    IsJre = false,
-                    IsFatFile = false,
-                    Compability = JavaCompability.Error,
-                    JavaExe = javaExe,
-                    JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                        ? Path.Combine(directoryPath, "javaw.exe")
-                        : javaExe,
-                };
-            }
-
-            info = new JavaInfo
-            {
-                Version = MatchVersion(runJavaOutput), // 设置版本（Version）
-                Is64Bit = MatchIs64Bit(runJavaOutput), // 设置位数（Is64Bit）
-                IsJre = !File.Exists(Path.Combine(directoryPath,
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javac.exe" : "javac")),
-                // Architecture = RuntimeInformation.OSArchitecture,
-                IsFatFile = false,
-                Compability = JavaCompability.Unknown,
-                JavaExe = javaExe,
-                JavaWExe = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? Path.Combine(directoryPath, "javaw.exe")
-                    : javaExe,
-            };
-
-            if (info.Version == 0)
                 info.Compability = JavaCompability.Error;
+                return info;
+            }
+            info.Version = MatchVersion(runJavaOutput) ?? string.Empty;
         }
 
-        // 针对 Windows 设置兼容性，是 64 位则兼容
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            info.Compability = info.Is64Bit ? JavaCompability.Yes : JavaCompability.No;
-        }
-        else
-        {
+        // 设置slug Version
+        var versionSplit = info.Version.Split('.');
+        info.SlugVersion = int.TryParse(versionSplit[0] == "1" ? versionSplit[1] : versionSplit[0], out int slugVersion) ? slugVersion : 0;
 
-            if (executableArchitecture == ArchitectureUtils.Architecture.FatFile)
-            {
-                info.Compability = JavaCompability.Yes;
-                info.IsFatFile = true;
-            }
-            else if (executableArchitecture.ToString() == RuntimeInformation.OSArchitecture.ToString())
-            {
-                info.Compability = JavaCompability.Yes;
-            }
-            else
-            {
-                info.Compability = JavaCompability.No;
+        // 若架构未被设置，读取PE/ELF/Mach-O文件头获得架构
+        if (info.Architecture == ExeArchitectureUtils.ExeArchitecture.Unknown)
+            info.Architecture = ExeArchitectureUtils.GetExecutableArchitecture(javaExe);
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    if (RuntimeInformation.OSArchitecture == Architecture.Arm64) // Arm64 架构的 Mac 可以通过 Rosetta 运行 X64 架构的可执行文件
-                    {
-                        info.Compability = JavaCompability.UnderTranslation;
-                    }
-                }
-
-                // TODO)) 判断其他系统的转译支持
-            }
-        }
-
+        // 设置兼容性标识
+        info.Compability = info.Architecture.GetJavaCompability();
         return info;
     }
 
@@ -209,34 +172,65 @@ public class JavaEntity
             Arguments = "-version",
             UseShellExecute = false,
             CreateNoWindow = true,
-            RedirectStandardError = true, // 这个Java的输出流是tmd stderr！！！
+            RedirectStandardError = true,
             RedirectStandardOutput = true
         };
+        // -version      将产品版本输出到错误流并退出
+        // --version     将产品版本输出到输出流并退出
+        // 但是格式不一样
         javaProcess.Start();
         await javaProcess.WaitForExitAsync();
-
         var output = await javaProcess.StandardError.ReadToEndAsync();
-        return output != string.Empty ? output : await javaProcess.StandardOutput.ReadToEndAsync(); // 就是tmd stderr
+        return output;
     }
 
-    private static int MatchVersion(string runJavaOutput)
+    private static string? MatchVersion(string runJavaOutput)
     {
         var regexMatch = Regex.Match(runJavaOutput, """version\s+"([\d._]+)""");
-        var match = Regex.Match(regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty, @"^(\d+)");
-        int version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
-        if (version == 1)
-        {
-            // java version 8
-            match = Regex.Match(regexMatch.Groups[1].Value, @"^1\.(\d+)\.");
-            version = match.Success ? int.Parse(match.Groups[1].Value) : 0;
-        }
-
-        return version;
+        return regexMatch.Success ? regexMatch.Groups[1].Value : null;
     }
 
     private static bool MatchIs64Bit(string runJavaOutput)
     {
         var regexMatch = Regex.Match(runJavaOutput, @"\b(\d+)-Bit\b"); // get bit
         return (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
+    }
+
+    private static ValueTuple<string?, string, ExeArchitectureUtils.ExeArchitecture> ReadReleaseFile(string releaseFile)
+    {
+        if (!File.Exists(releaseFile))
+            throw new FileNotFoundException("Release file not found.", releaseFile);
+
+        string implementor = string.Empty;
+        string version = string.Empty;
+        var osArch = ExeArchitectureUtils.ExeArchitecture.Unknown;
+
+        foreach (var line in File.ReadLines(releaseFile))
+        {
+            if (line.StartsWith("IMPLEMENTOR="))
+            {
+                implementor = line.Split('=')[1].Trim('"');
+            }
+            else if (line.StartsWith("JAVA_VERSION="))
+            {
+                version = line.Split('=')[1].Trim('"');
+            }
+            else if (line.StartsWith("OS_ARCH="))
+            {
+                string arch = line.Split('=')[1].Trim('"');
+                osArch = arch switch
+                {
+                    "x86_64" => ExeArchitectureUtils.ExeArchitecture.X64,
+                    "aarch64" => ExeArchitectureUtils.ExeArchitecture.Arm64,
+                    // TODO)) 增加其他架构种类
+                    _ => ExeArchitectureUtils.ExeArchitecture.Unknown
+                };
+            }
+
+            if (!string.IsNullOrEmpty(implementor) && !string.IsNullOrEmpty(version) && osArch is not ExeArchitectureUtils.ExeArchitecture.Unknown)
+                break;
+        }
+
+        return (implementor, version, osArch);
     }
 }
