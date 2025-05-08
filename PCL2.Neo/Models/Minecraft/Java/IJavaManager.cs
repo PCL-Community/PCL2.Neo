@@ -7,6 +7,6 @@ public interface IJavaManager
 {
     List<JavaRuntime> JavaList { get; }
     Task JavaListInit();
-    Task ManualAdd(string javaDir);
+    Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir);
     Task Refresh();
 }

@@ -66,14 +66,14 @@ public sealed partial class JavaManager : IJavaManager
         }
     }
 
-    public async Task ManualAdd(string javaDir)
+    public async Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir)
     {
-        if (!IsInitialized) return;
+        if (!IsInitialized) return (null, false);
         if (JavaList.FirstOrDefault(runtime => runtime.DirectoryPath == javaDir) is { } existingRuntime)
         {
             Console.WriteLine("选择的 Java 在列表中已存在，将其标记为手动导入。");
             existingRuntime.IsUserImport = true;
-            return;
+            return (existingRuntime, true);
         }
 
         var entity = await JavaRuntime.CreateJavaEntityAsync(javaDir, true);
@@ -81,8 +81,10 @@ public sealed partial class JavaManager : IJavaManager
         {
             JavaList.Add(entity);
             Console.WriteLine("已成功添加！");
+            return (entity, false);
         }
-        else Console.WriteLine("添加的 Java 文件无法运行！");
+        Console.WriteLine("添加的 Java 文件无法运行！");
+        return (null, true);
     }
 
     public async Task Refresh()
