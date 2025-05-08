@@ -155,7 +155,7 @@ public static class ExeArchitectureUtils
 
     public static bool Is64Bit(this ExeArchitecture arch)
     {
-        return arch is ExeArchitecture.X64 or ExeArchitecture.Arm64;
+        return arch is ExeArchitecture.X64 or ExeArchitecture.Arm64 or ExeArchitecture.FatFile;
     }
 
     public static JavaCompability GetJavaCompability(this ExeArchitecture arch)
