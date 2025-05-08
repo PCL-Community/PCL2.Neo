@@ -1,19 +1,16 @@
 using System.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using PCL2.Neo.Services;
-using Avalonia.Platform.Storage;
-using PCL2.Neo.Helpers;
 using PCL2.Neo.Models.Minecraft.Java;
-using PCL2.Neo.Utils;
 using PCL2.Neo.ViewModels;
 using PCL2.Neo.ViewModels.Download;
 using PCL2.Neo.ViewModels.Home;
+using PCL2.Neo.ViewModels.Setup;
 using PCL2.Neo.Views;
 using System;
 using System.Threading.Tasks;
@@ -39,6 +36,9 @@ namespace PCL2.Neo
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
+
+            .AddTransient<SetupViewModel>()
+            .AddTransient<SetupLaunchViewModel>()
 
             .AddSingleton<NavigationService>(s => new NavigationService(s))
             .AddSingleton<StorageService>()

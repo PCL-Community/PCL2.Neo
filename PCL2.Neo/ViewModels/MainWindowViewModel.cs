@@ -70,6 +70,12 @@ namespace PCL2.Neo.ViewModels
             this.NavigationService.Goto<DownloadViewModel>();
         }
 
+        [RelayCommand]
+        public void NavigateToSetup()
+        {
+            this.NavigationService.Goto<SetupViewModel>();
+        }
+
         public void Close()
         {
             _window?.Close();
