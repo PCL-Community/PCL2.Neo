@@ -84,7 +84,7 @@ public sealed partial class JavaManager : IJavaManager
             return (entity, false);
         }
         Console.WriteLine("添加的 Java 文件无法运行！");
-        return (null, true);
+        return (null, false);
     }
 
     public async Task Refresh()
