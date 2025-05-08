@@ -103,7 +103,7 @@ public sealed partial class JavaManager : IJavaManager
             else
                 Console.WriteLine($"[Java] 用户导入的 Java 已不可用，已自动剔除：{oldRuntime.DirectoryPath}");
         JavaList = newEntities;
-        Console.WriteLine("[Java] 刷新 Java 完成");
+        Console.WriteLine($"[Java] 刷新 Java 完成，现在共有 {JavaList.Count} 个Java");
         if (JavaList.Count == 0)
         {
             // TODO)) 提示用户未找到已安装的 java，是否自动下载合适版本，然后再下载
