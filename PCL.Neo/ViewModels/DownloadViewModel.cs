@@ -36,12 +36,12 @@ public partial class DownloadViewModel : ViewModelBase
     [RelayCommand]
     private void Btn_Test1()
     {
-        Message = "I am from DownloadViewModel Test1";
+        Message = "I am from DownloadViewModel             ੭ ˙ᗜ˙ )੭";
     }
 
     [RelayCommand]
     private void Btn_Test2()
     {
-        Message = "I am from DownloadViewModel Test2";
+        Message = "I am from DownloadViewModel (⚭-⚭ ) ੭";
     }
 }
