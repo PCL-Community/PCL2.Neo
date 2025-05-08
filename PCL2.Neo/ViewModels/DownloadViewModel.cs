@@ -1,3 +1,7 @@
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL2.Neo.Services;
@@ -10,8 +14,7 @@ public partial class DownloadViewModel : ViewModelBase
 {
     public NavigationService NavigationService { get; }
 
-    [ObservableProperty]
-    private string _message = "I am from DownloadViewModel";
+    [ObservableProperty] private string _message = "I am from DownloadViewModel";
 
     public DownloadViewModel(NavigationService navigationService)
     {

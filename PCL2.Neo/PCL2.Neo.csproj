@@ -16,7 +16,7 @@
     <CFBundleExecutable>PCL2.Neo</CFBundleExecutable>
     <CFBundleIconFile>Assets/Icon.ico</CFBundleIconFile>
     <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
@@ -38,6 +38,7 @@
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="LZMA-SDK" Version="22.1.1" />
   </ItemGroup>
 
   <ItemGroup>
