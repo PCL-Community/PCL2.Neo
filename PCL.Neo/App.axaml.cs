@@ -1,6 +1,5 @@
 using System.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
@@ -17,6 +16,7 @@ using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
 using System;
 using System.Threading.Tasks;
+using PCL.Neo.ViewModels.Setup;
 
 namespace PCL.Neo
 {
@@ -39,6 +39,9 @@ namespace PCL.Neo
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
+
+            .AddTransient<SetupViewModel>()
+            .AddTransient<SetupLaunchViewModel>()
 
             .AddSingleton<NavigationService>(s => new NavigationService(s))
             .AddSingleton<StorageService>()
