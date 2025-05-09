@@ -1,0 +1,81 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <!--  Add Controls for Previewer Here  -->
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="AllowAutoHide" Value="False" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border Background="{DynamicResource ColorBrushTransparent}" UseLayoutRounding="False">
+                    <Grid RowDefinitions="Auto,*,Auto">
+                        <Track
+                            Grid.Row="1"
+                            IsDirectionReversed="True"
+                            Maximum="{TemplateBinding Maximum}"
+                            Minimum="{TemplateBinding Minimum}"
+                            Orientation="{TemplateBinding Orientation}"
+                            Value="{TemplateBinding Value,
+                                                    Mode=TwoWay}"
+                            ViewportSize="{TemplateBinding ViewportSize}">
+                            <Track.DecreaseButton>
+                                <RepeatButton
+                                    Background="Transparent"
+                                    Classes="repeattrack"
+                                    Focusable="False"
+                                    Name="PART_PageUpButton" />
+                            </Track.DecreaseButton>
+                            <Track.IncreaseButton>
+                                <RepeatButton
+                                    Background="Transparent"
+                                    Classes="repeattrack"
+                                    Focusable="False"
+                                    Name="PART_PageDownButton" />
+                            </Track.IncreaseButton>
+                            <Thumb Name="thumb">
+                                <Thumb.Template>
+                                    <ControlTemplate>
+                                        <Panel>
+                                            <Border
+                                                Background="{DynamicResource ColorBrush4}"
+                                                CornerRadius="8"
+                                                HorizontalAlignment="Right"
+                                                Margin="2"
+                                                Name="ThumbBarVertical"
+                                                Opacity="0.5"
+                                                Width="4">
+                                                <Border.Transitions>
+                                                    <Transitions>
+                                                        <BrushTransition Duration="0:0:0.15" Property="Background" />
+                                                        <DoubleTransition Duration="0:0:0.15" Property="Opacity" />
+                                                    </Transitions>
+                                                </Border.Transitions>
+                                            </Border>
+                                        </Panel>
+                                    </ControlTemplate>
+                                </Thumb.Template>
+                            </Thumb>
+                        </Track>
+                    </Grid>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+    <Style Selector="ScrollBar Border#ThumbBarVertical:pointerover">
+        <Setter Property="Opacity" Value="0.9" />
+        <Setter Property="Background" Value="{DynamicResource ColorBrush3}" />
+    </Style>
+    <!--<Style Selector="ScrollViewer">
+        <Setter Property="Transitions">
+            <Transitions>
+                <VectorTransition
+                    Duration="0:0:0.3"
+                    Easing="QuinticEaseOut"
+                    Property="Offset" />
+            </Transitions>
+        </Setter>
+    </Style>-->
+</Styles>
+

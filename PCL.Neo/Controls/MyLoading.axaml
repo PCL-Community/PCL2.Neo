@@ -1,0 +1,132 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:controls="using:PCL.Neo.Controls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <controls:MyLoading
+            Height="150"
+            State="Error"
+            Width="150" />
+    </Design.PreviewWith>
+
+    <Style Selector="controls|MyLoading">
+        <Setter Property="Foreground" Value="{DynamicResource ColorBrush3}" />
+        <Setter Property="Text" Value="Loading" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid
+                    Background="{DynamicResource ColorBrushSemiTransparent}"
+                    MinHeight="50"
+                    MinWidth="50"
+                    Name="PanBack">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="1*" />
+                    </Grid.RowDefinitions>
+                    <Grid
+                        Grid.Row="1"
+                        Height="47"
+                        HorizontalAlignment="Center"
+                        UseLayoutRounding="False"
+                        VerticalAlignment="Top"
+                        Width="60">
+                        <Path
+                            Data="M 963.6 858.2 410.816 305.504 C 508.116 213.304 609.204 196.8 711.104 128.6 837.11367 49.573762 879.34045 50.334062 751.5 49.5 611.3 52 471.8 96.2 353.3 182.4 309.8 155.7 252.1 161.2 214.5 198.9 176.9 236.6 171.3 294.2 198 337.7 111.8 456.3 67.6 595.8 65.1 735.9 63.315254 883.82034 65.077966 837.29308 144.2 695.488 212.4 593.588 228.888 492.4 321.088 395.2 L 873.9 948 c 0.60001 0.59999 1.6 0.6 2.2 0 l 87.5 -87.5 c 0.6 -0.7 0.6 -1.6 0 -2.3 z"
+                            Height="35"
+                            HorizontalAlignment="Left"
+                            Margin="10,6,0,0"
+                            Name="PathPickaxe"
+                            RenderTransformOrigin="0,0"
+                            Stretch="Uniform"
+                            Stroke="{TemplateBinding Foreground}"
+                            StrokeThickness="2"
+                            VerticalAlignment="Top">
+                            <Path.RenderTransform>
+                                <RotateTransform Angle="55" CenterX="30" CenterY="30" />
+                            </Path.RenderTransform>
+                        </Path>
+                        <Path
+                            Data="M0,0L2,0L1,4"
+                            Fill="{TemplateBinding Foreground}"
+                            Height="5"
+                            HorizontalAlignment="Left"
+                            Margin="7,41,0,0"
+                            Name="PathLeft"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5"
+                            Stretch="Uniform"
+                            VerticalAlignment="Top"
+                            Width="3">
+                            <Path.RenderTransform>
+                                <RotateTransform Angle="-45" />
+                            </Path.RenderTransform>
+                        </Path>
+                        <Path
+                            Data="M0,0L2,0L1,4"
+                            Fill="{TemplateBinding Foreground}"
+                            Height="5"
+                            HorizontalAlignment="Left"
+                            Margin="14,41,0,0"
+                            Name="PathRight"
+                            Opacity="0"
+                            RenderTransformOrigin="0.5,0.5"
+                            Stretch="Uniform"
+                            VerticalAlignment="Top"
+                            Width="3">
+                            <Path.RenderTransform>
+                                <RotateTransform Angle="45" />
+                            </Path.RenderTransform>
+                        </Path>
+                        <Path
+                            Data="F1 M2,0 L0,2 8,10 0,18 2,20 10,12 18,20 20,18 12,10 20,2 18,0 10,8 2,0Z"
+                            Fill="{TemplateBinding Foreground}"
+                            Height="17"
+                            HorizontalAlignment="Left"
+                            Margin="4,23,0,0"
+                            Name="PathError"
+                            Opacity="0"
+                            RenderTransformOrigin="50%,50%"
+                            Stretch="Uniform"
+                            VerticalAlignment="Top"
+                            Width="17">
+                            <Path.RenderTransform>
+                                <ScaleTransform ScaleX="0.6" ScaleY="0.6" />
+                            </Path.RenderTransform>
+                        </Path>
+                        <Rectangle
+                            Fill="{TemplateBinding Foreground}"
+                            Height="2"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Bottom"
+                            Width="25" />
+                    </Grid>
+                    <TextBlock
+                        FontSize="16"
+                        Foreground="{TemplateBinding Foreground}"
+                        Grid.Row="2"
+                        HorizontalAlignment="Center"
+                        Margin="0,10,0,0"
+                        Name="LabText"
+                        Text="{TemplateBinding Text}"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="Top" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Duration="0:0:0.3" Property="Foreground" />
+            </Transitions>
+        </Setter>
+
+        <Style Selector="^:loading">
+            <Setter Property="Foreground" Value="{DynamicResource ColorBrush3}" />
+        </Style>
+        <Style Selector="^:error">
+            <Setter Property="Foreground" Value="{DynamicResource ColorBrushRedLight}" />
+        </Style>
+    </Style>
+</Styles>
+
