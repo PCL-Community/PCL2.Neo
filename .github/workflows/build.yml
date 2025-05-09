@@ -26,22 +26,22 @@ jobs:
                     sudo apt-get install fuse
             - name: Build-AppImage
               run: |
-                  cd ./PCL2.Neo
+                  cd ./PCL.Neo
                   sudo su
-                  pupnet --runtime linux-x64 --kind appimage -o PCL2.Neo.linux.x64.AppImage -y --app-version 1.0.0
-                  pupnet --runtime linux-arm64 --kind appimage -o PCL2.Neo.linux.arm64.AppImage -y --app-version 1.0.0
+                  pupnet --runtime linux-x64 --kind appimage -o PCL.Neo.linux.x64.AppImage -y --app-version 1.0.0
+                  pupnet --runtime linux-arm64 --kind appimage -o PCL.Neo.linux.arm64.AppImage -y --app-version 1.0.0
             - name: UploadArtifacts linux.arm64
               uses: actions/upload-artifact@v4
               with:
                 name: linux.arm64
                 path: |
-                    PCL2.Neo/Deploy/OUT/PCL2.Neo.linux.arm64.AppImage
+                    PCL.Neo/Deploy/OUT/PCL.Neo.linux.arm64.AppImage
             - name: UploadArtifacts linux.x64
               uses: actions/upload-artifact@v4
               with:
                 name: linux.x64
                 path: |
-                    PCL2.Neo/Deploy/OUT/PCL2.Neo.linux.x64.AppImage
+                    PCL.Neo/Deploy/OUT/PCL.Neo.linux.x64.AppImage
     build-MacOsApp:
         runs-on: ubuntu-22.04
         steps:
@@ -60,7 +60,7 @@ jobs:
                     sudo apt-get install fuse
             - name: Build-MacOsApp
               run: |
-                cd ./PCL2.Neo
+                cd ./PCL.Neo
                 sudo su
                 dotnet restore -r osx-x64
                 dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-x64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
@@ -68,22 +68,22 @@ jobs:
                 dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-arm64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
                 cd ./bin/Release/net9.0/
                 cd ./osx-x64/publish/
-                zip -9 -r ../../PCL2.Neo.osx.mac.x64.app.zip ./PCL2.Neo.app
+                zip -9 -r ../../PCL.Neo.osx.mac.x64.app.zip ./PCL.Neo.app
                 cd ../../
                 cd ./osx-arm64/publish/
-                zip -9 -r ../../PCL2.Neo.osx.mac.arm64.app.zip ./PCL2.Neo.app
+                zip -9 -r ../../PCL.Neo.osx.mac.arm64.app.zip ./PCL.Neo.app
             - name: UploadArtifacts osx.mac.arm64
               uses: actions/upload-artifact@v4
               with:
                     name: osx.mac.arm64
                     path: |
-                        PCL2.Neo/bin/Release/net9.0/PCL2.Neo.osx.mac.arm64.app.zip
+                        PCL.Neo/bin/Release/net9.0/PCL.Neo.osx.mac.arm64.app.zip
             - name: UploadArtifacts osx.mac.x64
               uses: actions/upload-artifact@v4
               with:
                     name: osx.mac.x64
                     path: |
-                        PCL2.Neo/bin/Release/net9.0/PCL2.Neo.osx.mac.x64.app.zip
+                        PCL.Neo/bin/Release/net9.0/PCL.Neo.osx.mac.x64.app.zip
     build-WinExe:
         runs-on: ubuntu-22.04
         steps:
@@ -102,38 +102,38 @@ jobs:
                     sudo apt-get install fuse
             - name: Build-WinExe
               run: |
-                  cd ./PCL2.Neo
+                  cd ./PCL.Neo
                   sudo su
                   dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
                   dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
                   dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
-                  mv ./bin/Release/net9.0/win-x86/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL2.Neo.win.x86.exe
-                  mv ./bin/Release/net9.0/win-x64/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL2.Neo.win.x64.exe
-                  mv ./bin/Release/net9.0/win-arm64/publish/PCL2.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL2.Neo.win.arm64.exe
+                  mv ./bin/Release/net9.0/win-x86/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL.Neo.win.x86.exe
+                  mv ./bin/Release/net9.0/win-x64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL.Neo.win.x64.exe
+                  mv ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.win.arm64.exe
                   cd ./bin/Release/net9.0/
                   cd ./win-x86/
-                  zip -9 -r "../PCL2.Neo.win.x86.zip" "./publish"
+                  zip -9 -r "../PCL.Neo.win.x86.zip" "./publish"
                   cd ../
                   cd ./win-x64/
-                  zip -9 -r "../PCL2.Neo.win.x64.zip" "./publish"
+                  zip -9 -r "../PCL.Neo.win.x64.zip" "./publish"
                   cd ../
                   cd ./win-arm64/
-                  zip -9 -r "../PCL2.Neo.win.arm64.zip" "./publish"
+                  zip -9 -r "../PCL.Neo.win.arm64.zip" "./publish"
             - name: UploadArtifacts win.x64
               uses: actions/upload-artifact@v4
               with:
                 name: win.x64
                 path: |
-                    PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.x64.zip
+                    PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x64.zip
             - name: UploadArtifacts win.x86
               uses: actions/upload-artifact@v4
               with:
                     name: win.x86
                     path: |
-                        PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.x86.zip
+                        PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x86.zip
             - name: UploadArtifacts win.arm64
               uses: actions/upload-artifact@v4
               with:
                     name: win.arm64
                     path: |
-                        PCL2.Neo/bin/Release/net9.0/PCL2.Neo.win.arm64.zip
+                        PCL.Neo/bin/Release/net9.0/PCL.Neo.win.arm64.zip
