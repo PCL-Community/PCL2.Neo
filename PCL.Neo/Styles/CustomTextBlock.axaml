@@ -1,0 +1,14 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Border Padding="20">
+            <TextBlock Text="114514" />
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
+        <Setter Property="FontFamily" Value="{StaticResource Pcl2English}" />
+    </Style>
+</Styles>
+
