@@ -1,16 +1,8 @@
-using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.DependencyInjection;
-using PCL.Neo.Services;
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace PCL.Neo.Helpers;
+namespace PCL.Neo.Core.Helpers;
 
 /// <summary>
 /// 一些文件操作和下载请求之类的

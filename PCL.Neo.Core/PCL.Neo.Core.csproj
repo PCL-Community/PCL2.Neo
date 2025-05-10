@@ -6,4 +6,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="SevenZip" Version="19.0.0" />
+    </ItemGroup>
+
 </Project>

@@ -1,3 +1,4 @@
+using PCL.Neo.Core.Helpers;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -105,7 +106,7 @@ public sealed partial class JavaManager
             }
 
             string localFilePath = Path.Combine(destinationFolder,
-                filePath.Replace("/", Const.Sep.ToString()));
+                filePath.Replace("/", Path.DirectorySeparatorChar.ToString()));
             if (isExecutable) executableFiles.Add(localFilePath);
             Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)!);
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
