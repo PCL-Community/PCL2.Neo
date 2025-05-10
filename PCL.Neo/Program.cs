@@ -1,5 +1,6 @@
 using System;
 using Avalonia;
+using Avalonia.Media;
 
 namespace PCL.Neo
 {
@@ -17,6 +18,18 @@ namespace PCL.Neo
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .WithInterFont()
-                .LogToTrace();
+                .LogToTrace()
+                .With(new FontManagerOptions
+                {
+                    FontFallbacks =
+                    [
+                        new() {FontFamily = "HarmonyOS Sans SC"},
+                        new() {FontFamily = "鸿蒙黑体 SC"},
+                        new() {FontFamily = ".AppleSystemUIFont"},
+                        new() {FontFamily = "Microsoft YaHei UI"},
+                        new() {FontFamily = "思源黑体 CN"},
+                        new() {FontFamily = "Noto Sans CJK SC"}
+                    ]
+                });
     }
 }
