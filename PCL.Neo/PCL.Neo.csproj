@@ -21,6 +21,10 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+      <AvaloniaXaml Remove="Models\Minecraft\**"/>
+      <Compile Remove="Models\Minecraft\**"/>
+      <EmbeddedResource Remove="Models\Minecraft\**"/>
+      <None Remove="Models\Minecraft\**"/>
     <None Remove="Resources\Font.ttf" />
   </ItemGroup>
 
@@ -68,9 +72,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Minecraft\Game\Data\" />
-    <Folder Include="Models\Minecraft\Java\" />
-    <Folder Include="Models\Minecraft\Mod\" />
     <Folder Include="Views\MainPage\" />
     <Folder Include="Views\SubPage\" />
   </ItemGroup>

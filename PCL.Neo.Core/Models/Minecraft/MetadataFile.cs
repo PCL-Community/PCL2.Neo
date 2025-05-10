@@ -6,34 +6,12 @@ namespace PCL.Neo.Core.Models.Minecraft;
 
 public class MetadataFile
 {
+    private JsonObject _rawMetadata = new();
+
     #region Model Classes
 
     public class Rule
     {
-        public class OsModel
-        {
-            [JsonConverter(typeof(JsonStringEnumConverter))]
-            public enum NameEnum
-            {
-                Unknown,
-                [JsonStringEnumMemberName("windows")] Windows,
-                [JsonStringEnumMemberName("linux")] Linux,
-                [JsonStringEnumMemberName("osx")] Osx
-            }
-
-            [JsonConverter(typeof(JsonStringEnumConverter))]
-            public enum ArchEnum
-            {
-                Unknown,
-                [JsonStringEnumMemberName("x64")] X64,
-                [JsonStringEnumMemberName("x86")] X86
-            }
-
-            [JsonPropertyName("arch")] public ArchEnum? Arch { get; set; } = null;
-            [JsonPropertyName("name")] public NameEnum? Name { get; set; } = null;
-            [JsonPropertyName("version")] public string? Version { get; set; } = null; // regex
-        }
-
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public enum ActionEnum
         {
@@ -45,6 +23,30 @@ public class MetadataFile
         [JsonPropertyName("action")] public ActionEnum Action { get; set; } = ActionEnum.Allow;
         [JsonPropertyName("features")] public Dictionary<string, bool>? Features { get; set; } = null;
         [JsonPropertyName("os")] public OsModel? Os { get; set; } = null;
+
+        public class OsModel
+        {
+            [JsonConverter(typeof(JsonStringEnumConverter))]
+            public enum ArchEnum
+            {
+                Unknown,
+                [JsonStringEnumMemberName("x64")] X64,
+                [JsonStringEnumMemberName("x86")] X86
+            }
+
+            [JsonConverter(typeof(JsonStringEnumConverter))]
+            public enum NameEnum
+            {
+                Unknown,
+                [JsonStringEnumMemberName("windows")] Windows,
+                [JsonStringEnumMemberName("linux")] Linux,
+                [JsonStringEnumMemberName("osx")] Osx
+            }
+
+            [JsonPropertyName("arch")] public ArchEnum? Arch { get; set; } = null;
+            [JsonPropertyName("name")] public NameEnum? Name { get; set; } = null;
+            [JsonPropertyName("version")] public string? Version { get; set; } = null; // regex
+        }
     }
 
     public class ConditionalArg
@@ -81,6 +83,12 @@ public class MetadataFile
 
     public class LibraryModel
     {
+        [JsonPropertyName("downloads")] public DownloadsModel Downloads { get; set; } = new();
+        [JsonPropertyName("extract")] public ExtractModel? Extract { get; set; } = null;
+        [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("natives")] public Dictionary<string, string>? Natives { get; set; } = null;
+        [JsonPropertyName("rules")] public List<Rule>? Rules { get; set; } = null;
+
         public class DownloadsModel
         {
             [JsonPropertyName("artifact")] public RemoteFileModel? Artifact { get; set; } = null;
@@ -93,12 +101,6 @@ public class MetadataFile
         {
             [JsonPropertyName("exclude")] public List<string> Exclude { get; set; } = [];
         }
-
-        [JsonPropertyName("downloads")] public DownloadsModel Downloads { get; set; } = new();
-        [JsonPropertyName("extract")] public ExtractModel? Extract { get; set; } = null;
-        [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
-        [JsonPropertyName("natives")] public Dictionary<string, string>? Natives { get; set; } = null;
-        [JsonPropertyName("rules")] public List<Rule>? Rules { get; set; } = null;
     }
 
     public class LoggingModel
@@ -109,8 +111,6 @@ public class MetadataFile
     }
 
     #endregion
-
-    private JsonObject _rawMetadata = new();
 
     #region Metadata Fields
 
@@ -148,7 +148,7 @@ public class MetadataFile
     {
         var mf = new MetadataFile { _rawMetadata = json };
 
-        #region Argument
+        #region Arguments
 
         if (mf._rawMetadata.ContainsKey("arguments"))
         {
