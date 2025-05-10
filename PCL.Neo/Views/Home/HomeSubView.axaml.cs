@@ -4,7 +4,6 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using PCL.Neo.Controls;
 using PCL.Neo.Helpers;
-using PCL.Neo.Models.Minecraft.Java;
 using PCL.Neo.Services;
 using System;
 using System.Linq;
@@ -27,11 +26,5 @@ public partial class HomeSubView : UserControl
     private void Button2_OnClick(object? sender, RoutedEventArgs e)
     {
         this.TestLoading.State = MyLoading.LoadingState.Error;
-    }
-
-    private void Search_Java_Button(object? sender, RoutedEventArgs e)
-    {
-        // var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
-        Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().Refresh);
     }
 }
