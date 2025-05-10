@@ -14,6 +14,7 @@ using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.ViewModels.Job;
 using System;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -43,6 +44,8 @@ namespace PCL.Neo
             .AddTransient<LogViewModel>()
             .AddTransient<SetupViewModel>()
             .AddTransient<SetupLaunchViewModel>()
+            .AddTransient<JobViewModel>()
+            .AddTransient<JobSubViewModel>()
 
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
@@ -51,6 +54,7 @@ namespace PCL.Neo
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
+            .AddSingleton<JobService>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()

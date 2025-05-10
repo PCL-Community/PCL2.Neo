@@ -1,0 +1,126 @@
+using PCL.Neo.Services;
+
+namespace PCL.Neo.Tests.Services;
+
+public class TestJob1 : Job
+{
+    public override double Weighting => 1.0;
+
+    public readonly Stage Stage1 = new() { Name = "Stage 1", Weighting = 1.0 };
+    public readonly Stage Stage2 = new() { Name = "Stage 2", Weighting = 0.5 };
+
+    public override async Task RunAsync()
+    {
+        Stage1.Running();
+        await Task.Delay(500);
+        Stage1.ReportProgress(0.5);
+        await Task.Delay(500);
+        Stage1.ReportProgress(1.0);
+        Stage1.Complete();
+
+        Stage2.Running();
+        await Task.Delay(500);
+        Stage2.ReportProgress(0.5);
+        await Task.Delay(500);
+        Stage2.ReportProgress(1.0);
+        Stage2.Complete();
+    }
+}
+
+public class TestJob2 : Job
+{
+    public override double Weighting => 1.5;
+
+    public readonly Stage Stage1 = new() { Name = "Stage 3", Weighting = 1.0 };
+    public readonly Stage Stage2 = new() { Name = "Stage 4", Weighting = 0.5 };
+
+    public override async Task RunAsync()
+    {
+        Stage1.Running();
+        await Task.Delay(1000);
+        Stage1.ReportProgress(0.5);
+        await Task.Delay(1000);
+        Stage1.ReportProgress(1.0);
+        Stage1.Complete();
+
+        Stage2.Running();
+        await Task.Delay(1000);
+        Stage2.ReportProgress(0.5);
+        await Task.Delay(1000);
+        Stage2.ReportProgress(1.0);
+        Stage2.Complete();
+    }
+}
+
+public class JobServiceTest
+{
+    private static void PrintSummary(JobService js)
+    {
+        Console.WriteLine($"JobService Progress:\t{js.Progress * 100:0.00}%");
+        Console.WriteLine("Jobs:");
+        foreach (Job j in js.Jobs)
+        {
+            Console.WriteLine($"\t{j.Name}:\t{j.Progress * 100:0.00}%\tIsCompleted: {j.IsCompleted}");
+            foreach (Job.Stage s in j.Stages)
+            {
+                Console.WriteLine($"\t\t{s.Name}:\t{s.Progress * 100:0.00}%\tStatus: {s.Status:G}");
+            }
+        }
+
+        Console.WriteLine();
+    }
+
+    public async Task MonitorJobService(Func<JobService, Task> callback)
+    {
+        var js = new JobService();
+
+        var cts = new CancellationTokenSource();
+        var watcherTask = Task.Run(async () =>
+        {
+            try
+            {
+                var token = cts.Token;
+                while (!token.IsCancellationRequested)
+                {
+                    await Task.Delay(250, token);
+                    PrintSummary(js);
+                }
+            }
+            catch (TaskCanceledException) { }
+        }, cts.Token);
+
+        await callback(js);
+
+        await Task.Delay(500);
+
+        await cts.CancelAsync();
+        await watcherTask;
+    }
+
+    [Test]
+    public async Task JobServiceInParallelTest()
+    {
+        await MonitorJobService(async js =>
+        {
+            var task1 = js
+                .Submit(new TestJob1())
+                .RunInNewTask();
+            var task2 = js
+                .Submit(new TestJob2())
+                .RunInNewTask();
+            await Task.WhenAll(task1, task2);
+        });
+    }
+
+    [Test]
+    public async Task JobServiceInSingleThreadTest()
+    {
+        await MonitorJobService(async js =>
+        {
+            var j1 = js.Submit(new TestJob1());
+            var j2 = js.Submit(new TestJob2());
+            await j1.RunAsync();
+            await j2.RunAsync();
+        });
+    }
+}
