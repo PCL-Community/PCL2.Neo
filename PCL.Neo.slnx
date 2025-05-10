@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="PCL.Neo.Core\PCL.Neo.Core.csproj" Type="Classic C#" />
+  <Project Path="PCL.Neo/PCL.Neo.csproj" />
+</Solution>
