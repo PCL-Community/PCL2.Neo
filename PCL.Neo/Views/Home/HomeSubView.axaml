@@ -1,13 +1,16 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pc="using:PCL.Neo.Controls"
-             xmlns:vm="using:PCL.Neo.ViewModels"
-             xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="PCL.Neo.Views.Home.HomeSubView"
-             x:DataType="home:HomeSubViewModel">
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="PCL.Neo.Views.Home.HomeSubView"
+    x:DataType="home:HomeSubViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="using:PCL.Neo.Controls"
+    xmlns:vm="using:PCL.Neo.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer>
         <StackPanel Orientation="Vertical">
             <pc:MyButton
@@ -44,8 +47,11 @@
                 Height="150"
                 Name="TestLoading"
                 Width="150" />
-            <pc:MyButton Height="50" Margin="10" Text="跳转到 Download Mod" Command="{Binding NavigateToDownloadModCommand}" />
-            <pc:MyButton Height="50" Margin="10" Text="搜索 Java" Click="Search_Java_Button"/>
+            <pc:MyButton
+                Command="{Binding NavigateToDownloadModCommand}"
+                Height="50"
+                Margin="10"
+                Text="跳转到 Download Mod" />
             <pc:MyCard Margin="10" />
         </StackPanel>
     </ScrollViewer>

@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="WinPublish" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" include_all_content_for_self_extract="true" include_native_libs_for_self_extract="true" platform="Any CPU" produce_single_file="true" runtime="osx-x64" self_contained="true" target_folder="$PROJECT_DIR$/PCL2.Neo/bin/Release/net9.0/osx-x64/publish" target_framework="net9.0" trim_unused_assemblies="true" uuid_high="-7633829966872318734" uuid_low="5995717239141094893" />
+    <method v="2" />
+  </configuration>
+</component>
