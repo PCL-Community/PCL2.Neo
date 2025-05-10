@@ -58,31 +58,16 @@ public partial class MainWindow : Window
 
         LeftNavigationControl.Loaded += (_, _) =>
         {
-            LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
-            AnimationHelper? lastAnimation = null;
-            LeftNavigationControl.Presenter!.PropertyChanged += async (_, e) =>
+            LeftNavigationControlBorder.Width = LeftNavigationControl!.Bounds.Width;
+
+            LeftNavigationControl!.SizeChanged += (_, args) =>
             {
-                if (e.Property != ContentPresenter.ChildProperty)
-                    return;
-                var oldValue = e.OldValue as Control;
-                var newValue = e.NewValue as Control;
-                lastAnimation?.CancelAndClear();
-                var previousScaleTransform =
-                    (LeftNavigationControlBorder.RenderTransform as TransformGroup)?.Children
-                    .FirstOrDefault(x => x is ScaleTransform) as ScaleTransform;
-                var previousScaleX = previousScaleTransform?.ScaleX ?? 1d;
-                LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
-                var scale = oldValue?.Width / newValue?.Width * previousScaleX ?? 1d;
-                lastAnimation = new AnimationHelper(
-                [
-                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder, TimeSpan.FromMilliseconds(300), scale,
-                        1d, new CubicEaseOut())
-                ]);
-                await lastAnimation.RunAsync();
+                if (args.WidthChanged)
+                    LeftNavigationControlBorder.Width = args.NewSize.Width;
             };
         };
 
-         GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
+        GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
 

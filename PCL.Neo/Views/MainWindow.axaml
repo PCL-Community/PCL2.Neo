@@ -208,18 +208,26 @@
                         ColumnDefinitions="Auto, *"
                         Grid.Row="1"
                         Name="PanMain">
-                        <!--  Width overridden in code behind  -->
+                        <!-- Width overridden in code behind -->
                         <Border
                             Background="{DynamicResource ColorBrushBackgroundTransparentSidebar}"
                             BoxShadow="0 0 5 0 DarkGray"
                             Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Left"
                             Name="LeftNavigationControlBorder"
-                            RenderTransformOrigin="0 0"
-                            Width="250"
-                            ZIndex="1" />
+                            Width="0"
+                            ZIndex="1">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Width" Duration="0:0:0.3" Easing="CubicEaseOut" />
+                                </Transitions>
+                            </Border.Transitions>
+                        </Border>
                         <UserControl
                             Content="{Binding CurrentViewModel}"
                             Grid.Column="0"
+                            HorizontalContentAlignment="Stretch"
                             Name="LeftNavigationControl"
                             ZIndex="2" />
                         <UserControl
