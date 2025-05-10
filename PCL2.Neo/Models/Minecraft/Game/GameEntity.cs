@@ -57,7 +57,7 @@ public record GameEntry
     public required string GamePath { get; set; }
 
     /// <summary>
-    /// Game Root Path.
+    /// Game XstsRespnse Path.
     /// </summary>
     public required string RootPath { get; set; }
 

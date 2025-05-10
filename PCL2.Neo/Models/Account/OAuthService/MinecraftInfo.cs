@@ -7,13 +7,13 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.OAuthService;
-#pragma warning disable IL2026 // fixed by DynamicDependency
+
 public class MinecraftInfo
 {
     public class NotHaveGameException(string msg) : Exception(msg);
 
     public static List<AccountInfo.Skin> CollectSkins(
-        IEnumerable<OAuthData.ResponceData.MinecraftPlayerUuidResponse.Skin> skins) =>
+        IEnumerable<OAuthData.ResponseData.MinecraftPlayerUuidResponse.Skin> skins) =>
         skins.Select(skin => new
             {
                 skin,
@@ -31,7 +31,7 @@ public class MinecraftInfo
             .ToList();
 
     public static List<AccountInfo.Cape> CollectCapes(
-        IEnumerable<OAuthData.ResponceData.MinecraftPlayerUuidResponse.Cape> capes) =>
+        IEnumerable<OAuthData.ResponseData.MinecraftPlayerUuidResponse.Cape> capes) =>
         (capes.Select(cape => new
         {
             cape,
@@ -54,7 +54,7 @@ public class MinecraftInfo
             IdentityToken = $"XBL3.0 x={uhs};{xstsToken}"
         };
 
-        var response = await Net.SendHttpRequestAsync<OAuthData.ResponceData.MinecraftAccessTokenResponce>(
+        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.MinecraftAccessTokenResponce>(
             HttpMethod.Post,
             OAuthData.RequestUrls.MinecraftAccessTokenUri,
             jsonContent,
@@ -65,7 +65,7 @@ public class MinecraftInfo
 
     public static async ValueTask<bool> HaveGame(string accessToken)
     {
-        var response = await Net.SendHttpRequestAsync<OAuthData.ResponceData.CheckHaveGameResponce>(
+        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.CheckHaveGameResponce>(
             HttpMethod.Get,
             OAuthData.RequestUrls.CheckHasMc,
             bearerToken: accessToken);
@@ -73,9 +73,9 @@ public class MinecraftInfo
         return response.Items.Any(it => !string.IsNullOrEmpty(it.Signature));
     }
 
-    public static async ValueTask<OAuthData.ResponceData.MinecraftPlayerUuidResponse>
+    public static async ValueTask<OAuthData.ResponseData.MinecraftPlayerUuidResponse>
         GetPlayerUuid(string accessToken) =>
-        await Net.SendHttpRequestAsync<OAuthData.ResponceData.MinecraftPlayerUuidResponse>(
+        await Net.SendHttpRequestAsync<OAuthData.ResponseData.MinecraftPlayerUuidResponse>(
             HttpMethod.Get,
             OAuthData.RequestUrls.PlayerUuidUri,
             bearerToken: accessToken);

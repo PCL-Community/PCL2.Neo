@@ -19,17 +19,17 @@ namespace PCL2.Neo.Models.Account
 
         public static class UserTypeEnum
         {
-            public const string UserTypeMsa = "msa";
-            public const string UserTypeMojang = "mojang";
-            public const string UserTypeLegacy = "legacy";
+            public const string Msa = "msa";
+            public const string Mojang = "mojang";
+            public const string Legacy = "legacy";
         }
 
         public required OAuthTokenData OAuthToken { get; init; }
-        public required string AccessToken { get; init; }
+        public required string McAccessToken { get; init; }
         public required string Uuid { get; set; }
         public required string UserName { get; init; }
         public required string UserType { get; init; }
-        public required string UserProperties { get; init; }
+        public string UserProperties { get; init; } = string.Empty;
         public required List<Skin> Skins { get; init; }
         public required List<Cape> Capes { get; init; }
     }

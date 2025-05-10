@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace PCL2.Neo.Models.Account.OAuthService;
 
+[Obsolete]
 public class AuthCodeMode
 {
     public static async Task<AccountInfo> LogIn()
@@ -22,13 +23,13 @@ public class AuthCodeMode
 
             return new AccountInfo
             {
-                AccessToken = minecraftAccessToken,
+                McAccessToken = minecraftAccessToken,
                 OAuthToken =
                     new AccountInfo.OAuthTokenData(authToken.AccessToken, authToken.RefreshToken,
                         new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(authToken.ExpiresIn))),
                 UserName = playerUuidAndName.Name,
                 UserProperties = string.Empty,
-                UserType = AccountInfo.UserTypeEnum.UserTypeMsa,
+                UserType = AccountInfo.UserTypeEnum.Msa,
                 Uuid = playerUuidAndName.Uuid,
                 Capes = MinecraftInfo.CollectCapes(playerUuidAndName.Capes),
                 Skins = MinecraftInfo.CollectSkins(playerUuidAndName.Skins)
@@ -55,12 +56,12 @@ public class AuthCodeMode
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.FormUrlReqData))]
-    public static async ValueTask<OAuthData.ResponceData.AccessTokenResponce> GetAuthToken(string authCode)
+    public static async ValueTask<OAuthData.ResponseData.AccessTokenResponce> GetAuthToken(string authCode)
     {
         var authTokenData = OAuthData.FormUrlReqData.AuthTokenData;
         authTokenData["authCode"] = authCode;
 
-        return await Net.SendHttpRequestAsync<OAuthData.ResponceData.AccessTokenResponce>(
+        return await Net.SendHttpRequestAsync<OAuthData.ResponseData.AccessTokenResponce>(
             HttpMethod.Post,
             OAuthData.RequestUrls.TokenUri,
             new FormUrlEncodedContent(authTokenData));

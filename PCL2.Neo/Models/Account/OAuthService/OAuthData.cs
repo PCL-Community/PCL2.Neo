@@ -103,7 +103,7 @@ public static class OAuthData
         }
     }
 
-    public static class ResponceData
+    public static class ResponseData
     {
         public record AccessTokenResponce
         {
@@ -130,7 +130,7 @@ public static class OAuthData
             string Message
         );
 
-        public record UserAuthStateResponce(
+        public record UserAuthStateResponse(
             [property: JsonPropertyName("token_type")]
             string TokenType,
             [property: JsonPropertyName("scope")] string Scope,
