@@ -3,7 +3,6 @@ using PCL.Neo.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Models.Minecraft.Java;
-using PCL.Neo.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,12 +17,9 @@ namespace PCL.Neo.Services;
 public class GameService
 {
     private readonly StorageService _storageService;
-    private readonly string _defaultGameDirectory;
-    private readonly string _defaultJavaPath;
     private readonly IJavaManager _javaManager;
-
-    public string DefaultGameDirectory => _defaultGameDirectory;
-    public string DefaultJavaPath => _defaultJavaPath;
+    public string DefaultGameDirectory { get; }
+    public string DefaultJavaPath { get; }
 
     public GameService(StorageService storageService, IJavaManager javaManager)
     {
@@ -32,21 +28,13 @@ public class GameService
 
         // 设置默认的Minecraft目录
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        _defaultGameDirectory = Path.Combine(userProfile, ".minecraft");
+        DefaultGameDirectory = Path.Combine(userProfile, ".minecraft");
 
         // 设置默认的Java路径，使用JavaLocator
-        _defaultJavaPath = JavaLocator.GetDefaultJavaPath();
+        DefaultJavaPath = JavaLocator.GetDefaultJavaPath();
 
         // 初始化Java列表
-        _ = InitializeJavaAsync();
-    }
-
-    /// <summary>
-    /// 初始化Java管理器
-    /// </summary>
-    private async Task InitializeJavaAsync()
-    {
-        await _javaManager.JavaListInit();
+        _javaManager.JavaListInit();
     }
 
     /// <summary>
@@ -68,61 +56,9 @@ public class GameService
     }
 
     /// <summary>
-    /// 获取指定Java路径的版本信息
-    /// </summary>
-    public string GetJavaVersion(string javaPath)
-    {
-        if (string.IsNullOrEmpty(javaPath) || !File.Exists(javaPath))
-        {
-            return "未知";
-        }
-
-        try
-        {
-            string executable = javaPath;
-            if (executable.EndsWith("javaw.exe", StringComparison.OrdinalIgnoreCase))
-            {
-                executable = executable.Replace("javaw.exe", "java.exe");
-            }
-
-            Process process = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = executable,
-                    Arguments = "-version",
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.Start();
-            string output = process.StandardError.ReadToEnd();
-            process.WaitForExit();
-
-            // 解析版本信息
-            if (output.Contains("version \""))
-            {
-                int startIndex = output.IndexOf("version \"") + 9;
-                int endIndex = output.IndexOf("\"", startIndex);
-                if (endIndex > startIndex)
-                {
-                    return output.Substring(startIndex, endIndex - startIndex);
-                }
-            }
-
-            return "未知";
-        }
-        catch
-        {
-            return "无法获取";
-        }
-    }
-
-    /// <summary>
     /// 获取系统最大可用内存 (MB)
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public int GetSystemMaxMemoryMB()
     {
         try
@@ -156,7 +92,7 @@ public class GameService
     /// </summary>
     public async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null, bool forceRefresh = false)
     {
-        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string directory = minecraftDirectory ?? DefaultGameDirectory;
 
         // 获取本地版本
         var localVersions = await Versions.GetLocalVersionsAsync(directory);
@@ -202,7 +138,7 @@ public class GameService
     public async Task<string> SelectGameDirectoryAsync()
     {
         var folder = await _storageService.PickFolderAsync();
-        return folder ?? _defaultGameDirectory;
+        return folder ?? DefaultGameDirectory;
     }
 
     /// <summary>
@@ -225,7 +161,7 @@ public class GameService
         };
 
         var file = await _storageService.PickFileAsync(filters);
-        return file ?? _defaultJavaPath;
+        return file ?? DefaultJavaPath;
     }
 
     /// <summary>
@@ -427,7 +363,7 @@ public class GameService
     /// </summary>
     public async Task<VersionInfo?> GetVersionInfo(string versionId, string? minecraftDirectory = null)
     {
-        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string directory = minecraftDirectory ?? DefaultGameDirectory;
         return await Versions.GetVersionByIdAsync(directory, versionId);
     }
 
@@ -479,7 +415,7 @@ public class GameService
             }
 
             // 创建版本目录
-            string versionDirectory = Path.Combine(_defaultGameDirectory, "versions", versionId);
+            string versionDirectory = Path.Combine(DefaultGameDirectory, "versions", versionId);
             Directory.CreateDirectory(versionDirectory);
 
             // 下载版本JSON
@@ -531,7 +467,7 @@ public class GameService
             return;
         }
 
-        string assetsDir = Path.Combine(_defaultGameDirectory, "assets");
+        string assetsDir = Path.Combine(DefaultGameDirectory, "assets");
         string indexesDir = Path.Combine(assetsDir, "indexes");
         string objectsDir = Path.Combine(assetsDir, "objects");
 
@@ -600,7 +536,7 @@ public class GameService
             return;
         }
 
-        string librariesDir = Path.Combine(_defaultGameDirectory, "libraries");
+        string librariesDir = Path.Combine(DefaultGameDirectory, "libraries");
         Directory.CreateDirectory(librariesDir);
 
         int totalLibraries = versionInfo.Libraries.Count;
@@ -732,7 +668,7 @@ public class GameService
     /// </summary>
     public bool IsVersionInstalled(string versionId, string? minecraftDirectory = null)
     {
-        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string directory = minecraftDirectory ?? DefaultGameDirectory;
         string versionDir = Path.Combine(directory, "versions", versionId);
         string jsonPath = Path.Combine(versionDir, $"{versionId}.json");
         string jarPath = Path.Combine(versionDir, $"{versionId}.jar");
@@ -747,7 +683,7 @@ public class GameService
     /// <param name="minecraftDirectory">游戏目录</param>
     public async Task DeleteVersionAsync(string versionId, string? minecraftDirectory = null)
     {
-        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string directory = minecraftDirectory ?? DefaultGameDirectory;
         string versionDir = Path.Combine(directory, "versions", versionId);
 
         if (Directory.Exists(versionDir))

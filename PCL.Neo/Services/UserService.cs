@@ -37,7 +37,7 @@ public class UserService : ObservableObject
     public UserService(StorageService storageService)
     {
         _storageService = storageService;
-        _configPath = Path.Combine(_storageService.AppDataDirectory, UserConfigFile);
+        _configPath = Path.Combine(StorageService.AppDataDirectory, UserConfigFile);
         Users = new ReadOnlyObservableCollection<UserInfo>(_users);
         
         // 初始化用户列表
