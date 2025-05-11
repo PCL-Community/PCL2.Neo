@@ -6,8 +6,7 @@
              xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="250"
              x:Class="PCL.Neo.Views.HomeView"
-             x:DataType="home:HomeSubViewModel"
-             Width="250">
-    Welcome to Avalonia!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+             x:DataType="home:HomeSubViewModel">
+    This is part of HomeView!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 </UserControl>
 

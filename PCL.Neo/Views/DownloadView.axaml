@@ -6,8 +6,7 @@
              xmlns:vm="using:PCL.Neo.ViewModels"
              mc:Ignorable="d" d:DesignWidth="150" d:DesignHeight="450"
              x:Class="PCL.Neo.Views.DownloadView"
-             x:DataType="vm:DownloadViewModel"
-             Width="170">
+             x:DataType="vm:DownloadViewModel">
     <StackPanel Orientation="Vertical">
         <TextBlock Text="DownloadLeftView"/>
         <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
