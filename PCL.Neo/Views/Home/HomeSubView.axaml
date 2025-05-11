@@ -1,272 +1,58 @@
-<UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:pc="using:PCL.Neo.Controls"
-             xmlns:vm="using:PCL.Neo.ViewModels"
-             xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="PCL.Neo.Views.Home.HomeSubView"
-             x:DataType="home:HomeSubViewModel">
-    
-    <!-- 多种布局视图容器 -->
-    <Grid>
-        <!-- 默认布局 - 游戏启动页面 -->
-        <Grid IsVisible="{Binding IsDefaultLayoutVisible}" RowDefinitions="Auto,*,Auto" Margin="0,5,0,5">
-            <!-- 顶部区域：用户选择和版本选择 -->
-            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="10">
-                <Grid Grid.Column="0" ColumnDefinitions="Auto,*">
-                    <!-- 用户选择 -->
-                    <ComboBox Grid.Column="0" 
-                          ItemsSource="{Binding Users}"
-                          SelectedItem="{Binding SelectedUser}"
-                          Width="120"
-                          HorizontalAlignment="Left"
-                          Margin="0,0,10,0">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Username}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                
-                    <!-- 版本选择 -->
-                    <ComboBox Grid.Column="1" 
-                          ItemsSource="{Binding GameVersions}"
-                          SelectedItem="{Binding SelectedGameVersion}"
-                          HorizontalAlignment="Stretch"
-                          Margin="0,0,10,0">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" />
-                                    <TextBlock Grid.Column="1" Text="{Binding Type}" Margin="10,0,0,0" Opacity="0.6" />
-                                </Grid>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </Grid>
-            
-                <!-- 版本管理和下载 -->
-                <Button Grid.Column="1" Content="管理版本" Command="{Binding ManageVersionsCommand}" Margin="0,0,10,0"/>
-                <Button Grid.Column="2" Content="下载游戏" Command="{Binding NavigateToDownloadModCommand}"/>
-            </Grid>
-        
-            <!-- 中间游戏信息区 -->
-            <Grid Grid.Row="1" Margin="10">
-                <Border Background="#10000000" CornerRadius="8" Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="游戏信息" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-                        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" Margin="0,5">
-                            <!-- 用户信息 -->
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="用户名：" Margin="0,0,10,5"/>
-                            <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="{Binding SelectedUser.Username}" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Content="添加用户" Command="{Binding AddUserCommand}" Padding="5,3"/>
-                            </Grid>
-                        
-                            <!-- 游戏版本 -->
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="游戏版本：" Margin="0,0,10,5"/>
-                            <Grid Grid.Row="1" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="{Binding SelectedGameVersion.Name}" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Content="刷新" Command="{Binding RefreshVersionListCommand}" Padding="5,3"/>
-                            </Grid>
-                        
-                            <!-- 游戏目录 -->
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="游戏目录：" Margin="0,0,10,5"/>
-                            <Grid Grid.Row="2" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="{Binding GameDirectory}" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Content="选择" Command="{Binding SelectGameDirectoryCommand}" Padding="5,3"/>
-                            </Grid>
-                        
-                            <!-- Java路径 -->
-                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Java路径：" Margin="0,0,10,5"/>
-                            <Grid Grid.Row="3" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                <TextBlock Grid.Column="0" Text="{Binding JavaPath}" TextWrapping="Wrap" VerticalAlignment="Center"/>
-                                <Button Grid.Column="1" Content="选择" Command="{Binding SelectJavaCommand}" Padding="5,3"/>
-                            </Grid>
-                        
-                            <!-- 内存分配 -->
-                            <TextBlock Grid.Row="4" Grid.Column="0" Text="内存分配：" Margin="0,0,10,5"/>
-                            <Grid Grid.Row="4" Grid.Column="1" ColumnDefinitions="*,Auto">
-                                <Slider Grid.Column="0" 
-                                    Minimum="1024" 
-                                    Maximum="{Binding MaxMemoryMB}"
-                                    Value="{Binding MemoryAllocation}"
-                                    TickFrequency="1024"
-                                    TickPlacement="BottomRight"/>
-                                <TextBlock Grid.Column="1" Text="{Binding MemoryAllocationDisplay}" VerticalAlignment="Center" MinWidth="60" TextAlignment="Right"/>
-                            </Grid>
-                        
-                            <!-- 状态信息 -->
-                            <TextBlock Grid.Row="5" Grid.Column="0" Text="状态：" Margin="0,0,10,5"/>
-                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding StatusMessage}" TextWrapping="Wrap"/>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        
-            <!-- 底部启动按钮区 -->
-            <Grid Grid.Row="2" Margin="10">
-                <Grid ColumnDefinitions="Auto,*">
-                    <Button Grid.Column="0" 
-                        Content="查看日志" 
-                        Command="{Binding ViewGameLogsCommand}" 
-                        Margin="0,0,10,0" 
-                        Padding="10,0"
-                        Height="50"/>
-                
-                    <Button Grid.Column="1" 
-                        Content="启动游戏" 
-                        Command="{Binding LaunchGameCommand}"
-                        HorizontalAlignment="Stretch"
-                        Height="50"
-                        FontSize="16"
-                        FontWeight="Bold"
-                        HorizontalContentAlignment="Center"
-                        IsEnabled="{Binding !IsLaunching}">
-                        <Button.Styles>
-                            <Style Selector="Button">
-                                <Setter Property="Background" Value="#1E88E5"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Style>
-                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#1976D2"/>
-                            </Style>
-                            <Style Selector="Button:pressed /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#1565C0"/>
-                            </Style>
-                            <Style Selector="Button:disabled /template/ ContentPresenter">
-                                <Setter Property="Background" Value="#BDBDBD"/>
-                            </Style>
-                        </Button.Styles>
-                    </Button>
-                </Grid>
-            </Grid>
-        </Grid>
-        
-        <!-- 新闻布局 -->
-        <Grid IsVisible="{Binding IsNewsLayoutVisible}" RowDefinitions="Auto,*,Auto" Margin="10">
-            <TextBlock Grid.Row="0" Text="Minecraft 新闻" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
-            
-            <ScrollViewer Grid.Row="1">
-                <ItemsControl ItemsSource="{Binding NewsItems}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="#10000000" CornerRadius="8" Margin="0,0,0,15" Padding="10">
-                                <Grid ColumnDefinitions="Auto,*">
-                                    <!-- 新闻图片 -->
-                                    <Border Grid.Column="0" Width="120" Height="80" CornerRadius="4" Margin="0,0,10,0" ClipToBounds="True">
-                                        <Image Source="{Binding ImageUrl}" Stretch="UniformToFill" />
-                                    </Border>
-                                    
-                                    <!-- 新闻内容 -->
-                                    <StackPanel Grid.Column="1">
-                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="16" />
-                                        <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" Margin="0,5" />
-                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                            <TextBlock Text="{Binding Date, StringFormat={}{0:yyyy-MM-dd}}" Opacity="0.6" />
-                                            <Button Content="查看详情" Margin="10,0,0,0" Padding="5,2" 
-                                                    CommandParameter="{Binding Url}" />
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-            
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0">
-                <Button Content="刷新" Margin="5,0" Padding="10,5" />
-                <Button Content="更多新闻" Margin="5,0" Padding="10,5" />
-            </StackPanel>
-        </Grid>
-        
-        <!-- 信息布局 -->
-        <Grid IsVisible="{Binding IsInfoLayoutVisible}" RowDefinitions="Auto,*" Margin="10">
-            <TextBlock Grid.Row="0" Text="系统与游戏信息" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
-            
-            <ItemsControl Grid.Row="1" ItemsSource="{Binding InfoItems}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="#10000000" CornerRadius="8" Margin="0,0,0,10" Padding="15">
-                            <Grid ColumnDefinitions="Auto,*">
-                                <!-- 图标 -->
-                                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" 
-                                        Background="{DynamicResource SystemControlBackgroundAccentBrush}" 
-                                        Margin="0,0,15,0">
-                                    <TextBlock Text="{Binding Icon}" 
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center"
-                                               FontWeight="Bold"
-                                               Foreground="White"/>
-                                </Border>
-                                
-                                <!-- 内容 -->
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
-                                    <TextBlock Text="{Binding Value}" TextWrapping="Wrap" Margin="0,5,0,0" />
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Grid>
-        
-        <!-- 简洁布局 -->
-        <Grid IsVisible="{Binding IsSimpleLayoutVisible}" Margin="10">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <!-- 大型启动按钮 -->
-                <Border Width="200" Height="200" CornerRadius="100" 
-                        Background="{DynamicResource SystemControlBackgroundAccentBrush}" 
-                        BoxShadow="0 4 20 0 #40000000" 
-                        Margin="0,0,0,30">
-                    <Button Content="启动" 
-                            Command="{Binding LaunchGameCommand}"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"
-                            Background="Transparent"
-                            BorderThickness="0"
-                            Foreground="White"
-                            FontSize="32"
-                            FontWeight="Bold"
-                            IsEnabled="{Binding !IsLaunching}" />
-                </Border>
-                
-                <!-- 版本与用户信息 -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10">
-                    <ComboBox ItemsSource="{Binding Users}"
-                              SelectedItem="{Binding SelectedUser}"
-                              Width="150"
-                              Margin="0,0,20,0">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Username}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                    
-                    <ComboBox ItemsSource="{Binding GameVersions}"
-                              SelectedItem="{Binding SelectedGameVersion}"
-                              Width="200">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Name}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
-                
-                <!-- 状态信息 -->
-                <TextBlock Text="{Binding StatusMessage}" 
-                           HorizontalAlignment="Center"
-                           TextAlignment="Center"
-                           Margin="0,10" />
-            </StackPanel>
-        </Grid>
-    </Grid>
+<UserControl
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="PCL.Neo.Views.Home.HomeSubView"
+    x:DataType="home:HomeSubViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pc="using:PCL.Neo.Controls"
+    xmlns:vm="using:PCL.Neo.ViewModels"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer>
+        <StackPanel Orientation="Vertical">
+            <pc:MyButton
+                ColorType="Normal"
+                Height="50"
+                Margin="10"
+                Text="普通按钮" />
+            <pc:MyButton
+                Click="Button_OnClick"
+                ColorType="Highlight"
+                Height="50"
+                Margin="10"
+                Text="高亮按钮" />
+            <pc:MyButton
+                Click="Button2_OnClick"
+                ColorType="Red"
+                Height="50"
+                Margin="10"
+                Text="红色按钮" />
+            <pc:MyButton Height="50" Margin="10">
+                <Run Text="PCL.Neo 也支持了" />
+                <Run
+                    FontWeight="Bold"
+                    Foreground="#ff4c4c"
+                    Text="Inline 富文本！" />
+                <LineBreak />
+                <Run Text="为什么这里有个" />
+                <InlineUIContainer>
+                    <Image Source="avares://PCL.Neo/Assets/Icon.ico" Width="20" />
+                </InlineUIContainer>
+                <Run Text="图标？" />
+            </pc:MyButton>
+            <pc:MyLoading
+                Height="150"
+                Name="TestLoading"
+                Width="150" />
+            <pc:MyButton
+                Command="{Binding NavigateToDownloadModCommand}"
+                Height="50"
+                Margin="10"
+                Text="跳转到 Download Mod" />
+            <pc:MyCard Margin="10" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

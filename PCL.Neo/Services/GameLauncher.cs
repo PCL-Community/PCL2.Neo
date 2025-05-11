@@ -1,5 +1,5 @@
 using PCL.Neo.Models.Minecraft.Game;
-using PCL.Neo.Models.Minecraft.Game.Data;
+using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,12 +15,12 @@ namespace PCL.Neo.Services;
 public class GameLauncher
 {
     private readonly Log _gameLog;
-    
+
     public GameLauncher()
     {
         _gameLog = new Log();
     }
-    
+
     /// <summary>
     /// 启动游戏
     /// </summary>
@@ -32,13 +32,13 @@ public class GameLauncher
         {
             throw new Exception($"找不到版本: {options.VersionId}");
         }
-        
+
         // 如果是继承版本，递归加载父版本
         var fullVersionInfo = await ResolveInheritedVersionAsync(options.MinecraftDirectory, versionInfo);
-        
+
         // 构建启动命令
         var arguments = await BuildArgumentsAsync(fullVersionInfo, options);
-        
+
         // 创建并配置进程启动信息
         var processStartInfo = new ProcessStartInfo
         {
@@ -48,18 +48,18 @@ public class GameLauncher
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = false,
-            WorkingDirectory = string.IsNullOrEmpty(options.GameDirectory) 
-                ? options.MinecraftDirectory 
+            WorkingDirectory = string.IsNullOrEmpty(options.GameDirectory)
+                ? options.MinecraftDirectory
                 : options.GameDirectory
         };
-        
+
         // 启动进程
         var process = new Process
         {
             StartInfo = processStartInfo,
             EnableRaisingEvents = true
         };
-        
+
         // 订阅日志输出事件
         process.OutputDataReceived += (sender, e) =>
         {
@@ -68,7 +68,7 @@ public class GameLauncher
                 _gameLog.AddLog(e.Data);
             }
         };
-        
+
         process.ErrorDataReceived += (sender, e) =>
         {
             if (!string.IsNullOrEmpty(e.Data))
@@ -76,14 +76,14 @@ public class GameLauncher
                 _gameLog.AddLog(e.Data, isError: true);
             }
         };
-        
+
         process.Start();
         process.BeginOutputReadLine();
         process.BeginErrorReadLine();
-        
+
         return process;
     }
-    
+
     /// <summary>
     /// 解析继承版本
     /// </summary>
@@ -93,20 +93,20 @@ public class GameLauncher
         {
             return versionInfo;
         }
-        
+
         var parentVersionInfo = await Versions.GetVersionByIdAsync(minecraftDirectory, versionInfo.InheritsFrom);
         if (parentVersionInfo == null)
         {
             throw new Exception($"找不到父版本: {versionInfo.InheritsFrom}");
         }
-        
+
         // 递归解析父版本
         parentVersionInfo = await ResolveInheritedVersionAsync(minecraftDirectory, parentVersionInfo);
-        
+
         // 合并父子版本信息
         return MergeVersionInfo(parentVersionInfo, versionInfo);
     }
-    
+
     /// <summary>
     /// 合并版本信息
     /// </summary>
@@ -124,7 +124,7 @@ public class GameLauncher
             Time = child.Time,
             Assets = child.Assets ?? parent.Assets,
         };
-        
+
         // 处理AssetIndex (解决不明确引用)
         if (child.AssetIndex != null)
         {
@@ -134,7 +134,7 @@ public class GameLauncher
         {
             result.AssetIndex = parent.AssetIndex;
         }
-        
+
         // 处理Downloads (解决不明确引用)
         if (child.Downloads != null)
         {
@@ -144,7 +144,7 @@ public class GameLauncher
         {
             result.Downloads = parent.Downloads;
         }
-        
+
         // 处理JavaVersion (解决不明确引用)
         if (child.JavaVersion != null)
         {
@@ -154,19 +154,19 @@ public class GameLauncher
         {
             result.JavaVersion = parent.JavaVersion;
         }
-        
+
         // 合并Arguments
         if (child.Arguments != null || parent.Arguments != null)
         {
             result.Arguments = new Arguments();
-            
+
             // 初始化Game和Jvm集合
             if (result.Arguments.Game == null)
                 result.Arguments.Game = new List<object>();
-                
+
             if (result.Arguments.Jvm == null)
                 result.Arguments.Jvm = new List<object>();
-            
+
             // 合并Game参数
             if (parent.Arguments?.Game != null)
             {
@@ -176,7 +176,7 @@ public class GameLauncher
             {
                 result.Arguments.Game.AddRange(child.Arguments.Game);
             }
-            
+
             // 合并JVM参数
             if (parent.Arguments?.Jvm != null)
             {
@@ -187,7 +187,7 @@ public class GameLauncher
                 result.Arguments.Jvm.AddRange(child.Arguments.Jvm);
             }
         }
-        
+
         // 合并Libraries
         result.Libraries = new List<Library>();
         if (parent.Libraries != null)
@@ -198,36 +198,36 @@ public class GameLauncher
         {
             result.Libraries.AddRange(child.Libraries);
         }
-        
+
         return result;
     }
-    
+
     /// <summary>
     /// 构建启动参数
     /// </summary>
     private async Task<string> BuildArgumentsAsync(VersionInfo versionInfo, Models.Minecraft.Game.LaunchOptions options)
     {
         var args = new StringBuilder();
-        
+
         // 添加内存参数
         args.Append($"-Xmx{options.MaxMemoryMB}M ");
         args.Append($"-Xms{options.MinMemoryMB}M ");
-        
+
         // 添加系统参数
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             args.Append("-XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump ");
         }
-        
+
         // 添加游戏目录
         var gameDir = string.IsNullOrEmpty(options.GameDirectory) ? options.MinecraftDirectory : options.GameDirectory;
         args.Append($"-Dminecraft.applet.TargetDirectory=\"{gameDir}\" ");
-        
+
         // TODO: 添加更多JVM参数
-        
+
         // 添加主类
         args.Append($"{versionInfo.MainClass} ");
-        
+
         // 添加游戏参数
         if (versionInfo.MinecraftArguments != null)
         {
@@ -244,7 +244,7 @@ public class GameLauncher
                 .Replace("${version_type}", versionInfo.Type)
                 .Replace("${user_properties}", "{}") // TODO: 支持用户属性
                 .Replace("${game_assets}", $"\"{Path.Combine(options.MinecraftDirectory, "assets")}\""); // 旧版本支持
-            
+
             args.Append(gameArgs);
         }
         else if (versionInfo.Arguments?.Game != null)
@@ -266,14 +266,14 @@ public class GameLauncher
                         .Replace("${version_type}", versionInfo.Type)
                         .Replace("${user_properties}", "{}") // TODO: 支持用户属性
                         .Replace("${game_assets}", $"\"{Path.Combine(options.MinecraftDirectory, "assets")}\"");
-                    
+
                     args.Append($"{formattedArg} ");
                 }
                 // 复杂参数格式（带条件）的处理，这里简化为直接添加
                 // TODO: 添加规则判断
             }
         }
-        
+
         // 添加额外的游戏参数
         if (options.ExtraGameArgs != null)
         {
@@ -282,10 +282,10 @@ public class GameLauncher
                 args.Append($"{arg.Key} {arg.Value} ");
             }
         }
-        
+
         return args.ToString().TrimEnd();
     }
-    
+
     /// <summary>
     /// 获取游戏日志
     /// </summary>
@@ -293,7 +293,7 @@ public class GameLauncher
     {
         return _gameLog.Entries;
     }
-    
+
     /// <summary>
     /// 清除游戏日志
     /// </summary>
@@ -301,7 +301,7 @@ public class GameLauncher
     {
         _gameLog.Clear();
     }
-    
+
     /// <summary>
     /// 导出游戏日志到文件
     /// </summary>
@@ -313,7 +313,7 @@ public class GameLauncher
             var prefix = entry.IsError ? "[ERROR]" : "[INFO]";
             logs.AppendLine($"{entry.Timestamp:yyyy-MM-dd HH:mm:ss} {prefix} {entry.Message}");
         }
-        
+
         await File.WriteAllTextAsync(filePath, logs.ToString());
     }
-} 
+}

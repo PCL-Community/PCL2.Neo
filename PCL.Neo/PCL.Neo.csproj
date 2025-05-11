@@ -68,7 +68,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\MainPage\" />
-    <Folder Include="Views\SubPage\" />
+    <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,4 @@
-using PCL.Neo.Models.Minecraft.Game.Data;
+using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,17 +21,17 @@ public static class Versions
     {
         var result = new List<VersionInfo>();
         var versionsDirectory = Path.Combine(minecraftDirectory, "versions");
-        
+
         if (!Directory.Exists(versionsDirectory))
         {
             return result;
         }
-        
+
         foreach (var versionDir in Directory.GetDirectories(versionsDirectory))
         {
             var versionId = Path.GetFileName(versionDir);
             var versionJsonPath = Path.Combine(versionDir, $"{versionId}.json");
-            
+
             if (File.Exists(versionJsonPath))
             {
                 try
@@ -41,7 +41,7 @@ public static class Versions
                     {
                         PropertyNameCaseInsensitive = true
                     });
-                    
+
                     if (versionInfo != null)
                     {
                         // 如果没有名称，使用ID作为名称
@@ -49,7 +49,7 @@ public static class Versions
                         {
                             versionInfo.Name = versionInfo.Id;
                         }
-                        
+
                         result.Add(versionInfo);
                     }
                 }
@@ -59,10 +59,10 @@ public static class Versions
                 }
             }
         }
-        
+
         return result;
     }
-    
+
     /// <summary>
     /// 获取Minecraft远程版本列表
     /// </summary>
@@ -73,14 +73,14 @@ public static class Versions
             // 获取版本清单
             var response = await _httpClient.GetStringAsync(VersionManifestUrl);
             var manifest = JsonSerializer.Deserialize<VersionManifest>(response);
-            
+
             if (manifest == null || manifest.Versions == null)
             {
                 return new List<VersionInfo>();
             }
-            
+
             var result = new List<VersionInfo>();
-            
+
             foreach (var version in manifest.Versions)
             {
                 // 创建版本信息
@@ -100,10 +100,10 @@ public static class Versions
                         }
                     }
                 };
-                
+
                 result.Add(versionInfo);
             }
-            
+
             return result;
         }
         catch (Exception)
@@ -112,19 +112,19 @@ public static class Versions
             return new List<VersionInfo>();
         }
     }
-    
+
     private static string MapVersionType(string type)
     {
         return type.ToLower() switch
         {
             "release" => "release",
-            "snapshot" => "snapshot", 
+            "snapshot" => "snapshot",
             "old_alpha" => "old_alpha",
             "old_beta" => "old_beta",
             _ => "unknown"
         };
     }
-    
+
     /// <summary>
     /// 通过ID获取特定版本信息
     /// </summary>
@@ -132,7 +132,7 @@ public static class Versions
     {
         var versionDir = Path.Combine(minecraftDirectory, "versions", versionId);
         var versionJsonPath = Path.Combine(versionDir, $"{versionId}.json");
-        
+
         if (File.Exists(versionJsonPath))
         {
             try
@@ -142,14 +142,14 @@ public static class Versions
                 {
                     PropertyNameCaseInsensitive = true
                 });
-                
+
                 if (versionInfo != null)
                 {
                     if (string.IsNullOrEmpty(versionInfo.Name))
                     {
                         versionInfo.Name = versionInfo.Id;
                     }
-                    
+
                     return versionInfo;
                 }
             }
@@ -158,10 +158,10 @@ public static class Versions
                 // 忽略解析失败的版本文件
             }
         }
-        
+
         return null;
     }
-    
+
     /// <summary>
     /// 从远程下载特定版本信息
     /// </summary>
@@ -174,12 +174,12 @@ public static class Versions
             {
                 PropertyNameCaseInsensitive = true
             });
-            
+
             if (versionInfo != null && string.IsNullOrEmpty(versionInfo.Name))
             {
                 versionInfo.Name = versionInfo.Id;
             }
-            
+
             return versionInfo;
         }
         catch (Exception)

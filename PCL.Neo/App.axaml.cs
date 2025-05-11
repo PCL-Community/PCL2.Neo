@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PCL.Neo.Services;
 using Avalonia.Platform.Storage;
 using PCL.Neo.Helpers;
-using PCL.Neo.Models.Minecraft.Java;
 using PCL.Neo.Utils;
 using PCL.Neo.ViewModels;
 using PCL.Neo.ViewModels.Download;
@@ -36,16 +35,15 @@ namespace PCL.Neo
             .AddTransient<PCL.Neo.ViewModels.Home.HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
             .AddTransient<VersionManagerViewModel>()
-            
+
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
-            
+
             .AddTransient<LogViewModel>()
 
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
-            .AddSingleton<IJavaManager,JavaManager>()
             .AddSingleton<GameService>()
             .AddSingleton<UserService>()
             .BuildServiceProvider();
@@ -55,7 +53,6 @@ namespace PCL.Neo
             Ioc.Default.ConfigureServices(ConfigureServices());
 
             var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
-            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
