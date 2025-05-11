@@ -2,7 +2,7 @@
 
 <div align=center>
 
-<img alt="Logo" src="/Icon.png" width="256">
+<img alt="Logo" src="/Icon.svg" width="256">
 
 # PCL.Neo ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/PCL-Community/PCL.Neo) ![GitHub Repo stars](https://img.shields.io/github/stars/PCL-Community/PCL.Neo)
 
