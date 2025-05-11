@@ -1,5 +1,6 @@
 using System;
 using Avalonia;
+using PCL.Neo.Services;
 
 namespace PCL.Neo
 {
@@ -17,6 +18,7 @@ namespace PCL.Neo
             => AppBuilder.Configure<App>()
                 .UsePlatformDetect()
                 .WithInterFont()
-                .LogToTrace();
+                .LogToTrace()
+                .With(new GameLauncher());
     }
 }

@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using static PCL.Neo.Models.Minecraft.MetadataFile.Rule;
+using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Models.Minecraft.Game.Data
 {
     public partial class Arguments
     {
-        public List<string> GameArguments { get; init; }
+        [JsonPropertyName("game")]
+        public List<object>? Game { get; set; }
+        
+        [JsonPropertyName("jvm")]
+        public List<object>? Jvm { get; set; }
+
+        public List<string> GameArguments { get; init; } = new();
 
         private static readonly OsModel.ArchEnum CurrentArch = Const.Is64Os switch
         {
@@ -145,9 +152,19 @@ namespace PCL.Neo.Models.Minecraft.Game.Data
 
             return result;
         }
+        
+        public Arguments()
+        {
+            Game = new List<object>();
+            Jvm = new List<object>();
+            GameArguments = new List<string>();
+        }
 
         public Arguments(MetadataFile metadata)
         {
+            Game = new List<object>();
+            Jvm = new List<object>();
+            
             var arguments = metadata.Arguments;
 
             var gameArgu = arguments.Game
@@ -170,5 +187,17 @@ namespace PCL.Neo.Models.Minecraft.Game.Data
 
         [GeneratedRegex(@"\$\{([^}]+)\}")]
         private static partial Regex CustomValueRegex();
+    }
+
+    public class ArgumentRule
+    {
+        [JsonPropertyName("action")]
+        public string Action { get; set; } = "allow";
+        
+        [JsonPropertyName("features")]
+        public Dictionary<string, bool>? Features { get; set; }
+        
+        [JsonPropertyName("os")]
+        public Dictionary<string, string>? Os { get; set; }
     }
 }

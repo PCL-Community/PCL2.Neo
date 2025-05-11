@@ -18,6 +18,11 @@ public class JavaRuntime
     public string DirectoryPath { get; }
 
     /// <summary>
+    /// Java可执行文件的完整路径
+    /// </summary>
+    public string JavaPath => JavaExe;
+
+    /// <summary>
     /// 描述具体的 Java 信息，内部信息，不应在外部取用
     /// </summary>
     private JavaInfo _javaInfo;

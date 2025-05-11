@@ -9,7 +9,7 @@ public record GameEntityInfo
     /// <summary>
     /// The Game Version information.
     /// </summary>
-    public GameVersion GameVersion { get; set; }
+    public GameVersionInfo GameVersion { get; set; }
 
     /// <summary>
     /// Game Name that is used to display in the UI.

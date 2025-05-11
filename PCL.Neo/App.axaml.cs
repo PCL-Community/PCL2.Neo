@@ -33,16 +33,21 @@ namespace PCL.Neo
         private static IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddTransient<MainWindowViewModel>()
 
-            .AddTransient<HomeViewModel>()
+            .AddTransient<PCL.Neo.ViewModels.Home.HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
-
+            .AddTransient<VersionManagerViewModel>()
+            
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
+            
+            .AddTransient<LogViewModel>()
 
-            .AddSingleton<NavigationService>(s => new NavigationService(s))
+            .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager,JavaManager>()
+            .AddSingleton<GameService>()
+            .AddSingleton<UserService>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()

@@ -19,16 +19,6 @@ public partial class HomeSubView : UserControl
         InitializeComponent();
     }
 
-    private void Button_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Loading;
-    }
-
-    private void Button2_OnClick(object? sender, RoutedEventArgs e)
-    {
-        this.TestLoading.State = MyLoading.LoadingState.Error;
-    }
-
     private void Search_Java_Button(object? sender, RoutedEventArgs e)
     {
         // var testPath = Ioc.Default.GetService<StorageService>()?.SelectFile("Test");
