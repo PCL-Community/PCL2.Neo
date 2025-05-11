@@ -2,11 +2,11 @@
 
 <div align=center>
 
-<img alt="Logo" src="/Assets/Icon.png" width="256" height="256">
+<img alt="Logo" src="/Icon.png" width="256" height="256">
 
 # PCL.Neo ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/PCL-Community/PCL.Neo) ![GitHub Repo stars](https://img.shields.io/github/stars/PCL-Community/PCL.Neo)
 
-[![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL2.Neo)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL.Neo&web=true)
+[![](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL.Neo)](https://hits.zkitefly.eu.org/?tag=https://github.com/PCL-Community/PCL.Neo&web=true)
 
 **真正的跨平台 PCL，来了。**
 
