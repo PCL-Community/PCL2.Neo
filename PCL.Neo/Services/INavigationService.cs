@@ -8,6 +8,7 @@ public interface INavigationService
 {
     Task<T> GotoAsync<T>() where T : ViewModelBase;
     Task<bool> GoBackAsync();
+    Task<bool> GotoViewModelAsync(ViewModelBase viewModel);
     bool CanGoBack { get; }
     ViewModelBase? CurrentViewModel { get; }
     ViewModelBase? CurrentSubViewModel { get; }

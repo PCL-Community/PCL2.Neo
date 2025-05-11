@@ -95,6 +95,12 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 
         [JsonPropertyName("javaVersion")]
         public JavaVersionInfo? JavaVersion { get; set; }
+
+        /// <summary>
+        /// 存储原始的JSON数据
+        /// </summary>
+        [JsonIgnore]
+        public string? JsonData { get; set; }
     }
 
     public class AssetIndexInfo
@@ -128,15 +134,6 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 
         [JsonPropertyName("rules")]
         public List<Rule>? Rules { get; set; }
-    }
-
-    public class Rule
-    {
-        [JsonPropertyName("action")]
-        public string Action { get; set; } = string.Empty;
-
-        [JsonPropertyName("os")]
-        public Dictionary<string, string>? Os { get; set; }
     }
 
     public class LibraryDownloads

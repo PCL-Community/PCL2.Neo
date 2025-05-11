@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
+using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Services;
 
 namespace PCL.Neo
@@ -20,7 +21,6 @@ namespace PCL.Neo
                 .UsePlatformDetect()
                 .WithInterFont()
                 .LogToTrace()
-                .With(new GameLauncher())
                 .With(() => new FontManagerOptions
                 {
                     FontFallbacks =

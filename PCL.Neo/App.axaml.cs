@@ -14,8 +14,11 @@ using PCL.Neo.ViewModels;
 using PCL.Neo.ViewModels.Download;
 using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
+using PCL.Neo.Core.Models.Minecraft.Game;
+using PCL.Neo.Core.Models.Minecraft.Java;
 using System;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace PCL.Neo
 {
@@ -35,6 +38,7 @@ namespace PCL.Neo
             .AddTransient<PCL.Neo.ViewModels.Home.HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
             .AddTransient<VersionManagerViewModel>()
+            .AddTransient<GameSettingsViewModel>()
 
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
@@ -44,7 +48,11 @@ namespace PCL.Neo
 
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
+            .AddSingleton<IJavaManager, JavaManager>()
+            .AddSingleton<HttpClient>()
             .AddSingleton<GameService>()
+            .AddSingleton<PCL.Neo.Core.Models.Minecraft.Game.GameLauncher>(provider => 
+                new PCL.Neo.Core.Models.Minecraft.Game.GameLauncher(provider.GetRequiredService<GameService>()))
             .AddSingleton<UserService>()
             .BuildServiceProvider();
 
