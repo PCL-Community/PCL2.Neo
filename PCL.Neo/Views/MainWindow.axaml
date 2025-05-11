@@ -21,37 +21,11 @@
     xmlns:vm="using:PCL.Neo.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid Name="GridRoot">
-        <!-- 添加窗口边缘调整大小的控件 -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="5" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="5" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="5" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="5" />
-        </Grid.ColumnDefinitions>
-
-        <!-- 边缘控件 -->
-        <Grid Name="Left" Grid.Row="1" Grid.Column="0" Background="Transparent" />
-        <Grid Name="Right" Grid.Row="1" Grid.Column="2" Background="Transparent" />
-        <Grid Name="Top" Grid.Row="0" Grid.Column="1" Background="Transparent" />
-        <Grid Name="Bottom" Grid.Row="2" Grid.Column="1" Background="Transparent" />
-        <Grid Name="TopLeft" Grid.Row="0" Grid.Column="0" Background="Transparent" />
-        <Grid Name="TopRight" Grid.Row="0" Grid.Column="2" Background="Transparent" />
-        <Grid Name="BottomLeft" Grid.Row="2" Grid.Column="0" Background="Transparent" />
-        <Grid Name="BottomRight" Grid.Row="2" Grid.Column="2" Background="Transparent" />
-
         <Border
-            Grid.Row="0" Grid.RowSpan="3"
-            Grid.Column="0" Grid.ColumnSpan="3"
             BoxShadow="0 0 15 5 #50000000"
             CornerRadius="8"
             Margin="18" />
         <Border
-            Grid.Row="0" Grid.RowSpan="3"
-            Grid.Column="0" Grid.ColumnSpan="3"
             CornerRadius="15,15,8,8"
             Margin="18"
             Name="MainBorder">
@@ -62,163 +36,81 @@
             </Border.Transitions>
 
             <Border ClipToBounds="True" CornerRadius="8">
-                <Grid RowDefinitions="Auto,*">
-                    <!--  标题栏 - 保留原有设计  -->
-                    <Border
-                        Background="#1E88E5"
-                        Grid.Row="0"
-                        Height="48"
-                        Name="NavBackgroundBorder"
-                        ZIndex="2">
-                        <Grid>
-                            <!-- 标题和图标 -->
+                <Grid RowDefinitions="Auto 1*">
+                    <!--  title  -->
                     <StackPanel
                         Margin="19,0"
                         Orientation="Horizontal"
                         VerticalAlignment="Center"
                         ZIndex="3">
-                        <!-- PCL II 标题 -->
+                        <Path
+                            Data="{StaticResource ShapeTitleLogo}"
+                            Height="16"
+                            HorizontalAlignment="Left"
+                            IsHitTestVisible="False"
+                            Name="ShapeTitleLogo"
+                            Stretch="Fill"
+                            Stroke="White"
+                            StrokeThickness="1.9"
+                            UseLayoutRounding="False"
+                            Width="53" />
                         <TextBlock
-                            FontSize="20"
+                            FontSize="17"
                             Foreground="White"
                             HorizontalAlignment="Left"
-                            FontWeight="Bold"
-                            Text="PCL II"
+                            IsHitTestVisible="False"
+                            IsVisible="False"
+                            Margin="18,0,0,0"
+                            Name="LabTitleLogo"
+                            UseLayoutRounding="False"
+                            VerticalAlignment="Center" />
+                        <Image
+                            HorizontalAlignment="Left"
+                            IsHitTestVisible="False"
+                            IsVisible="False"
+                            Margin="7"
+                            Name="ImageTitleLogo"
+                            UseLayoutRounding="False"
                             VerticalAlignment="Center" />
 
-                        <!-- NEO 标签 -->
-                        <Border
-                            Background="Green"
-                            CornerRadius="4"
-                            Height="20"
-                            HorizontalAlignment="Left"
-                            Margin="6,0,0,0"
-                            Width="30">
-                            <TextBlock
-                                Foreground="#1E88E5"
-                                HorizontalAlignment="Center"
-                                Text="NEO DEV"
-                                VerticalAlignment="Center"
-                                FontSize="12"
-                                FontWeight="SemiBold" />
-                        </Border>
+                        <StackPanel Orientation="Horizontal">
+                            <Border
+                                Background="White"
+                                CornerRadius="5"
+                                Height="20"
+                                HorizontalAlignment="Left"
+                                IsHitTestVisible="False"
+                                Margin="12,0,0,0"
+                                Name="NeoTitleLogo"
+                                UseLayoutRounding="False"
+                                Width="32">
+                                <TextBlock
+                                    Foreground="{DynamicResource ColorBrush2}"
+                                    HorizontalAlignment="Center"
+                                    Text="Neo"
+                                    VerticalAlignment="Center" />
+                            </Border>
+                            <Border
+                                Background="#9BF00B"
+                                CornerRadius="5"
+                                Height="20"
+                                HorizontalAlignment="Left"
+                                IsHitTestVisible="False"
+                                IsVisible="True"
+                                Margin="8,0,0,0"
+                                Name="DevTitleLogo"
+                                UseLayoutRounding="False"
+                                Width="32">
+                                <TextBlock
+                                    Foreground="Black"
+                                    HorizontalAlignment="Center"
+                                    Text="Dev"
+                                    VerticalAlignment="Center" />
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
 
-                            <!-- 顶部操作按钮 -->
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Center"
-                                        VerticalAlignment="Center">
-                                <Button Content="启动"
-                                        Name="NavBtnLaunch"
-                                        Foreground="White"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="15,0"
-                                        Padding="15,5"
-                                        Command="{Binding LaunchGameCommand}">
-                                    <Button.Template>
-                                        <ControlTemplate>
-                                            <Grid>
-                                                <Border CornerRadius="4" Background="Transparent">
-                                                    <Grid Width="70">
-                                                        <Path Data="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
-                                                              Fill="White" Width="16" Height="16"
-                                                              HorizontalAlignment="Left"
-                                                              VerticalAlignment="Center" />
-                                                        <TextBlock Text="启动"
-                                                                 Foreground="White"
-                                                                 VerticalAlignment="Center"
-                                                                 HorizontalAlignment="Right" />
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                                <Button Content="下载"
-                                        Name="NavBtnDownload"
-                                        Foreground="White"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="15,0"
-                                        Padding="15,5"
-                                        Command="{Binding NavigateToDownload}">
-                                    <Button.Template>
-                                        <ControlTemplate>
-                                            <Grid>
-                                                <Border CornerRadius="4" Background="Transparent">
-                                                    <Grid Width="70">
-                                                        <Path Data="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
-                                                              Fill="White" Width="16" Height="16"
-                                                              HorizontalAlignment="Left"
-                                                              VerticalAlignment="Center" />
-                                                        <TextBlock Text="下载"
-                                                                 Foreground="White"
-                                                                 VerticalAlignment="Center"
-                                                                 HorizontalAlignment="Right" />
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                                <Button Content="设置"
-                                        Name="NavBtnSettings"
-                                        Foreground="White"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="15,0"
-                                        Padding="15,5"
-                                        Command="{Binding OpenSettingsCommand}">
-                                    <Button.Template>
-                                        <ControlTemplate>
-                                            <Grid>
-                                                <Border CornerRadius="4" Background="Transparent">
-                                                    <Grid Width="70">
-                                                        <Path Data="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
-                                                              Fill="White" Width="16" Height="16"
-                                                              HorizontalAlignment="Left"
-                                                              VerticalAlignment="Center" />
-                                                        <TextBlock Text="设置"
-                                                                 Foreground="White"
-                                                                 VerticalAlignment="Center"
-                                                                 HorizontalAlignment="Right" />
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                                <Button Content="更多"
-                                        Name="NavBtnMore"
-                                        Foreground="White"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="15,0"
-                                        Padding="15,5"
-                                        Command="{Binding OpenMoreCommand}">
-                                    <Button.Template>
-                                        <ControlTemplate>
-                                            <Grid>
-                                                <Border CornerRadius="4" Background="Transparent">
-                                                    <Grid Width="70">
-                                                        <Path Data="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                                                              Fill="White" Width="16" Height="16"
-                                                              HorizontalAlignment="Left"
-                                                              VerticalAlignment="Center" />
-                                                        <TextBlock Text="更多"
-                                                                 Foreground="White"
-                                                                 VerticalAlignment="Center"
-                                                                 HorizontalAlignment="Right" />
-                                                    </Grid>
-                                                </Border>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Button.Template>
-                                </Button>
-                            </StackPanel>
-
-                            <!--  关闭按钮  -->
+                    <!--  close button  -->
                     <StackPanel
                         Grid.Row="0"
                         HorizontalAlignment="Right"
@@ -247,133 +139,181 @@
                             VerticalAlignment="Center"
                             Width="28" />
                     </StackPanel>
+
+                    <!--  navbar  -->
+                    <!--  此处符合mvvm规范应当使用 Behaviors，但我选择图方便直接注册事件  -->
+                    <Border
+                        Background="{DynamicResource ColorBrush3}"
+                        Grid.Row="0"
+                        Height="48"
+                        Name="NavBackgroundBorder"
+                        ZIndex="2">
+                        <Grid>
+                            <StackPanel
+                                Height="27"
+                                HorizontalAlignment="Center"
+                                Name="PanTitleSelect"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                                <pc:MyRadioButton
+                                    Command="{Binding NavigateToHome}"
+                                    IsChecked="{Binding IsNavBtn1Checked}"
+                                    Logo="{StaticResource BtnTitleSelect0}"
+                                    LogoScale="0.95"
+                                    Margin="5,0"
+                                    Name="BtnTitleSelect0"
+                                    Padding="2,0"
+                                    Tag="0"
+                                    Text="{DynamicResource LangTitleHome}" />
+                                <pc:MyRadioButton
+                                    Command="{Binding NavigateToDownload}"
+                                    IsChecked="{Binding IsNavBtn2Checked}"
+                                    Logo="{DynamicResource BtnTitleSelect1}"
+                                    LogoScale="0.9"
+                                    Margin="5,0"
+                                    Name="BtnTitleSelect1"
+                                    Padding="2,0"
+                                    Tag="1"
+                                    Text="{DynamicResource LangTitleDownload}" />
+                                <pc:MyRadioButton
+                                    IsChecked="{Binding IsNavBtn3Checked}"
+                                    Logo="{StaticResource BtnTitleSelect2}"
+                                    LogoScale="1.05"
+                                    Margin="5,0"
+                                    Name="BtnTitleSelect2"
+                                    Padding="2,0"
+                                    Tag="2"
+                                    Text="{DynamicResource LangTitleLink}" />
+                                <pc:MyRadioButton
+                                    IsChecked="{Binding IsNavBtn4Checked}"
+                                    Logo="{DynamicResource BtnTitleSelect3}"
+                                    LogoScale="1.1"
+                                    Margin="5,0"
+                                    Name="BtnTitleSelect3"
+                                    Padding="2,0"
+                                    Tag="3"
+                                    Text="{DynamicResource LangTitleSetup}" />
+                                <pc:MyRadioButton
+                                    IsChecked="{Binding IsNavBtn5Checked}"
+                                    Logo="{StaticResource BtnTitleSelect4}"
+                                    LogoScale="0.93"
+                                    Margin="5,0"
+                                    Name="BtnTitleSelect4"
+                                    Padding="2,0"
+                                    Tag="4"
+                                    Text="{DynamicResource LangTitleOther}" />
+                            </StackPanel>
+
+                            <pc:MyIconButton
+                                Command="{Binding GoBackCommand}"
+                                Height="27"
+                                HorizontalAlignment="Left"
+                                IsEnabled="{Binding CanGoBack}"
+                                Margin="15,0,0,0"
+                                Name="BtnNavBack"
+                                ToolTip.Tip="{DynamicResource LangNavigateBack}"
+                                VerticalAlignment="Center"
+                                Width="27">
+                                <PathIcon Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z" />
+                            </pc:MyIconButton>
                         </Grid>
                     </Border>
 
-                    <!-- 内容区 -->
-                    <Grid Grid.Row="1" ColumnDefinitions="320,*">
-                        <!-- 左边控制区 -->
-                        <Border Grid.Column="0"
-                                Background="#FAFAFA"
-                                BorderBrush="#E0E0E0"
-                                BorderThickness="0,0,1,0">
-                            <Grid RowDefinitions="Auto,*,Auto">
-                                <!-- 登录类型选择 -->
-                                <StackPanel Grid.Row="0"
-                                            Orientation="Horizontal"
-                                            HorizontalAlignment="Center"
-                                            Margin="0,15,0,0">
-                                    <RadioButton Content="正版"
-                                                 GroupName="LoginType"
-                                                 IsChecked="{Binding IsPremiumAccount}"
-                                                 Foreground="#2196F3"
-                                                 Margin="0,0,25,0"
-                                                 Command="{Binding SwitchToPremiumCommand}"/>
-
-                                    <RadioButton Content="离线"
-                                                 GroupName="LoginType"
-                                                 IsChecked="{Binding !IsPremiumAccount}"
-                                                 Foreground="#2196F3"
-                                                 Command="{Binding SwitchToOfflineCommand}"/>
-                                </StackPanel>
-
-                                <!-- 用户信息区域 -->
-                                <Grid Grid.Row="1" RowDefinitions="Auto,*">
-                                    <!-- 用户头像和名称 -->
-                                    <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Margin="25,20,25,0">
-                                        <!-- 用户头像 -->
-                                        <Border Grid.Column="0"
-                                                Width="64"
-                                                Height="64"
-                                                CornerRadius="5"
-                                                ClipToBounds="True"
-                                                Margin="0,0,15,0"
-                                                Background="#F0F0F0">
-                                            <Image Source="avares://PCL.Neo/Assets/Icon.ico" Stretch="UniformToFill" />
-                                        </Border>
-
-                                        <!-- 用户名称选择框 -->
-                                        <ComboBox Grid.Column="1"
-                                                 SelectedItem="{Binding CurrentUserName}"
-                                                 PlaceholderText="游戏用户名"
-                                                 VerticalAlignment="Center"
-                                                 HorizontalAlignment="Stretch">
-                                            <ComboBoxItem Content="Player"/>
-                                        </ComboBox>
-                                    </Grid>
-
-                                    <!-- 中间空白区域，可以放置其他内容 -->
-                                    <Border Grid.Row="1"></Border>
-                                </Grid>
-
-                                <!-- 启动区域 -->
-                                <Grid Grid.Row="2" RowDefinitions="Auto,Auto" Margin="25,10,25,25">
-                                    <!-- 版本显示 -->
-                                    <TextBlock Grid.Row="0"
-                                              Text="{Binding SelectedGameVersion}"
-                                              HorizontalAlignment="Center"
-                                              Margin="0,0,0,10"
-                                              FontSize="14" />
-
-                                    <!-- 启动按钮 -->
-                                    <Button Grid.Row="1"
-                                            Content="启动游戏"
-                                            HorizontalAlignment="Stretch"
-                                            Padding="0,15"
-                                            Command="{Binding LaunchGameCommand}"
-                                            Background="#4CAF50"
-                                            Foreground="White"
-                                            FontWeight="SemiBold"
-                                            FontSize="16"
-                                            CornerRadius="5">
-                                        <Button.Styles>
-                                            <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                                <Setter Property="Background" Value="#43A047"/>
-                                            </Style>
-                                        </Button.Styles>
-                                    </Button>
-
-                                    <!-- 版本管理按钮 -->
-                                    <Grid Grid.Row="2" ColumnDefinitions="*,*" Margin="0,10,0,0">
-                                        <Button Grid.Column="0"
-                                                Content="版本选择"
-                                                HorizontalAlignment="Stretch"
-                                                Margin="0,0,5,0"
-                                                Padding="0,10"
-                                                Command="{Binding ManageVersionsCommand}"
-                                                Background="#F5F5F5"
-                                                BorderBrush="#E0E0E0"
-                                                Foreground="#444444"/>
-
-                                        <Button Grid.Column="1"
-                                                Content="版本设置"
-                                                HorizontalAlignment="Stretch"
-                                                Margin="5,0,0,0"
-                                                Padding="0,10"
-                                                Command="{Binding GameSettingsCommand}"
-                                                Background="#F5F5F5"
-                                                BorderBrush="#E0E0E0"
-                                                Foreground="#444444"/>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
+                    <Grid
+                        ColumnDefinitions="Auto, *"
+                        Grid.Row="1"
+                        Name="PanMain">
+                        <!-- Width overridden in code behind -->
+                        <Border
+                            Background="{DynamicResource ColorBrushBackgroundTransparentSidebar}"
+                            BoxShadow="0 0 5 0 DarkGray"
+                            Grid.Column="0"
+                            Grid.ColumnSpan="2"
+                            HorizontalAlignment="Left"
+                            Name="LeftNavigationControlBorder"
+                            Width="0"
+                            ZIndex="1">
+                            <Border.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Width" Duration="0:0:0.3" Easing="CubicEaseOut" />
+                                </Transitions>
+                            </Border.Transitions>
                         </Border>
-
-                        <!-- 右侧内容区 -->
+                        <UserControl
+                            Content="{Binding CurrentViewModel}"
+                            Grid.Column="0"
+                            HorizontalContentAlignment="Stretch"
+                            Name="LeftNavigationControl"
+                            ZIndex="2" />
                         <UserControl
                             Content="{Binding CurrentSubViewModel}"
                             Grid.Column="1"
-                            Name="RightNavigationControl">
-                            <UserControl.Transitions>
-                                <Transitions>
-                                    <ThicknessTransition Property="Margin" Duration="0:0:0.3" Easing="CubicEaseOut" />
-                                    <DoubleTransition Property="Opacity" Duration="0:0:0.3" Easing="CubicEaseOut" />
-                                </Transitions>
-                            </UserControl.Transitions>
-                        </UserControl>
+                            Name="RightNavigationControl"
+                            ZIndex="0" />
                     </Grid>
+
+                    <Grid
+                        Background="#00000000"
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        IsVisible="False"
+                        Name="PanMsg"
+                        ZIndex="10" />
                 </Grid>
             </Border>
         </Border>
+        <Grid Margin="10" Name="GridResize">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="8" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="8" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="0"
+                Name="TopLeft" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="0"
+                Name="TopRight" />
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="2"
+                Name="BottomLeft" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="2"
+                Name="BottomRight" />
+            <Border
+                Background="Transparent"
+                Grid.Column="1"
+                Grid.Row="0"
+                Name="Top" />
+            <Border
+                Background="Transparent"
+                Grid.Column="2"
+                Grid.Row="1"
+                Name="Right" />
+            <Border
+                Background="Transparent"
+                Grid.Column="1"
+                Grid.Row="2"
+                Name="Bottom" />
+            <Border
+                Background="Transparent"
+                Grid.Column="0"
+                Grid.Row="1"
+                Name="Left" />
+        </Grid>
     </Grid>
 </Window>
