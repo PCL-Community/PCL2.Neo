@@ -13,21 +13,15 @@ public sealed partial class JavaManager : IJavaManager
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
-    /// <summary>
-    /// 获取默认Java路径
-    /// </summary>
-    public string DefaultJavaPath
+    public (JavaRuntime Java8, JavaRuntime Java17, JavaRuntime Java21) DefaultJavaRuntimes
     {
+        // TODO)) 根据版本选择
         get
         {
-            if (JavaList.Count > 0)
-            {
-                return JavaList[0].JavaExe;
-            }
-            // 如果没有Java安装，返回系统默认命令
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "java";
+            return (JavaList[0], JavaList[1], JavaList[2]);
         }
     }
+
 
     /// <summary>
     /// 初始化 Java 列表，但除非没有 Java，否则不进行检查。
@@ -90,6 +84,7 @@ public sealed partial class JavaManager : IJavaManager
             Console.WriteLine("已成功添加！");
             return (entity, false);
         }
+
         Console.WriteLine("添加的 Java 文件无法运行！");
         return (null, false);
     }
@@ -124,7 +119,7 @@ public sealed partial class JavaManager : IJavaManager
                 new Progress<(int, int)>(value =>
                     Console.WriteLine(
                         $"下载进度：已下载{value.Item1}/总文件数{value.Item2}")); // TODO)) 后续这个 progress 可以设置成在 UI 上显示
-            var fetchedJavaDir = await FetchJavaOnline(Const.Platform, neo2SysDir.FullName,
+            var fetchedJavaDir = await FetchJavaOnline(SystemUtils.Platform, neo2SysDir.FullName,
                 MojangJavaVersion.Α, progress, cts.Token);
             if (fetchedJavaDir != null)
             {
@@ -139,10 +134,10 @@ public sealed partial class JavaManager : IJavaManager
 
     private static async Task<IEnumerable<JavaRuntime>> SearchJava()
     {
-        return Const.Os switch
+        return SystemUtils.Os switch
         {
-            Const.RunningOs.Windows => await Windows.SearchJavaAsync(),
-            Const.RunningOs.Linux or Const.RunningOs.MacOs => await Unix.SearchJavaAsync(Const.Os),
+            SystemUtils.RunningOs.Windows => await Windows.SearchJavaAsync(),
+            SystemUtils.RunningOs.Linux or SystemUtils.RunningOs.MacOs => await Unix.SearchJavaAsync(SystemUtils.Os),
             _ => throw new PlatformNotSupportedException()
         };
     }

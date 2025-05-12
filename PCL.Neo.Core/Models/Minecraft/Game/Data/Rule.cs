@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
+// TODO)) 不知道这个Rule干嘛的
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 {
@@ -20,4 +21,4 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         [JsonPropertyName("arch")]
         public string? Arch { get; set; }
     }
-} 
+}

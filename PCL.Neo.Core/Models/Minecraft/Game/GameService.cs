@@ -1,66 +1,36 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
+using PCL.Neo.Core.Helpers;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Core.Utils;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game;
 
+using DefaultJavaRuntimeCombine = (JavaRuntime Java8, JavaRuntime Java17, JavaRuntime Java21);
+
 public class GameService
 {
     private readonly IJavaManager _javaManager;
-    private readonly HttpClient _httpClient;
+    private static HttpClient HttpClient => FileHelper.HttpClient;
 
-    public string DefaultGameDirectory { get; }
-    public string DefaultJavaPath => _javaManager.DefaultJavaPath;
-
-    public GameService(IJavaManager javaManager, HttpClient? httpClient = null)
+    public static string DefaultGameDirectory =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
+    DefaultJavaRuntimeCombine DefaultJavaRuntimes => _javaManager.DefaultJavaRuntimes;
+    public GameService(IJavaManager javaManager)
     {
         _javaManager = javaManager;
-        _httpClient = httpClient ?? new HttpClient();
-
-        // 设置默认的Minecraft目录
-        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        DefaultGameDirectory = Path.Combine(userProfile, ".minecraft");
-
-        // 初始化Java管理器
-        _javaManager.JavaListInit();
-    }
-
-    /// <summary>
-    /// 获取系统最大可用内存 (MB)
-    /// </summary>
-    public int GetSystemMaxMemoryMB()
-    {
-        try
-        {
-            // 简化实现，保留Core项目中可用的逻辑
-            return 8192; // 默认8GB
-        }
-        catch
-        {
-            // 出错时使用默认值
-        }
-
-        return 4096; // 默认4GB
+        _javaManager.JavaListInit(); // 初始化Java管理器
     }
 
     /// <summary>
     /// 获取游戏版本列表
     /// </summary>
-    public async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null, bool forceRefresh = false)
+    public static async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null,
+        bool forceRefresh = false)
     {
         string directory = minecraftDirectory ?? DefaultGameDirectory;
-
         // 获取本地版本
         var localVersions = await Versions.GetLocalVersionsAsync(directory);
-
         // 如果需要强制刷新或者本地版本为空，则获取远程版本
         if (forceRefresh || localVersions.Count == 0)
         {
@@ -78,10 +48,7 @@ public class GameService
 
                 foreach (var version in remoteVersions)
                 {
-                    if (!versionDict.ContainsKey(version.Id))
-                    {
-                        versionDict[version.Id] = version;
-                    }
+                    versionDict.TryAdd(version.Id, version);
                 }
 
                 return new List<VersionInfo>(versionDict.Values);
@@ -94,19 +61,6 @@ public class GameService
         }
 
         return localVersions;
-    }
-
-    /// <summary>
-    /// 添加自定义Java
-    /// </summary>
-    public async Task AddCustomJavaAsync(string javaPath)
-    {
-        // 获取Java所在的bin目录
-        string? javaDir = Path.GetDirectoryName(javaPath);
-        if (!string.IsNullOrEmpty(javaDir))
-        {
-            await _javaManager.ManualAdd(javaDir);
-        }
     }
 
     /// <summary>
@@ -244,7 +198,7 @@ public class GameService
             // 下载natives文件
             if (library.Downloads?.Classifiers != null)
             {
-                var nativeKey = GetNativeKey();
+                var nativeKey = SystemUtils.GetNativeKey();
                 if (nativeKey != null && library.Downloads.Classifiers.TryGetValue(nativeKey, out var nativeDownload))
                 {
                     var nativePath = Path.Combine(librariesDir, nativeDownload.Path);
@@ -263,27 +217,6 @@ public class GameService
     }
 
     /// <summary>
-    /// 获取当前系统的native键
-    /// </summary>
-    private string? GetNativeKey()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            return Environment.Is64BitOperatingSystem ? "natives-windows-64" : "natives-windows-32";
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return "natives-linux";
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            return "natives-osx";
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// 评估规则是否适用于当前系统
     /// </summary>
     private bool EvaluateRules(List<Rule> rules)
@@ -297,8 +230,8 @@ public class GameService
             if (rule.Os != null)
             {
                 string currentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" :
-                                   RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
-                                   RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
+                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
+                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
 
                 if (rule.Os.Name != null && rule.Os.Name != currentOs)
                 {
@@ -335,7 +268,7 @@ public class GameService
             }
 
             // 下载文件
-            var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
             response.EnsureSuccessStatusCode();
 
             using var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None);
@@ -428,7 +361,8 @@ public class GameService
     {
         // 解析Minecraft版本号
         string[] parts = minecraftVersion.Split('.');
-        if (parts.Length < 2 || !int.TryParse(parts[0], out int majorVersion) || !int.TryParse(parts[1], out int minorVersion))
+        if (parts.Length < 2 || !int.TryParse(parts[0], out int majorVersion) ||
+            !int.TryParse(parts[1], out int minorVersion))
         {
             return 8; // 默认要求Java 8
         }

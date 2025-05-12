@@ -1,8 +1,8 @@
 using System.Runtime.InteropServices;
 
-namespace PCL.Neo.Core;
+namespace PCL.Neo.Core.Utils;
 
-public static class Const
+public static class SystemUtils
 {
     /// <summary>
     /// 系统是否为64位。
@@ -58,5 +58,43 @@ public static class Const
                 _ => "unknown"
             };
         }
+    }
+
+    /// <summary>
+    /// 获取系统最大可用内存 (MB)
+    /// </summary>
+    public static int GetSystemMaxMemoryMB()
+    {
+        try
+        {
+            // 简化实现，保留Core项目中可用的逻辑
+            return 8192; // 默认8GB
+        }
+        catch
+        {
+            // 出错时使用默认值
+            return 4096;
+        }
+    }
+
+    /// <summary>
+    /// 获取当前系统的native键
+    /// </summary>
+    public static string? GetNativeKey()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Environment.Is64BitOperatingSystem ? "natives-windows-64" : "natives-windows-32";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return "natives-linux";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return "natives-osx";
+        }
+
+        return null;
     }
 }

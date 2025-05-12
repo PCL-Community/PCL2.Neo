@@ -1,3 +1,4 @@
+using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -96,7 +97,7 @@ public static class FileHelper
     [SupportedOSPlatform(nameof(OSPlatform.Linux))]
     public static void SetFileExecutableUnix(this string path)
     {
-        if (Const.Os is Const.RunningOs.Windows) return;
+        if (SystemUtils.Os is SystemUtils.RunningOs.Windows) return;
         try
         {
             var currentMode = File.GetUnixFileMode(path);

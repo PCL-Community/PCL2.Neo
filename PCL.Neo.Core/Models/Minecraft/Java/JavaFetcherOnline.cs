@@ -1,4 +1,5 @@
 using PCL.Neo.Core.Helpers;
+using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -135,7 +136,7 @@ public sealed partial class JavaManager
         await Task.WhenAll(tasks);
 
 #pragma warning disable CA1416
-        if (Const.Os is not Const.RunningOs.Windows)
+        if (SystemUtils.Os is not SystemUtils.RunningOs.Windows)
         {
             Parallel.ForEach(executableFiles, executableFile =>
             {
@@ -145,12 +146,12 @@ public sealed partial class JavaManager
             });
         }
 #pragma warning restore CA1416
-        var targetFolder = Const.Os switch
+        var targetFolder = SystemUtils.Os switch
         {
-            Const.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
-            Const.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Unknown => throw new ArgumentOutOfRangeException(),
+            SystemUtils.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
+            SystemUtils.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
+            SystemUtils.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
+            SystemUtils.RunningOs.Unknown => throw new ArgumentOutOfRangeException(),
             _ => throw new ArgumentOutOfRangeException()
         };
         return targetFolder;

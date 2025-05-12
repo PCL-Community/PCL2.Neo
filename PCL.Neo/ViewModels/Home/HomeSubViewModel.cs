@@ -110,7 +110,7 @@ public partial class HomeSubViewModel : ViewModelBase
         try
         {
             StatusMessage = "正在加载版本列表...";
-            var versions = await Versions.GetLocalVersionsAsync(_gameService.DefaultGameDirectory);
+            var versions = await Versions.GetLocalVersionsAsync(GameService.DefaultGameDirectory);
 
             GameVersions.Clear();
             foreach (var version in versions)

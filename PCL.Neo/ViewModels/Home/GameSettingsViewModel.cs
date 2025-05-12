@@ -57,28 +57,35 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private object? _currentView;
 
     #region 基本信息
+
     [ObservableProperty] private string _versionId = string.Empty;
     [ObservableProperty] private string _gameVersionName = string.Empty;
     [ObservableProperty] private string _versionType = string.Empty;
     [ObservableProperty] private string _releaseTime = string.Empty;
     [ObservableProperty] private string _mainClass = string.Empty;
     [ObservableProperty] private string _inheritsFrom = string.Empty;
+
     #endregion
 
     #region 修改页面
+
     [ObservableProperty] private ObservableCollection<VersionComponent> _components = new();
     [ObservableProperty] private bool _hasFabricWarning = true;
     [ObservableProperty] private string _minecraftVersion = "";
+
     #endregion
 
     #region 概览页面
+
     [ObservableProperty] private string _packageName = "";
     [ObservableProperty] private string _packageDescription = "";
     [ObservableProperty] private string _customIcon = "自动";
     [ObservableProperty] private string _customCategory = "自动";
+
     #endregion
 
     #region 设置页面
+
     [ObservableProperty] private string _launchMode = "开启";
     [ObservableProperty] private string _gameWindowTitle = "跟随全局设置";
     [ObservableProperty] private string _customGameInfo = "跟随全局设置";
@@ -94,9 +101,11 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _serverAutoJoin = string.Empty;
     [ObservableProperty] private string _memoryOptimization = "跟随全局设置";
     [ObservableProperty] private string _advancedLaunchOptions = string.Empty;
+
     #endregion
 
     #region 导出页面
+
     [ObservableProperty] private string _packageVersion = "1.0.0";
     [ObservableProperty] private bool _exportGameCore = true;
     [ObservableProperty] private bool _exportGameSettings = true;
@@ -109,17 +118,21 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _exportLauncherProgram = false;
     [ObservableProperty] private bool _exportSourceFiles = false;
     [ObservableProperty] private bool _useModrinthUpload = false;
+
     #endregion
 
     #region Java设置
+
     [ObservableProperty] private string _javaPath = string.Empty;
     [ObservableProperty] private int _memoryAllocation = 2048;
     [ObservableProperty] private int _maxMemoryMB = 8192;
     [ObservableProperty] private string _memoryAllocationDisplay = "2048 MB";
     [ObservableProperty] private string _jvmArguments = string.Empty;
+
     #endregion
 
     #region 游戏设置
+
     [ObservableProperty] private string _gameDirectory = string.Empty;
     [ObservableProperty] private bool _isFullScreen = false;
     [ObservableProperty] private int _gameWidth = 854;
@@ -128,13 +141,17 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _closeAfterLaunch = false;
     [ObservableProperty] private bool _disableAnimation = false;
     [ObservableProperty] private bool _useLegacyLauncher = false;
+
     #endregion
 
     #region Mods管理
+
     [ObservableProperty] private ObservableCollection<ModInfo> _mods = new();
+
     #endregion
 
     #region 高级设置
+
     [ObservableProperty] private ObservableCollection<string> _downloadSources = new();
     [ObservableProperty] private string _selectedDownloadSource = string.Empty;
     [ObservableProperty] private string _proxyAddress = string.Empty;
@@ -144,9 +161,11 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _isDebugMode = false;
     [ObservableProperty] private bool _saveGameLog = true;
     [ObservableProperty] private bool _enableCrashAnalysis = true;
+
     #endregion
 
     #region 性能设置
+
     [ObservableProperty] private int _renderDistance = 12;
     [ObservableProperty] private ObservableCollection<string> _particleOptions = new();
     [ObservableProperty] private string _selectedParticleOption = string.Empty;
@@ -156,9 +175,11 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private int _masterVolume = 100;
     [ObservableProperty] private int _musicVolume = 100;
     [ObservableProperty] private int _soundVolume = 100;
+
     #endregion
 
-    public GameSettingsViewModel(INavigationService navigationService, GameService gameService, StorageService storageService)
+    public GameSettingsViewModel(INavigationService navigationService, GameService gameService,
+        StorageService storageService)
     {
         _navigationService = navigationService;
         _gameService = gameService;
@@ -177,41 +198,28 @@ public partial class GameSettingsViewModel : ViewModelBase
         };
 
         // 初始化下拉选项
-        DownloadSources = new ObservableCollection<string>
-        {
-            "官方源",
-            "BMCLAPI",
-            "自定义源"
-        };
+        DownloadSources = new ObservableCollection<string> { "官方源", "BMCLAPI", "自定义源" };
         SelectedDownloadSource = "BMCLAPI";
 
-        ParticleOptions = new ObservableCollection<string>
-        {
-            "全部",
-            "减少",
-            "最小",
-            "关闭"
-        };
+        ParticleOptions = new ObservableCollection<string> { "全部", "减少", "最小", "关闭" };
         SelectedParticleOption = "全部";
 
-        GraphicsOptions = new ObservableCollection<string>
-        {
-            "流畅",
-            "均衡",
-            "高品质",
-            "自定义"
-        };
+        GraphicsOptions = new ObservableCollection<string> { "流畅", "均衡", "高品质", "自定义" };
         SelectedGraphicsOption = "高品质";
 
         // 初始化环境变量列表
         EnvironmentVariables = new ObservableCollection<EnvironmentVariable>
         {
-            new EnvironmentVariable { IsEnabled = true, Name = "JAVA_TOOL_OPTIONS", Value = "-Dfile.encoding=UTF-8" },
+            new EnvironmentVariable
+            {
+                IsEnabled = true, Name = "JAVA_TOOL_OPTIONS", Value = "-Dfile.encoding=UTF-8"
+            },
             new EnvironmentVariable { IsEnabled = false, Name = "JAVA_OPTS", Value = "-XX:+UseG1GC" }
         };
 
         // 监听菜单索引变化
-        this.PropertyChanged += (sender, args) => {
+        this.PropertyChanged += (sender, args) =>
+        {
             if (args.PropertyName == nameof(SelectedMenuIndex))
             {
                 UpdateContentView();
@@ -246,7 +254,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         JavaPath = _gameService.DefaultJavaPath;
 
         // 设置默认游戏目录
-        GameDirectory = _gameService.DefaultGameDirectory;
+        GameDirectory = GameService.DefaultGameDirectory;
 
         // 获取系统内存信息，设置最大可用内存
         DetectSystemMemory();
@@ -288,7 +296,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         try
         {
             // 加载版本信息
-            var versionInfo = await Versions.GetVersionByIdAsync(_gameService.DefaultGameDirectory, versionId);
+            var versionInfo = await Versions.GetVersionByIdAsync(GameService.DefaultGameDirectory, versionId);
             if (versionInfo != null)
             {
                 GameVersionName = versionInfo.Name;
@@ -327,7 +335,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         // 这里应该从配置文件加载特定版本的设置
         // 以下是示例数据
         JavaPath = _gameService.DefaultJavaPath;
-        GameDirectory = _gameService.DefaultGameDirectory;
+        GameDirectory = GameService.DefaultGameDirectory;
         JvmArguments = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200";
         GameArguments = "";
     }
@@ -340,7 +348,10 @@ public partial class GameSettingsViewModel : ViewModelBase
         {
             new ModInfo { Name = "OptiFine", Version = "1.20.1_HD_U_I5", Author = "sp614x", Description = "优化模组" },
             new ModInfo { Name = "JourneyMap", Version = "5.9.16", Author = "techbrew", Description = "小地图模组" },
-            new ModInfo { Name = "Fabric API", Version = "0.92.0", Author = "FabricMC", Description = "Fabric模组加载器API" }
+            new ModInfo
+            {
+                Name = "Fabric API", Version = "0.92.0", Author = "FabricMC", Description = "Fabric模组加载器API"
+            }
         };
 
         // 实际实现时需要扫描mods文件夹
@@ -363,13 +374,10 @@ public partial class GameSettingsViewModel : ViewModelBase
                     ? new[] { "java.exe", "javaw.exe" }
                     : new[] { "java" }
             },
-            new("所有文件")
-            {
-                Patterns = new[] { "*" }
-            }
+            new("所有文件") { Patterns = new[] { "*" } }
         };
 
-        var javaPath = await _storageService.SelectFileWithFilters(filters, "选择Java执行文件");
+        var javaPath = await _storageService.SelectFile("选择Java执行文件", filters);
         if (!string.IsNullOrEmpty(javaPath))
         {
             JavaPath = javaPath;
@@ -561,7 +569,6 @@ public partial class GameSettingsViewModel : ViewModelBase
                 ExtraJvmArgs = string.IsNullOrEmpty(JvmArguments)
                     ? new List<string>()
                     : JvmArguments.Split(' ').ToList(),
-
                 ExtraGameArgs = string.IsNullOrEmpty(GameArguments)
                     ? new List<string>()
                     : GameArguments.Split(' ').ToList(),
@@ -642,7 +649,8 @@ public partial class GameSettingsViewModel : ViewModelBase
             }
 
             // 构建游戏参数（简化版）
-            string gameArgs = $"--username Player --version {VersionId} --gameDir \"{gameDir}\" --assetsDir \"{Path.Combine(gameDir, "assets")}\"";
+            string gameArgs =
+                $"--username Player --version {VersionId} --gameDir \"{gameDir}\" --assetsDir \"{Path.Combine(gameDir, "assets")}\"";
 
             if (!string.IsNullOrEmpty(GameArguments))
             {
@@ -803,13 +811,13 @@ read -n 1 -s";
             }
 
             // 选择要导入的存档文件
-            var saveFile = await _storageService.SelectFileWithFilters(
+            var saveFile = await _storageService.SelectFile("选择Minecraft存档文件",
                 new List<FilePickerFileType>
                 {
                     new("Minecraft存档") { Patterns = new[] { "*.zip", "*.mcworld" } },
                     new("所有文件") { Patterns = new[] { "*" } }
-                },
-                "选择Minecraft存档文件");
+                }
+            );
 
             if (string.IsNullOrEmpty(saveFile) || !File.Exists(saveFile))
             {
@@ -881,7 +889,8 @@ read -n 1 -s";
         try
         {
             // 创建设置目录
-            string settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "settings");
+            string settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PCL.Neo", "settings");
             Directory.CreateDirectory(settingsDir);
 
             // 保存基本设置
@@ -904,10 +913,9 @@ read -n 1 -s";
 
             // 写入JSON文件
             string settingsFile = Path.Combine(settingsDir, "game_settings.json");
-            File.WriteAllText(settingsFile, System.Text.Json.JsonSerializer.Serialize(settings, new System.Text.Json.JsonSerializerOptions
-            {
-                WriteIndented = true
-            }));
+            File.WriteAllText(settingsFile,
+                System.Text.Json.JsonSerializer.Serialize(settings,
+                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex)
         {
@@ -921,7 +929,8 @@ read -n 1 -s";
     {
         try
         {
-            string settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "settings", "game_settings.json");
+            string settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "PCL.Neo", "settings", "game_settings.json");
 
             if (File.Exists(settingsFile))
             {
@@ -931,7 +940,8 @@ read -n 1 -s";
                 if (settings != null)
                 {
                     // 加载Java路径
-                    if (settings.TryGetValue("JavaPath", out string javaPath) && !string.IsNullOrEmpty(javaPath) && File.Exists(javaPath))
+                    if (settings.TryGetValue("JavaPath", out string javaPath) && !string.IsNullOrEmpty(javaPath) &&
+                        File.Exists(javaPath))
                     {
                         JavaPath = javaPath;
                     }
@@ -941,13 +951,15 @@ read -n 1 -s";
                     }
 
                     // 加载游戏目录
-                    if (settings.TryGetValue("GameDirectory", out string gameDir) && !string.IsNullOrEmpty(gameDir) && Directory.Exists(gameDir))
+                    if (settings.TryGetValue("GameDirectory", out string gameDir) && !string.IsNullOrEmpty(gameDir) &&
+                        Directory.Exists(gameDir))
                     {
                         GameDirectory = gameDir;
                     }
 
                     // 加载内存设置
-                    if (settings.TryGetValue("MemoryAllocation", out string memAlloc) && int.TryParse(memAlloc, out int memory))
+                    if (settings.TryGetValue("MemoryAllocation", out string memAlloc) &&
+                        int.TryParse(memAlloc, out int memory))
                     {
                         MemoryAllocation = Math.Min(MaxMemoryMB, memory);
                     }
@@ -965,42 +977,49 @@ read -n 1 -s";
                     }
 
                     // 加载全屏设置
-                    if (settings.TryGetValue("IsFullScreen", out string isFullScreen) && bool.TryParse(isFullScreen, out bool fullScreen))
+                    if (settings.TryGetValue("IsFullScreen", out string isFullScreen) &&
+                        bool.TryParse(isFullScreen, out bool fullScreen))
                     {
                         IsFullScreen = fullScreen;
                     }
 
                     // 加载游戏窗口尺寸
-                    if (settings.TryGetValue("GameWidth", out string gameWidth) && int.TryParse(gameWidth, out int width))
+                    if (settings.TryGetValue("GameWidth", out string gameWidth) &&
+                        int.TryParse(gameWidth, out int width))
                     {
                         GameWidth = width;
                     }
 
-                    if (settings.TryGetValue("GameHeight", out string gameHeight) && int.TryParse(gameHeight, out int height))
+                    if (settings.TryGetValue("GameHeight", out string gameHeight) &&
+                        int.TryParse(gameHeight, out int height))
                     {
                         GameHeight = height;
                     }
 
                     // 加载启动后关闭设置
-                    if (settings.TryGetValue("CloseAfterLaunch", out string closeAfterLaunch) && bool.TryParse(closeAfterLaunch, out bool close))
+                    if (settings.TryGetValue("CloseAfterLaunch", out string closeAfterLaunch) &&
+                        bool.TryParse(closeAfterLaunch, out bool close))
                     {
                         CloseAfterLaunch = close;
                     }
 
                     // 加载日志保存设置
-                    if (settings.TryGetValue("SaveGameLog", out string saveGameLog) && bool.TryParse(saveGameLog, out bool saveLog))
+                    if (settings.TryGetValue("SaveGameLog", out string saveGameLog) &&
+                        bool.TryParse(saveGameLog, out bool saveLog))
                     {
                         SaveGameLog = saveLog;
                     }
 
                     // 加载崩溃分析设置
-                    if (settings.TryGetValue("EnableCrashAnalysis", out string enableCrashAnalysis) && bool.TryParse(enableCrashAnalysis, out bool crashAnalysis))
+                    if (settings.TryGetValue("EnableCrashAnalysis", out string enableCrashAnalysis) &&
+                        bool.TryParse(enableCrashAnalysis, out bool crashAnalysis))
                     {
                         EnableCrashAnalysis = crashAnalysis;
                     }
 
                     // 加载代理设置
-                    if (settings.TryGetValue("IsProxyEnabled", out string isProxyEnabled) && bool.TryParse(isProxyEnabled, out bool proxyEnabled))
+                    if (settings.TryGetValue("IsProxyEnabled", out string isProxyEnabled) &&
+                        bool.TryParse(isProxyEnabled, out bool proxyEnabled))
                     {
                         IsProxyEnabled = proxyEnabled;
                     }
@@ -1030,9 +1049,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "explorer.exe",
-                        Arguments = $"\"{folderPath}\"",
-                        UseShellExecute = true
+                        FileName = "explorer.exe", Arguments = $"\"{folderPath}\"", UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1043,9 +1060,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "xdg-open",
-                        Arguments = folderPath,
-                        UseShellExecute = true
+                        FileName = "xdg-open", Arguments = folderPath, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1056,9 +1071,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "open",
-                        Arguments = folderPath,
-                        UseShellExecute = true
+                        FileName = "open", Arguments = folderPath, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1085,11 +1098,7 @@ read -n 1 -s";
             {
                 using var process = new Process
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = filePath,
-                        UseShellExecute = true
-                    }
+                    StartInfo = new ProcessStartInfo { FileName = filePath, UseShellExecute = true }
                 };
                 process.Start();
             }
@@ -1099,9 +1108,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "xdg-open",
-                        Arguments = filePath,
-                        UseShellExecute = true
+                        FileName = "xdg-open", Arguments = filePath, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1112,9 +1119,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "open",
-                        Arguments = filePath,
-                        UseShellExecute = true
+                        FileName = "open", Arguments = filePath, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1270,11 +1275,7 @@ read -n 1 -s";
             {
                 using var process = new Process
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = guideUrl,
-                        UseShellExecute = true
-                    }
+                    StartInfo = new ProcessStartInfo { FileName = guideUrl, UseShellExecute = true }
                 };
                 process.Start();
             }
@@ -1284,9 +1285,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "xdg-open",
-                        Arguments = guideUrl,
-                        UseShellExecute = true
+                        FileName = "xdg-open", Arguments = guideUrl, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1297,9 +1296,7 @@ read -n 1 -s";
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "open",
-                        Arguments = guideUrl,
-                        UseShellExecute = true
+                        FileName = "open", Arguments = guideUrl, UseShellExecute = true
                     }
                 };
                 process.Start();
@@ -1423,7 +1420,8 @@ read -n 1 -s";
                         string resourcePackPath = Path.Combine(resourcePacksFolder, SelectedResourcePack);
                         if (File.Exists(resourcePackPath))
                         {
-                            File.Copy(resourcePackPath, Path.Combine(targetResourcePacksFolder, SelectedResourcePack), true);
+                            File.Copy(resourcePackPath, Path.Combine(targetResourcePacksFolder, SelectedResourcePack),
+                                true);
                         }
                     }
                     else
@@ -1580,7 +1578,8 @@ read -n 1 -s -r -p ""按任意键退出...""";
                 }
 
                 // 根据读取的配置更新UI
-                if (gameOptions.TryGetValue("renderDistance", out string renderDistanceValue) && int.TryParse(renderDistanceValue, out int renderDistance))
+                if (gameOptions.TryGetValue("renderDistance", out string renderDistanceValue) &&
+                    int.TryParse(renderDistanceValue, out int renderDistance))
                 {
                     RenderDistance = renderDistance;
                 }
@@ -1604,23 +1603,27 @@ read -n 1 -s -r -p ""按任意键退出...""";
                     }
                 }
 
-                if (gameOptions.TryGetValue("maxFps", out string maxFpsValue) && int.TryParse(maxFpsValue, out int maxFps))
+                if (gameOptions.TryGetValue("maxFps", out string maxFpsValue) &&
+                    int.TryParse(maxFpsValue, out int maxFps))
                 {
                     MaxFrameRate = maxFps;
                 }
 
-                if (gameOptions.TryGetValue("soundVolume", out string soundVolumeValue) && float.TryParse(soundVolumeValue, out float soundVolume))
+                if (gameOptions.TryGetValue("soundVolume", out string soundVolumeValue) &&
+                    float.TryParse(soundVolumeValue, out float soundVolume))
                 {
                     SoundVolume = (int)(soundVolume * 100);
                 }
 
-                if (gameOptions.TryGetValue("musicVolume", out string musicVolumeValue) && float.TryParse(musicVolumeValue, out float musicVolume))
+                if (gameOptions.TryGetValue("musicVolume", out string musicVolumeValue) &&
+                    float.TryParse(musicVolumeValue, out float musicVolume))
                 {
                     MusicVolume = (int)(musicVolume * 100);
                 }
 
                 // 加载图形设置
-                if (gameOptions.TryGetValue("graphicsMode", out string graphicsModeValue) && int.TryParse(graphicsModeValue, out int graphicsMode))
+                if (gameOptions.TryGetValue("graphicsMode", out string graphicsModeValue) &&
+                    int.TryParse(graphicsModeValue, out int graphicsMode))
                 {
                     switch (graphicsMode)
                     {

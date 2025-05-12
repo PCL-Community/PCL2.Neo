@@ -58,8 +58,8 @@ public partial class VersionManagerViewModel : ViewModelBase
     [ObservableProperty] private string _statusMessage = string.Empty;
 
     public VersionManagerViewModel(
-        INavigationService navigationService, 
-        GameService gameService, 
+        INavigationService navigationService,
+        GameService gameService,
         StorageService storageService,
         PCL.Neo.Core.Models.Minecraft.Game.GameLauncher gameLauncher)
     {
@@ -89,7 +89,7 @@ public partial class VersionManagerViewModel : ViewModelBase
         // 添加默认目录
         Directories.Add(new GameDirectory
         {
-            Path = _gameService.DefaultGameDirectory,
+            Path = GameService.DefaultGameDirectory,
             DisplayName = "默认目录",
             IsDefault = true,
             IsScanned = false
@@ -107,7 +107,7 @@ public partial class VersionManagerViewModel : ViewModelBase
     public async Task Initialize()
     {
         // 加载默认目录的版本
-        await LoadVersionsAsync(_gameService.DefaultGameDirectory);
+        await LoadVersionsAsync(GameService.DefaultGameDirectory);
     }
 
     partial void OnSelectedDirectoryChanged(GameDirectory? value)
@@ -163,7 +163,7 @@ public partial class VersionManagerViewModel : ViewModelBase
             StatusMessage = "正在加载版本...";
 
             // 加载版本列表
-            var versionInfos = await _gameService.GetVersionsAsync(directory);
+            var versionInfos = await GameService.GetVersionsAsync(directory);
 
             // 转换为UI项
             var versionItems = versionInfos.Select(v => new VersionItem
@@ -338,13 +338,13 @@ public partial class VersionManagerViewModel : ViewModelBase
             StatusMessage = "无效的Java路径，请在设置中选择正确的Java可执行文件";
             return;
         }
-        
+
         // 检查Java版本与Minecraft版本的兼容性
         if (!_gameService.IsJavaCompatibleWithGame(javaPath, version.Id))
         {
             // 提示用户但不阻止启动
             StatusMessage = "警告：当前Java版本可能与所选Minecraft版本不兼容";
-            
+
             // 可以在这里添加对话框提示，让用户确认是否继续
             // 这里简化处理，直接等待3秒后继续
             await Task.Delay(3000);
@@ -371,7 +371,7 @@ public partial class VersionManagerViewModel : ViewModelBase
                 WindowHeight = 480,
                 FullScreen = false,
                 IsOfflineMode = true,
-                
+
                 // 添加额外的JVM参数以优化性能
                 ExtraJvmArgs = new List<string>
                 {
@@ -384,17 +384,17 @@ public partial class VersionManagerViewModel : ViewModelBase
                     "-Dfile.encoding=UTF-8", // 确保使用UTF-8编码
                     "-Djava.net.preferIPv4Stack=true" // 优先使用IPv4
                 },
-                
+
                 // 环境变量
                 EnvironmentVariables = new Dictionary<string, string>
                 {
                     { "JAVA_TOOL_OPTIONS", "-Dfile.encoding=UTF-8" }
                 },
-                
+
                 // 是否启动后关闭启动器
                 CloseAfterLaunch = false
             };
-            
+
             // 跨平台支持的调整
             if (OperatingSystem.IsLinux())
             {
@@ -412,7 +412,7 @@ public partial class VersionManagerViewModel : ViewModelBase
             // 使用正式的GameLauncher启动游戏
             Process process = await _gameLauncher.LaunchAsync(launchOptions);
             StatusMessage = $"{version.Name} 已启动";
-            
+
             // 如果设置了启动后关闭启动器
             if (launchOptions.CloseAfterLaunch)
             {
@@ -429,6 +429,7 @@ public partial class VersionManagerViewModel : ViewModelBase
         }
     }
 
+    // TODO)) 删
     private string GetDirectoryDisplayName(string path)
     {
         // 从路径生成显示名称
