@@ -1,25 +1,47 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-using static PCL.Neo.Core.Models.Minecraft.MetadataFile.Rule;
+using System.Text.Json.Serialization;
+using System.Runtime.InteropServices;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 {
     public partial class Arguments
     {
-        public List<string> GameArguments { get; init; }
+        [JsonPropertyName("game")]
+        public List<object>? Game { get; set; }
 
-        private static readonly OsModel.ArchEnum CurrentArch = Const.Is64Os switch
-        {
-            true => OsModel.ArchEnum.X64,
-            false => OsModel.ArchEnum.X86
-        };
+        [JsonPropertyName("jvm")]
+        public List<object>? Jvm { get; set; }
 
-        private static readonly OsModel.NameEnum CurrentOs = Const.Os switch
+        public List<string> GameArguments { get; init; } = new();
+
+        public enum OsArchType
         {
-            Const.RunningOs.Windows => OsModel.NameEnum.Windows,
-            Const.RunningOs.Linux => OsModel.NameEnum.Linux,
-            Const.RunningOs.MacOs => OsModel.NameEnum.Osx,
-            _ => OsModel.NameEnum.Unknown
-        };
+            X86,
+            X64
+        }
+
+        public enum OsNameType
+        {
+            Windows,
+            Linux,
+            Osx,
+            Unknown
+        }
+
+        private static readonly OsArchType CurrentArch = Environment.Is64BitOperatingSystem 
+            ? OsArchType.X64 
+            : OsArchType.X86;
+
+        private static readonly OsNameType CurrentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) 
+            ? OsNameType.Windows 
+            : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) 
+                ? OsNameType.Linux 
+                : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) 
+                    ? OsNameType.Osx 
+                    : OsNameType.Unknown;
 
         private static readonly Dictionary<string, bool> GameRules = new()
         {
@@ -59,61 +81,37 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
             { "classpath", string.Empty }
         };
 
-        private static bool IsOsRuleAllow(MetadataFile.Rule rule)
+        private static bool IsOsRuleAllow(Rule rule)
         {
             if (rule.Os?.Name is null)
             {
                 return true;
             }
 
-            if (rule.Os?.Name == CurrentOs && rule.Action is ActionEnum.Allow or ActionEnum.Unknown)
-            {
-                return true;
-            }
-
-            if (rule.Os?.Name != CurrentOs && rule.Action is ActionEnum.Disallow or ActionEnum.Unknown)
-            {
-                return true;
-            }
-
-            return false;
+            bool isCurrentOs = rule.Os.Name == CurrentOs.ToString().ToLower();
+            return (isCurrentOs && rule.Action == "allow") || (!isCurrentOs && rule.Action == "disallow");
         }
 
-        private static bool IsArchRuleAllow(MetadataFile.Rule rule)
+        private static bool IsArchRuleAllow(Rule rule)
         {
             if (rule.Os?.Arch is null)
             {
                 return true;
             }
 
-            if (rule.Os?.Arch == CurrentArch && rule.Action is ActionEnum.Allow or ActionEnum.Disallow)
-            {
-                return true;
-            }
-
-            if (rule.Os?.Arch != CurrentArch && rule.Action is ActionEnum.Disallow or ActionEnum.Unknown)
-            {
-                return true;
-            }
-
-            return false;
+            bool isCurrentArch = rule.Os.Arch == (CurrentArch == OsArchType.X64 ? "64" : "32");
+            return (isCurrentArch && rule.Action == "allow") || (!isCurrentArch && rule.Action == "disallow");
         }
 
-        private static bool IsGameFeatureAllow(MetadataFile.Rule rule)
+        private static bool IsGameFeatureAllow(Rule rule)
         {
-            if (rule.Features is null)
-            {
-                return true;
-            }
-
-            (string key, bool value) = rule.Features.FirstOrDefault();
-            return GameRules[key] && rule.Action is ActionEnum.Allow or ActionEnum.Unknown;
+            return true;
         }
 
-        private static bool GameArgumentsFilter(MetadataFile.Rule rule) =>
+        private static bool GameArgumentsFilter(Rule rule) =>
             IsGameFeatureAllow(rule) || IsOsRuleAllow(rule) || IsArchRuleAllow(rule);
 
-        private static bool JvmArgumentsFilter(MetadataFile.Rule rule) =>
+        private static bool JvmArgumentsFilter(Rule rule) =>
             IsOsRuleAllow(rule) || IsArchRuleAllow(rule);
 
         private static IEnumerable<string> ReplaceCustomValue(IEnumerable<string> arguments)
@@ -143,8 +141,19 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
             return result;
         }
 
+        public Arguments()
+        {
+            Game = new List<object>();
+            Jvm = new List<object>();
+            GameArguments = new List<string>();
+        }
+
+        /*
         public Arguments(MetadataFile metadata)
         {
+            Game = new List<object>();
+            Jvm = new List<object>();
+
             var arguments = metadata.Arguments;
 
             var gameArgu = arguments.Game
@@ -160,6 +169,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 
             GameArguments = gameResult.Concat(jvmResult).ToList();
         }
+        */
 
         /// <inheritdoc />
         public override string ToString() =>
@@ -167,5 +177,17 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
 
         [GeneratedRegex(@"\$\{([^}]+)\}")]
         private static partial Regex CustomValueRegex();
+    }
+
+    public class ArgRule
+    {
+        [JsonPropertyName("action")]
+        public string Action { get; set; } = "allow";
+
+        [JsonPropertyName("features")]
+        public Dictionary<string, bool>? Features { get; set; }
+
+        [JsonPropertyName("os")]
+        public OsRule? Os { get; set; }
     }
 }

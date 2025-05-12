@@ -90,23 +90,23 @@
                                     Text="Neo"
                                     VerticalAlignment="Center" />
                             </Border>
-                            <Border
+                        <Border
                                 Background="#9BF00B"
                                 CornerRadius="5"
-                                Height="20"
-                                HorizontalAlignment="Left"
+                            Height="20"
+                            HorizontalAlignment="Left"
                                 IsHitTestVisible="False"
                                 IsVisible="True"
                                 Margin="8,0,0,0"
                                 Name="DevTitleLogo"
                                 UseLayoutRounding="False"
                                 Width="32">
-                                <TextBlock
+                            <TextBlock
                                     Foreground="Black"
-                                    HorizontalAlignment="Center"
+                                HorizontalAlignment="Center"
                                     Text="Dev"
                                     VerticalAlignment="Center" />
-                            </Border>
+                        </Border>
                         </StackPanel>
                     </StackPanel>
 
@@ -203,8 +203,8 @@
                                     Tag="4"
                                     Text="{DynamicResource LangTitleOther}" />
                             </StackPanel>
-                            
-                            <pc:MyIconButton 
+
+                            <pc:MyIconButton
                                 Command="{Binding GoBackCommand}"
                                 Height="27"
                                 HorizontalAlignment="Left"

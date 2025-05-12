@@ -15,6 +15,11 @@ public class AnimationHelper(List<IAnimation> animations)
 
     public AnimationHelper() : this([]){}
 
+    public void Run()
+    {
+        _ = RunAsync();
+    }
+
     public async Task RunAsync()
     {
         Tasks.Clear();

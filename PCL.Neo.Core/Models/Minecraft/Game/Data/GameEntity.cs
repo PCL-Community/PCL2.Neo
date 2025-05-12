@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data;
 
@@ -8,7 +9,7 @@ public record GameEntityInfo
     /// <summary>
     /// The Game Version information.
     /// </summary>
-    public GameVersion GameVersion { get; set; }
+    public GameVersionInfo GameVersion { get; set; }
 
     /// <summary>
     /// Game Name that is used to display in the UI.
@@ -41,9 +42,9 @@ public record GameEntityInfo
     public string JsonOrigContent { get; set; }
 
     /// <summary>
-    /// The Parsed Game Json Content. Type is <see cref="MetadataFile"/>.
+    /// The Parsed Game Json Content. Type is <see cref="VersionInfo"/>.
     /// </summary>
-    public MetadataFile JsonContent { get; set; }
+    public VersionInfo JsonContent { get; set; }
 
     /// <summary>
     /// Demonstrate the Game Version Type.
