@@ -90,23 +90,23 @@
                                     Text="Neo"
                                     VerticalAlignment="Center" />
                             </Border>
-                        <Border
+                            <Border
                                 Background="#9BF00B"
                                 CornerRadius="5"
-                            Height="20"
-                            HorizontalAlignment="Left"
+                                Height="20"
+                                HorizontalAlignment="Left"
                                 IsHitTestVisible="False"
                                 IsVisible="True"
                                 Margin="8,0,0,0"
                                 Name="DevTitleLogo"
                                 UseLayoutRounding="False"
                                 Width="32">
-                            <TextBlock
+                                <TextBlock
                                     Foreground="Black"
-                                HorizontalAlignment="Center"
+                                    HorizontalAlignment="Center"
                                     Text="Dev"
                                     VerticalAlignment="Center" />
-                        </Border>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
 
@@ -156,7 +156,8 @@
                                 Orientation="Horizontal"
                                 VerticalAlignment="Center">
                                 <pc:MyRadioButton
-                                    Command="{Binding NavigateToHome}"
+                                    Command="{Binding Navigate}"
+                                    CommandParameter="1"
                                     IsChecked="{Binding IsNavBtn1Checked}"
                                     Logo="{StaticResource BtnTitleSelect0}"
                                     LogoScale="0.95"
@@ -166,43 +167,48 @@
                                     Tag="0"
                                     Text="{DynamicResource LangTitleHome}" />
                                 <pc:MyRadioButton
-                                    Command="{Binding NavigateToDownload}"
+                                    Command="{Binding Navigate}"
+                                    CommandParameter="2"
                                     IsChecked="{Binding IsNavBtn2Checked}"
                                     Logo="{DynamicResource BtnTitleSelect1}"
                                     LogoScale="0.9"
                                     Margin="5,0"
                                     Name="BtnTitleSelect1"
                                     Padding="2,0"
-                                    Tag="1"
+                                    Tag="2"
                                     Text="{DynamicResource LangTitleDownload}" />
                                 <pc:MyRadioButton
-                                    Command="{Binding NavigateToLink}"
+                                    Command="{Binding Navigate}"
+                                    CommandParameter="3"
                                     IsChecked="{Binding IsNavBtn3Checked}"
                                     Logo="{StaticResource BtnTitleSelect2}"
                                     LogoScale="1.05"
                                     Margin="5,0"
                                     Name="BtnTitleSelect2"
                                     Padding="2,0"
-                                    Tag="2"
+                                    Tag="3"
                                     Text="{DynamicResource LangTitleLink}" />
                                 <pc:MyRadioButton
-                                    Command="{Binding NavigateToSetup}"
+                                    Command="{Binding Navigate}"
+                                    CommandParameter="4"
                                     IsChecked="{Binding IsNavBtn4Checked}"
                                     Logo="{DynamicResource BtnTitleSelect3}"
                                     LogoScale="1.1"
                                     Margin="5,0"
                                     Name="BtnTitleSelect3"
                                     Padding="2,0"
-                                    Tag="3"
+                                    Tag="4"
                                     Text="{DynamicResource LangTitleSetup}" />
                                 <pc:MyRadioButton
+                                    Command="{Binding Navigate}"
+                                    CommandParameter="5"
                                     IsChecked="{Binding IsNavBtn5Checked}"
                                     Logo="{StaticResource BtnTitleSelect4}"
                                     LogoScale="0.93"
                                     Margin="5,0"
                                     Name="BtnTitleSelect4"
                                     Padding="2,0"
-                                    Tag="4"
+                                    Tag="5"
                                     Text="{DynamicResource LangTitleOther}" />
                             </StackPanel>
 

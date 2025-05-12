@@ -104,31 +104,30 @@ namespace PCL.Neo.ViewModels
         }
 
         [RelayCommand]
-        public async Task NavigateToHome()
+        public async Task Navigate(int tag)
         {
-            CheckedBtn = 1;
-            await NavigationService.GotoAsync<HomeViewModel>();
-        }
-
-        [RelayCommand]
-        public async Task NavigateToDownload()
-        {
-            CheckedBtn = 2;
-            await NavigationService.GotoAsync<DownloadViewModel>();
-        }
-
-        [RelayCommand]
-        public async Task NavigateToLink()
-        {
-            CheckedBtn = 3;
-            // await NavigationService.GotoAsync<LinkViewModel>();
-        }
-
-        [RelayCommand]
-        public async Task NavigateToSetup()
-        {
-            CheckedBtn = 4;
-            await NavigationService.GotoAsync<SetupViewModel>();
+            CheckedBtn = tag;
+            switch (tag)
+            {
+                case 1:
+                    await NavigationService.GotoAsync<HomeViewModel>();
+                    break;
+                case 2:
+                    await NavigationService.GotoAsync<DownloadViewModel>();
+                    break;
+                case 3:
+                    // NavigationService.GotoAsync<LinkViewModel>();
+                    break;
+                case 4:
+                    await NavigationService.GotoAsync<SetupViewModel>();
+                    break;
+                case 5:
+                    // await NavigationService.GoBackAsync<OtherViewModel>();
+                    break;
+                default:
+                    Console.WriteLine("Unknown tag");
+                    break;
+            }
         }
 
         [RelayCommand]
