@@ -36,19 +36,19 @@
                 <StackPanel Grid.Column="0" 
                            Orientation="Horizontal"
                            Spacing="10">
-                    <!-- 用户头像 -->
+                <!-- 用户头像 -->
                     <Border Width="40" Height="40" 
                            CornerRadius="20" 
                            ClipToBounds="True"
                            Background="#1E88E5">
                         <TextBlock Text="{Binding CurrentUserInitial, FallbackValue=P}" 
-                                  HorizontalAlignment="Center" 
-                                  VerticalAlignment="Center"
-                                  FontWeight="Bold"
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"
                                   FontSize="16"
-                                  Foreground="White"/>
-                    </Border>
-                    
+                               Foreground="White"/>
+                </Border>
+                
                     <!-- 用户名和状态 -->
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="{Binding CurrentUserName, FallbackValue=Player}" 
@@ -67,17 +67,17 @@
                     <TextBlock Text="准备就绪"
                              HorizontalAlignment="Center"
                              FontSize="14"
-                             FontWeight="SemiBold"/>
+                               FontWeight="SemiBold"/>
                     <TextBlock Text="Minecraft 已准备好启动"
                              HorizontalAlignment="Center"
-                             Opacity="0.7"
-                             FontSize="12"/>
+                               Opacity="0.7" 
+                               FontSize="12"/>
                 </StackPanel>
                 
                 <!-- 右侧 - 账户操作 -->
                 <Button Grid.Column="2" 
-                       Content="切换账户"
-                       VerticalAlignment="Center"
+                        Content="切换账户" 
+                        VerticalAlignment="Center"
                        Padding="12,6"
                        Background="#1E88E5"
                        Foreground="White"
@@ -100,68 +100,68 @@
                    Margin="0,0,10,0"
                    BoxShadow="0 2 4 0 #20000000">
                 <ScrollViewer Padding="10">
-                    <StackPanel>
-                        <!-- 账户管理 -->
+            <StackPanel>
+                <!-- 账户管理 -->
                         <Expander Header="账户管理" 
                                  Margin="0,5" 
                                  IsExpanded="False">
-                            <StackPanel Margin="5">
-                                <Button Content="添加离线账户" 
-                                       Command="{Binding AddOfflineUserCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="添加微软账户" 
-                                       Command="{Binding AddMicrosoftUserCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="管理账户" 
-                                       Command="{Binding ManageUsersCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                            </StackPanel>
-                        </Expander>
-                        
-                        <!-- 版本管理 -->
+                    <StackPanel Margin="5">
+                        <Button Content="添加离线账户" 
+                                Command="{Binding AddOfflineUserCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="添加微软账户" 
+                                Command="{Binding AddMicrosoftUserCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="管理账户" 
+                                Command="{Binding ManageUsersCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                    </StackPanel>
+                </Expander>
+                
+                <!-- 版本管理 -->
                         <Expander Header="版本管理" 
                                  Margin="0,5" 
                                  IsExpanded="False">
-                            <StackPanel Margin="5">
-                                <Button Content="游戏版本管理" 
-                                       Command="{Binding ManageVersionsCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="添加游戏目录" 
-                                       Command="{Binding AddGameDirectoryCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="扫描版本" 
-                                       Command="{Binding ScanVersionsCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                            </StackPanel>
-                        </Expander>
-                        
-                        <!-- 常用功能 -->
+                    <StackPanel Margin="5">
+                        <Button Content="游戏版本管理" 
+                                Command="{Binding ManageVersionsCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="添加游戏目录" 
+                                Command="{Binding AddGameDirectoryCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="扫描版本" 
+                                Command="{Binding ScanVersionsCommand}"
+                                HorizontalAlignment="Stretch" 
+                                    Margin="0,2"/>
+                    </StackPanel>
+                </Expander>
+                
+                <!-- 常用功能 -->
                         <Expander Header="常用功能" 
                                  IsExpanded="True" 
                                  Margin="0,5">
-                            <StackPanel Margin="5">
-                                <Button Content="下载游戏" 
-                                       Command="{Binding NavigateToDownloadCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="启动游戏" 
-                                       Command="{Binding LaunchGameCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                                <Button Content="游戏设置" 
-                                       Command="{Binding GameSettingsCommand}"
-                                       HorizontalAlignment="Stretch" 
-                                       Margin="0,2"/>
-                            </StackPanel>
-                        </Expander>
+                    <StackPanel Margin="5">
+                        <Button Content="下载游戏" 
+                                Command="{Binding NavigateToDownloadCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="启动游戏" 
+                                Command="{Binding LaunchGameCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
+                        <Button Content="游戏设置" 
+                                Command="{Binding GameSettingsCommand}"
+                                HorizontalAlignment="Stretch" 
+                                Margin="0,2"/>
                     </StackPanel>
-                </ScrollViewer>
+                </Expander>
+            </StackPanel>
+        </ScrollViewer>
             </Border>
             
             <!-- 右侧内容区 -->

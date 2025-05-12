@@ -40,7 +40,7 @@ public class StorageService
     /// </summary>
     /// <param name="title">文件夹选择框的标题</param>
     /// <returns>获得文件夹的路径</returns>
-    public async Task<string?> SelectFolder(string title)
+    public async Task<string?> SelectFolder(string title = "选择文件夹")
     {
         if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
         if (!StorageProvider.CanPickFolder) throw new InvalidOperationException("无法打开文件夹选择对话框");
@@ -108,24 +108,16 @@ public class StorageService
         "PCL.Neo");
 
     /// <summary>
-    /// 选择文件夹的异步方法
-    /// </summary>
-    public async Task<string?> PickFolderAsync()
-    {
-        return await SelectFolder("选择文件夹");
-    }
-
-    /// <summary>
     /// 选择文件的异步方法
     /// </summary>
-    public async Task<string?> PickFileAsync(IReadOnlyList<FilePickerFileType>? filters = null)
+    public async Task<string?> SelectFileWithFilters(IReadOnlyList<FilePickerFileType>? filters = null, string title = "选择文件")
     {
         if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
         if (!StorageProvider.CanOpen) throw new InvalidOperationException(nameof(StorageProvider));
 
         var options = new FilePickerOpenOptions
         {
-            Title = "选择文件",
+            Title = title,
             AllowMultiple = false
         };
 

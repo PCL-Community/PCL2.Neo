@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Models.Minecraft.Game;
 using PCL.Neo.Models.Minecraft.Game.Data;
-using PCL.Neo.Models.Minecraft.Java;
 using PCL.Neo.Models.User;
 using PCL.Neo.Services;
 using PCL.Neo.ViewModels;
@@ -16,6 +15,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Runtime.InteropServices;
+using PCL.Neo.Core.Models.Minecraft.Game;
+using PCL.Neo.Core.Models.Minecraft.Java;
+using System.Diagnostics;
 
 namespace PCL.Neo.ViewModels.Home;
 
@@ -32,10 +34,11 @@ public enum HomeLayoutType
 public partial class HomeSubViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
-    private readonly GameLauncher _gameLauncher;
+    private readonly PCL.Neo.Core.Models.Minecraft.Game.GameLauncher _gameLauncher;
     private readonly UserService _userService;
     private readonly StorageService _storageService;
     private readonly GameService _gameService;
+    private readonly GameSettingsViewModel _gameSettingsViewModel;
     
     [ObservableProperty]
     private ObservableCollection<GameVersion> _gameVersions = new();
@@ -50,25 +53,10 @@ public partial class HomeSubViewModel : ViewModelBase
     private UserInfo? _selectedUser;
     
     [ObservableProperty]
-    private string _gameDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), ".minecraft");
-    
-    [ObservableProperty]
-    private string _javaPath = JavaLocator.GetDefaultJavaPath();
-    
-    [ObservableProperty]
-    private int _memoryAllocation = 2048;
-    
-    [ObservableProperty]
-    private int _maxMemoryMB = 8192;
-
-    [ObservableProperty]
     private bool _isLaunching;
 
     [ObservableProperty]
     private string _statusMessage = "等待启动";
-    
-    [ObservableProperty]
-    private string _memoryAllocationDisplay = "2048 MB";
     
     [ObservableProperty]
     private HomeLayoutType _currentLayout = HomeLayoutType.Default;
@@ -97,25 +85,24 @@ public partial class HomeSubViewModel : ViewModelBase
 
     public HomeSubViewModel(
         INavigationService navigationService, 
-        GameLauncher gameLauncher,
         UserService userService,
         StorageService storageService,
-        GameService gameService)
+        GameService gameService,
+        PCL.Neo.Core.Models.Minecraft.Game.GameLauncher gameLauncher,
+        GameSettingsViewModel gameSettingsViewModel)
     {
         _navigationService = navigationService;
-        _gameLauncher = gameLauncher;
         _userService = userService;
         _storageService = storageService;
         _gameService = gameService;
+        _gameLauncher = gameLauncher;
+        _gameSettingsViewModel = gameSettingsViewModel;
         
         // 加载游戏版本
         LoadGameVersions();
         
         // 加载用户列表
         InitializeUserList();
-        
-        // 获取系统内存信息，设置最大可用内存
-        DetectSystemMemory();
     }
     
     private async void LoadGameVersions()
@@ -123,7 +110,7 @@ public partial class HomeSubViewModel : ViewModelBase
         try
         {
             StatusMessage = "正在加载版本列表...";
-            var versions = await Versions.GetLocalVersionsAsync(GameDirectory);
+            var versions = await Versions.GetLocalVersionsAsync(_gameService.DefaultGameDirectory);
             
             GameVersions.Clear();
             foreach (var version in versions)
@@ -176,106 +163,6 @@ public partial class HomeSubViewModel : ViewModelBase
             }
         };
     }
-    
-    private void DetectSystemMemory()
-    {
-        try
-        {
-            // 获取系统总内存 (以MB为单位)
-            long totalMemoryMB = 0;
-            
-            if (OperatingSystem.IsWindows())
-            {
-                var memoryStatus = new NativeMemoryStatus();
-                if (NativeMethods.GlobalMemoryStatusEx(ref memoryStatus))
-                {
-                    totalMemoryMB = (long)(memoryStatus.TotalPhys / (1024 * 1024));
-                }
-            }
-            else if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
-            {
-                try
-                {
-                    // 在Linux/macOS上读取内存信息
-                    string output = string.Empty;
-                    if (OperatingSystem.IsLinux())
-                    {
-                        var process = new System.Diagnostics.Process
-                        {
-                            StartInfo = new System.Diagnostics.ProcessStartInfo
-                            {
-                                FileName = "free",
-                                Arguments = "-m",
-                                RedirectStandardOutput = true,
-                                UseShellExecute = false,
-                                CreateNoWindow = true
-                            }
-                        };
-                        process.Start();
-                        output = process.StandardOutput.ReadToEnd();
-                        process.WaitForExit();
-                        
-                        var lines = output.Split('\n');
-                        if (lines.Length >= 2)
-                        {
-                            var memLine = lines[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (memLine.Length >= 2 && long.TryParse(memLine[1], out long mem))
-                            {
-                                totalMemoryMB = mem;
-                            }
-                        }
-                    }
-                    else // macOS
-                    {
-                        var process = new System.Diagnostics.Process
-                        {
-                            StartInfo = new System.Diagnostics.ProcessStartInfo
-                            {
-                                FileName = "sysctl",
-                                Arguments = "-n hw.memsize",
-                                RedirectStandardOutput = true,
-                                UseShellExecute = false,
-                                CreateNoWindow = true
-                            }
-                        };
-                        process.Start();
-                        output = process.StandardOutput.ReadToEnd().Trim();
-                        process.WaitForExit();
-                        
-                        if (long.TryParse(output, out long memBytes))
-                        {
-                            totalMemoryMB = memBytes / (1024 * 1024);
-                        }
-                    }
-                }
-                catch
-                {
-                    // 如果获取失败，使用默认值
-                    totalMemoryMB = 8192;
-                }
-            }
-            
-            // 设置最大内存为系统可用内存的75% (避免占用过多系统资源)
-            if (totalMemoryMB > 0)
-            {
-                MaxMemoryMB = (int)(totalMemoryMB * 0.75);
-                // 默认分配最大内存的1/4，但至少1GB，最多4GB
-                MemoryAllocation = Math.Min(4096, Math.Max(1024, MaxMemoryMB / 4));
-            }
-            else
-            {
-                // 如果无法获取内存信息，使用默认值
-                MaxMemoryMB = 8192;
-                MemoryAllocation = 2048;
-            }
-        }
-        catch
-        {
-            // 出错时使用默认值
-            MaxMemoryMB = 8192;
-            MemoryAllocation = 2048;
-        }
-    }
 
     [RelayCommand]
     private async Task NavigateToDownloadMod()
@@ -291,41 +178,15 @@ public partial class HomeSubViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private async Task SelectJava()
+    private async Task OpenGameSettings()
     {
-        try
+        // 导航到游戏设置视图
+        await _navigationService.GotoViewModelAsync(_gameSettingsViewModel);
+        
+        // 如果版本ID不为空，初始化为当前选中的版本
+        if (SelectedGameVersion != null)
         {
-            var javaPath = await _storageService.SelectFile("选择Java可执行文件");
-            
-            if (!string.IsNullOrEmpty(javaPath))
-            {
-                JavaPath = javaPath;
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"选择Java失败: {ex.Message}";
-        }
-    }
-    
-    [RelayCommand]
-    private async Task SelectGameDirectory()
-    {
-        try
-        {
-            var folderPath = await _storageService.SelectFolder("选择游戏目录");
-            
-            if (!string.IsNullOrEmpty(folderPath))
-            {
-                GameDirectory = folderPath;
-                
-                // 重新加载版本列表
-                LoadGameVersions();
-            }
-        }
-        catch (Exception ex)
-        {
-            StatusMessage = $"选择游戏目录失败: {ex.Message}";
+            await _gameSettingsViewModel.Initialize(SelectedGameVersion.Id);
         }
     }
     
@@ -370,23 +231,89 @@ public partial class HomeSubViewModel : ViewModelBase
             return;
         }
         
+        // 检查Java路径是否存在
+        if (string.IsNullOrEmpty(_gameSettingsViewModel.JavaPath) || !File.Exists(_gameSettingsViewModel.JavaPath))
+        {
+            StatusMessage = "无效的Java路径，请在设置中选择正确的Java可执行文件";
+            return;
+        }
+        
+        // 检查Java版本与Minecraft版本的兼容性
+        if (!_gameService.IsJavaCompatible(_gameSettingsViewModel.JavaPath, SelectedGameVersion.Id))
+        {
+            // 提示用户但不阻止启动
+            StatusMessage = "警告：当前Java版本可能与所选Minecraft版本不兼容";
+            
+            // 可以在这里添加对话框提示，让用户确认是否继续
+            // 这里简化处理，直接等待3秒后继续
+            await Task.Delay(3000);
+        }
+        
         try
         {
             IsLaunching = true;
             StatusMessage = "正在启动游戏...";
             
-            var launchOptions = new Models.Minecraft.Game.LaunchOptions
+            // 创建完善的启动选项
+            var launchOptions = new PCL.Neo.Core.Models.Minecraft.Game.LaunchOptions
             {
                 VersionId = SelectedGameVersion.Id,
-                JavaPath = JavaPath,
-                MinecraftDirectory = GameDirectory,
-                MaxMemoryMB = MemoryAllocation,
+                JavaPath = _gameSettingsViewModel.JavaPath,
+                MinecraftDirectory = _gameSettingsViewModel.GameDirectory,
+                GameDirectory = _gameSettingsViewModel.GameDirectory,
+                MaxMemoryMB = _gameSettingsViewModel.MemoryAllocation,
+                MinMemoryMB = Math.Max(512, _gameSettingsViewModel.MemoryAllocation / 4), // 最小内存设为最大内存的1/4，但不低于512MB
                 Username = SelectedUser.Username,
-                UUID = SelectedUser.UUID
+                UUID = string.IsNullOrEmpty(SelectedUser.UUID) ? Guid.NewGuid().ToString() : SelectedUser.UUID,
+                AccessToken = string.IsNullOrEmpty(SelectedUser.AccessToken) ? Guid.NewGuid().ToString() : SelectedUser.AccessToken,
+                WindowWidth = _gameSettingsViewModel.GameWidth,
+                WindowHeight = _gameSettingsViewModel.GameHeight,
+                FullScreen = _gameSettingsViewModel.IsFullScreen,
+                IsOfflineMode = SelectedUser.Type == PCL.Neo.Models.User.UserType.Offline,
+                
+                // 添加额外的JVM参数
+                ExtraJvmArgs = string.IsNullOrEmpty(_gameSettingsViewModel.JvmArguments) 
+                    ? new List<string>() 
+                    : _gameSettingsViewModel.JvmArguments.Split(' ').ToList(),
+                
+                // 添加额外的游戏参数
+                ExtraGameArgs = string.IsNullOrEmpty(_gameSettingsViewModel.GameArguments) 
+                    ? new List<string>() 
+                    : _gameSettingsViewModel.GameArguments.Split(' ').ToList(),
+                
+                // 环境变量
+                EnvironmentVariables = new Dictionary<string, string>
+                {
+                    { "JAVA_TOOL_OPTIONS", "-Dfile.encoding=UTF-8" }
+                },
+                
+                // 是否启动后关闭启动器
+                CloseAfterLaunch = _gameSettingsViewModel.CloseAfterLaunch
             };
             
-            await _gameLauncher.LaunchAsync(launchOptions);
+            // 跨平台支持的调整
+            if (OperatingSystem.IsLinux())
+            {
+                // Linux平台添加额外的JVM参数
+                launchOptions.ExtraJvmArgs.Add("-Djava.awt.headless=false");
+                launchOptions.ExtraJvmArgs.Add("-Dorg.lwjgl.opengl.Display.allowSoftwareOpenGL=true");
+            }
+            else if (OperatingSystem.IsMacOS())
+            {
+                // macOS平台添加额外的JVM参数
+                launchOptions.ExtraJvmArgs.Add("-XstartOnFirstThread");
+                launchOptions.ExtraJvmArgs.Add("-Djava.awt.headless=false");
+            }
+            
+            // 启动游戏
+            Process process = await _gameLauncher.LaunchAsync(launchOptions);
             StatusMessage = "游戏已启动";
+            
+            // 如果设置了启动后关闭启动器
+            if (launchOptions.CloseAfterLaunch)
+            {
+                Environment.Exit(0);
+            }
         }
         catch (Exception ex)
         {
@@ -430,11 +357,6 @@ public partial class HomeSubViewModel : ViewModelBase
         }
     }
 
-    partial void OnMemoryAllocationChanged(int value)
-    {
-        MemoryAllocationDisplay = $"{value} MB";
-    }
-    
     partial void OnCurrentLayoutChanged(HomeLayoutType value)
     {
         IsDefaultLayoutVisible = value == HomeLayoutType.Default;
@@ -450,33 +372,6 @@ public class GameVersion
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string ReleaseTime { get; set; } = string.Empty;
-}
-
-// Windows内存信息结构
-[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-public struct NativeMemoryStatus
-{
-    public uint Length;
-    public uint MemoryLoad;
-    public ulong TotalPhys;
-    public ulong AvailPhys;
-    public ulong TotalPageFile;
-    public ulong AvailPageFile;
-    public ulong TotalVirtual;
-    public ulong AvailVirtual;
-    public ulong AvailExtendedVirtual;
-    
-    public NativeMemoryStatus()
-    {
-        Length = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMemoryStatus));
-    }
-}
-
-// Windows内存API
-public static class NativeMethods
-{
-    [System.Runtime.InteropServices.DllImport("kernel32.dll")]
-    public static extern bool GlobalMemoryStatusEx(ref NativeMemoryStatus lpBuffer);
 }
 
 // 新闻项的数据模型

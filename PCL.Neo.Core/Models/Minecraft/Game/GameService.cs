@@ -1,0 +1,524 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using PCL.Neo.Core.Models.Minecraft.Game.Data;
+using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.Core.Utils;
+
+namespace PCL.Neo.Core.Models.Minecraft.Game;
+
+public class GameService
+{
+    private readonly string _defaultGameDirectory;
+    private readonly IJavaManager _javaManager;
+    private readonly HttpClient _httpClient;
+
+    public string DefaultGameDirectory => _defaultGameDirectory;
+    public string DefaultJavaPath => GetDefaultJavaPath();
+
+    public GameService(IJavaManager javaManager, HttpClient? httpClient = null)
+    {
+        _javaManager = javaManager;
+        _httpClient = httpClient ?? new HttpClient();
+
+        // 设置默认的Minecraft目录
+        string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        _defaultGameDirectory = Path.Combine(userProfile, ".minecraft");
+
+        // 初始化Java列表
+        _ = InitializeJavaAsync();
+    }
+
+    /// <summary>
+    /// 获取默认Java路径
+    /// </summary>
+    private string GetDefaultJavaPath()
+    {
+        if (_javaManager.JavaList.Count > 0)
+        {
+            return _javaManager.JavaList[0].JavaPath;
+        }
+        
+        // 如果没有找到Java，返回系统默认的java命令
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "java";
+    }
+
+    /// <summary>
+    /// 初始化Java管理器
+    /// </summary>
+    private async Task InitializeJavaAsync()
+    {
+        await _javaManager.JavaListInit();
+    }
+
+    /// <summary>
+    /// 获取指定Java路径的版本信息
+    /// </summary>
+    public string GetJavaVersion(string javaPath)
+    {
+        if (string.IsNullOrEmpty(javaPath) || !File.Exists(javaPath))
+        {
+            return "未知";
+        }
+
+        try
+        {
+            string executable = javaPath;
+            if (executable.EndsWith("javaw.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                executable = executable.Replace("javaw.exe", "java.exe");
+            }
+
+            Process process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = executable,
+                    Arguments = "-version",
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            string output = process.StandardError.ReadToEnd();
+            process.WaitForExit();
+
+            // 解析版本信息
+            if (output.Contains("version \""))
+            {
+                int startIndex = output.IndexOf("version \"") + 9;
+                int endIndex = output.IndexOf("\"", startIndex);
+                if (endIndex > startIndex)
+                {
+                    return output.Substring(startIndex, endIndex - startIndex);
+                }
+            }
+
+            return "未知";
+        }
+        catch
+        {
+            return "无法获取";
+        }
+    }
+
+    /// <summary>
+    /// 获取系统最大可用内存 (MB)
+    /// </summary>
+    public int GetSystemMaxMemoryMB()
+    {
+        try
+        {
+            // 简化实现，保留Core项目中可用的逻辑
+            return 8192; // 默认8GB
+        }
+        catch
+        {
+            // 出错时使用默认值
+        }
+
+        return 4096; // 默认4GB
+    }
+
+    /// <summary>
+    /// 获取游戏版本列表
+    /// </summary>
+    public async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null, bool forceRefresh = false)
+    {
+        string directory = minecraftDirectory ?? _defaultGameDirectory;
+
+        // 获取本地版本
+        var localVersions = await Versions.GetLocalVersionsAsync(directory);
+
+        // 如果需要强制刷新或者本地版本为空，则获取远程版本
+        if (forceRefresh || localVersions.Count == 0)
+        {
+            try
+            {
+                var remoteVersions = await Versions.GetRemoteVersionsAsync();
+
+                // 合并版本列表，保留本地版本的信息
+                Dictionary<string, VersionInfo> versionDict = new();
+
+                foreach (var version in localVersions)
+                {
+                    versionDict[version.Id] = version;
+                }
+
+                foreach (var version in remoteVersions)
+                {
+                    if (!versionDict.ContainsKey(version.Id))
+                    {
+                        versionDict[version.Id] = version;
+                    }
+                }
+
+                return new List<VersionInfo>(versionDict.Values);
+            }
+            catch
+            {
+                // 如果获取远程版本失败，则返回本地版本
+                return localVersions;
+            }
+        }
+
+        return localVersions;
+    }
+
+    /// <summary>
+    /// 添加自定义Java
+    /// </summary>
+    public async Task AddCustomJavaAsync(string javaPath)
+    {
+        // 获取Java所在的bin目录
+        string? javaDir = Path.GetDirectoryName(javaPath);
+        if (!string.IsNullOrEmpty(javaDir))
+        {
+            await _javaManager.ManualAdd(javaDir);
+        }
+    }
+
+    /// <summary>
+    /// 获取Java安装列表
+    /// </summary>
+    public List<JavaRuntime> GetJavaInstallations()
+    {
+        return _javaManager.JavaList;
+    }
+
+    /// <summary>
+    /// 下载指定版本的游戏
+    /// </summary>
+    public async Task<bool> DownloadVersionAsync(string versionId, IProgress<int>? progressCallback = null)
+    {
+        // 获取版本信息
+        var versionInfo = await Versions.GetRemoteVersionInfoAsync(versionId);
+        if (versionInfo == null)
+        {
+            return false;
+        }
+
+        // 保存版本信息到本地
+        var versionDir = Path.Combine(_defaultGameDirectory, "versions", versionId);
+        Directory.CreateDirectory(versionDir);
+        var versionJsonPath = Path.Combine(versionDir, $"{versionId}.json");
+        await File.WriteAllTextAsync(versionJsonPath, versionInfo.JsonData);
+
+        // 下载资源文件
+        await DownloadAssetsAsync(versionInfo, progressCallback);
+
+        // 下载库文件
+        await DownloadLibrariesAsync(versionInfo, progressCallback);
+
+        // 下载Minecraft主JAR文件
+        var jarUrl = versionInfo.Downloads.Client.Url;
+        var jarPath = Path.Combine(versionDir, $"{versionId}.jar");
+        await DownloadFileAsync(jarUrl, jarPath, progressCallback);
+
+        return true;
+    }
+
+    /// <summary>
+    /// 下载游戏资源文件
+    /// </summary>
+    private async Task DownloadAssetsAsync(VersionInfo versionInfo, IProgress<int>? progressCallback = null)
+    {
+        // 下载assets索引文件
+        var assetsDir = Path.Combine(_defaultGameDirectory, "assets");
+        var indexesDir = Path.Combine(assetsDir, "indexes");
+        var objectsDir = Path.Combine(assetsDir, "objects");
+        
+        Directory.CreateDirectory(indexesDir);
+        Directory.CreateDirectory(objectsDir);
+        
+        var assetsIndexUrl = versionInfo.AssetIndex.Url;
+        var assetsIndexPath = Path.Combine(indexesDir, $"{versionInfo.AssetIndex.Id}.json");
+        
+        await DownloadFileAsync(assetsIndexUrl, assetsIndexPath);
+        
+        // 解析assets索引文件
+        var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
+        var assetsIndex = System.Text.Json.JsonSerializer.Deserialize<AssetIndex>(assetsIndexJson);
+        
+        if (assetsIndex?.Objects == null)
+        {
+            return;
+        }
+        
+        // 下载assets文件
+        int totalAssets = assetsIndex.Objects.Count;
+        int downloadedAssets = 0;
+        
+        foreach (var asset in assetsIndex.Objects)
+        {
+            var hash = asset.Value.Hash;
+            var prefix = hash.Substring(0, 2);
+            var assetObjectDir = Path.Combine(objectsDir, prefix);
+            var assetObjectPath = Path.Combine(assetObjectDir, hash);
+            
+            if (!File.Exists(assetObjectPath))
+            {
+                Directory.CreateDirectory(assetObjectDir);
+                var assetUrl = $"https://resources.download.minecraft.net/{prefix}/{hash}";
+                await DownloadFileAsync(assetUrl, assetObjectPath);
+            }
+            
+            downloadedAssets++;
+            progressCallback?.Report((int)((float)downloadedAssets / totalAssets * 100));
+        }
+    }
+
+    /// <summary>
+    /// 下载游戏库文件
+    /// </summary>
+    private async Task DownloadLibrariesAsync(VersionInfo versionInfo, IProgress<int>? progressCallback = null)
+    {
+        var librariesDir = Path.Combine(_defaultGameDirectory, "libraries");
+        Directory.CreateDirectory(librariesDir);
+        
+        var libraries = versionInfo.Libraries;
+        int totalLibraries = libraries.Count;
+        int downloadedLibraries = 0;
+        
+        foreach (var library in libraries)
+        {
+            // 检查是否适用于当前系统
+            if (library.Rules != null && !EvaluateRules(library.Rules))
+            {
+                downloadedLibraries++;
+                continue;
+            }
+            
+            // 获取库文件路径
+            var paths = library.Name.Split(':');
+            var group = paths[0].Replace('.', '/');
+            var artifact = paths[1];
+            var version = paths[2];
+            
+            var relativePath = $"{group}/{artifact}/{version}/{artifact}-{version}.jar";
+            var libraryPath = Path.Combine(librariesDir, relativePath);
+            
+            // 下载库文件
+            if (!File.Exists(libraryPath))
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(libraryPath)!);
+                var libraryUrl = library.Downloads?.Artifact?.Url;
+                
+                if (!string.IsNullOrEmpty(libraryUrl))
+                {
+                    await DownloadFileAsync(libraryUrl, libraryPath);
+                }
+            }
+            
+            // 下载natives文件
+            if (library.Downloads?.Classifiers != null)
+            {
+                var nativeKey = GetNativeKey();
+                if (nativeKey != null && library.Downloads.Classifiers.TryGetValue(nativeKey, out var nativeDownload))
+                {
+                    var nativePath = Path.Combine(librariesDir, nativeDownload.Path);
+                    
+                    if (!File.Exists(nativePath))
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(nativePath)!);
+                        await DownloadFileAsync(nativeDownload.Url, nativePath);
+                    }
+                }
+            }
+            
+            downloadedLibraries++;
+            progressCallback?.Report((int)((float)downloadedLibraries / totalLibraries * 100));
+        }
+    }
+
+    /// <summary>
+    /// 获取当前系统的native键
+    /// </summary>
+    private string? GetNativeKey()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Environment.Is64BitOperatingSystem ? "natives-windows-64" : "natives-windows-32";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return "natives-linux";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return "natives-osx";
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// 评估规则是否适用于当前系统
+    /// </summary>
+    private bool EvaluateRules(List<Rule> rules)
+    {
+        bool allow = true;
+        
+        foreach (var rule in rules)
+        {
+            bool matches = true;
+            
+            if (rule.Os != null)
+            {
+                string currentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" :
+                                   RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
+                                   RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
+                
+                if (rule.Os.Name != null && rule.Os.Name != currentOs)
+                {
+                    matches = false;
+                }
+                
+                if (rule.Os.Arch != null && rule.Os.Arch != (Environment.Is64BitOperatingSystem ? "64" : "32"))
+                {
+                    matches = false;
+                }
+            }
+            
+            if (matches)
+            {
+                allow = rule.Action == "allow";
+            }
+        }
+        
+        return allow;
+    }
+
+    /// <summary>
+    /// 下载文件
+    /// </summary>
+    private async Task DownloadFileAsync(string url, string savePath, IProgress<int>? progress = null)
+    {
+        try
+        {
+            // 确保目录存在
+            var directory = Path.GetDirectoryName(savePath);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+            
+            // 下载文件
+            var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            
+            using var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None);
+            await response.Content.CopyToAsync(fileStream);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"下载文件 {url} 失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 检查版本是否已安装
+    /// </summary>
+    public bool IsVersionInstalled(string versionId, string? minecraftDirectory = null)
+    {
+        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string versionJsonPath = Path.Combine(directory, "versions", versionId, $"{versionId}.json");
+        string versionJarPath = Path.Combine(directory, "versions", versionId, $"{versionId}.jar");
+        
+        return File.Exists(versionJsonPath) && File.Exists(versionJarPath);
+    }
+
+    /// <summary>
+    /// 删除版本
+    /// </summary>
+    public async Task DeleteVersionAsync(string versionId, string? minecraftDirectory = null)
+    {
+        string directory = minecraftDirectory ?? _defaultGameDirectory;
+        string versionDir = Path.Combine(directory, "versions", versionId);
+        
+        if (Directory.Exists(versionDir))
+        {
+            try
+            {
+                Directory.Delete(versionDir, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"删除版本 {versionId} 失败: {ex.Message}");
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 检查Java版本是否兼容指定的Minecraft版本
+    /// </summary>
+    public bool IsJavaCompatible(string javaPath, string minecraftVersion)
+    {
+        // 先获取Java版本
+        string javaVersionString = GetJavaVersion(javaPath);
+        
+        // 如果无法获取版本信息，直接返回不兼容
+        if (string.IsNullOrEmpty(javaVersionString) || javaVersionString == "未知" || javaVersionString == "无法获取")
+        {
+            return false;
+        }
+        
+        // 尝试解析Java版本号
+        int javaMajorVersion;
+        if (javaVersionString.StartsWith("1."))
+        {
+            // 旧版Java格式：1.8.0_xxx
+            javaMajorVersion = 8; // 假设为Java 8
+        }
+        else
+        {
+            // 新版Java格式：11.0.x, 17.0.x等
+            int dotIndex = javaVersionString.IndexOf('.');
+            string majorString = dotIndex > 0 ? javaVersionString.Substring(0, dotIndex) : javaVersionString;
+            
+            if (!int.TryParse(majorString, out javaMajorVersion))
+            {
+                return false; // 解析失败
+            }
+        }
+        
+        // 获取Minecraft版本对应的需求Java版本
+        int requiredJavaVersion = GetRequiredJavaVersion(minecraftVersion);
+        
+        // 比较版本
+        return javaMajorVersion >= requiredJavaVersion;
+    }
+    
+    /// <summary>
+    /// 获取Minecraft版本需要的Java版本
+    /// </summary>
+    private int GetRequiredJavaVersion(string minecraftVersion)
+    {
+        // 解析Minecraft版本号
+        string[] parts = minecraftVersion.Split('.');
+        if (parts.Length < 2 || !int.TryParse(parts[0], out int majorVersion) || !int.TryParse(parts[1], out int minorVersion))
+        {
+            return 8; // 默认要求Java 8
+        }
+        
+        // 根据Minecraft版本推断所需的Java版本
+        // Minecraft 1.17+需要Java 16+
+        if (majorVersion == 1 && minorVersion >= 17)
+        {
+            return 16;
+        }
+        // Minecraft 1.16及以下需要Java 8
+        else
+        {
+            return 8;
+        }
+    }
+} 
