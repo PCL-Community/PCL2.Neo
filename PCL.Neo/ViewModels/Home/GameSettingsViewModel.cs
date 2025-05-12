@@ -1,14 +1,11 @@
-using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using PCL.Neo.Models.Minecraft.Game.Data;
 using PCL.Neo.Services;
 using PCL.Neo.Views.Home;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using System.Runtime.InteropServices;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using Avalonia.Platform.Storage;
@@ -50,15 +47,15 @@ public partial class GameSettingsViewModel : ViewModelBase
     private readonly GameService _gameService;
     private readonly StorageService _storageService;
     private bool _isInitialized = false;
-    
+
     // 版本标题
     [ObservableProperty] private string _versionTitle = "1.20.2-Fabric 0.15.7-OptiFine_I7_pre1";
-    
+
     // 导航相关
     [ObservableProperty] private int _selectedMenuIndex = 0;
     [ObservableProperty] private object? _currentContentView;
     [ObservableProperty] private object? _currentView;
-    
+
     #region 基本信息
     [ObservableProperty] private string _versionId = string.Empty;
     [ObservableProperty] private string _gameVersionName = string.Empty;
@@ -67,20 +64,20 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _mainClass = string.Empty;
     [ObservableProperty] private string _inheritsFrom = string.Empty;
     #endregion
-    
+
     #region 修改页面
     [ObservableProperty] private ObservableCollection<VersionComponent> _components = new();
     [ObservableProperty] private bool _hasFabricWarning = true;
     [ObservableProperty] private string _minecraftVersion = "";
     #endregion
-    
+
     #region 概览页面
     [ObservableProperty] private string _packageName = "";
     [ObservableProperty] private string _packageDescription = "";
     [ObservableProperty] private string _customIcon = "自动";
     [ObservableProperty] private string _customCategory = "自动";
     #endregion
-    
+
     #region 设置页面
     [ObservableProperty] private string _launchMode = "开启";
     [ObservableProperty] private string _gameWindowTitle = "跟随全局设置";
@@ -98,7 +95,7 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _memoryOptimization = "跟随全局设置";
     [ObservableProperty] private string _advancedLaunchOptions = string.Empty;
     #endregion
-    
+
     #region 导出页面
     [ObservableProperty] private string _packageVersion = "1.0.0";
     [ObservableProperty] private bool _exportGameCore = true;
@@ -113,7 +110,7 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _exportSourceFiles = false;
     [ObservableProperty] private bool _useModrinthUpload = false;
     #endregion
-    
+
     #region Java设置
     [ObservableProperty] private string _javaPath = string.Empty;
     [ObservableProperty] private int _memoryAllocation = 2048;
@@ -121,7 +118,7 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private string _memoryAllocationDisplay = "2048 MB";
     [ObservableProperty] private string _jvmArguments = string.Empty;
     #endregion
-    
+
     #region 游戏设置
     [ObservableProperty] private string _gameDirectory = string.Empty;
     [ObservableProperty] private bool _isFullScreen = false;
@@ -132,11 +129,11 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _disableAnimation = false;
     [ObservableProperty] private bool _useLegacyLauncher = false;
     #endregion
-    
+
     #region Mods管理
     [ObservableProperty] private ObservableCollection<ModInfo> _mods = new();
     #endregion
-    
+
     #region 高级设置
     [ObservableProperty] private ObservableCollection<string> _downloadSources = new();
     [ObservableProperty] private string _selectedDownloadSource = string.Empty;
@@ -148,7 +145,7 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private bool _saveGameLog = true;
     [ObservableProperty] private bool _enableCrashAnalysis = true;
     #endregion
-    
+
     #region 性能设置
     [ObservableProperty] private int _renderDistance = 12;
     [ObservableProperty] private ObservableCollection<string> _particleOptions = new();
@@ -160,13 +157,13 @@ public partial class GameSettingsViewModel : ViewModelBase
     [ObservableProperty] private int _musicVolume = 100;
     [ObservableProperty] private int _soundVolume = 100;
     #endregion
-    
+
     public GameSettingsViewModel(INavigationService navigationService, GameService gameService, StorageService storageService)
     {
         _navigationService = navigationService;
         _gameService = gameService;
         _storageService = storageService;
-        
+
         // 初始化组件列表
         Components = new ObservableCollection<VersionComponent>
         {
@@ -178,7 +175,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             new VersionComponent { Name = "Quilt", Version = "与Fabric不兼容", IsCompatible = false },
             new VersionComponent { Name = "OptiFine", Version = "点击选择", IsClickable = true }
         };
-        
+
         // 初始化下拉选项
         DownloadSources = new ObservableCollection<string>
         {
@@ -187,7 +184,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             "自定义源"
         };
         SelectedDownloadSource = "BMCLAPI";
-        
+
         ParticleOptions = new ObservableCollection<string>
         {
             "全部",
@@ -196,7 +193,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             "关闭"
         };
         SelectedParticleOption = "全部";
-        
+
         GraphicsOptions = new ObservableCollection<string>
         {
             "流畅",
@@ -205,14 +202,14 @@ public partial class GameSettingsViewModel : ViewModelBase
             "自定义"
         };
         SelectedGraphicsOption = "高品质";
-        
+
         // 初始化环境变量列表
         EnvironmentVariables = new ObservableCollection<EnvironmentVariable>
         {
             new EnvironmentVariable { IsEnabled = true, Name = "JAVA_TOOL_OPTIONS", Value = "-Dfile.encoding=UTF-8" },
             new EnvironmentVariable { IsEnabled = false, Name = "JAVA_OPTS", Value = "-XX:+UseG1GC" }
         };
-        
+
         // 监听菜单索引变化
         this.PropertyChanged += (sender, args) => {
             if (args.PropertyName == nameof(SelectedMenuIndex))
@@ -220,12 +217,12 @@ public partial class GameSettingsViewModel : ViewModelBase
                 UpdateContentView();
             }
         };
-        
+
         // 监听设置变更
         this.PropertyChanged += (sender, args) =>
         {
-            if (args.PropertyName == nameof(JavaPath) || 
-                args.PropertyName == nameof(GameDirectory) || 
+            if (args.PropertyName == nameof(JavaPath) ||
+                args.PropertyName == nameof(GameDirectory) ||
                 args.PropertyName == nameof(MemoryAllocation) ||
                 args.PropertyName == nameof(JvmArguments) ||
                 args.PropertyName == nameof(GameArguments) ||
@@ -241,25 +238,25 @@ public partial class GameSettingsViewModel : ViewModelBase
                 }
             }
         };
-        
+
         // 初始化默认视图
         UpdateContentView();
-        
+
         // 设置默认Java路径
         JavaPath = _gameService.DefaultJavaPath;
-        
+
         // 设置默认游戏目录
         GameDirectory = _gameService.DefaultGameDirectory;
-        
+
         // 获取系统内存信息，设置最大可用内存
         DetectSystemMemory();
-        
+
         // 加载用户设置
         LoadUserSettings();
-        
+
         _isInitialized = true;
     }
-    
+
     private void UpdateContentView()
     {
         // 根据选中的菜单索引更新内容视图
@@ -282,12 +279,12 @@ public partial class GameSettingsViewModel : ViewModelBase
                 break;
         }
     }
-    
+
     public async Task Initialize(string versionId)
     {
         VersionId = versionId;
         VersionTitle = versionId;
-        
+
         try
         {
             // 加载版本信息
@@ -301,20 +298,20 @@ public partial class GameSettingsViewModel : ViewModelBase
                 ReleaseTime = versionInfo.ReleaseTime;
                 MainClass = versionInfo.MainClass;
                 InheritsFrom = versionInfo.InheritsFrom ?? "无";
-                
+
                 // 加载版本特定设置
                 LoadVersionSettings(versionId);
             }
-            
+
             // 加载系统信息
             MaxMemoryMB = _gameService.GetSystemMaxMemoryMB();
-            
+
             // 确保内存分配合理
             if (MemoryAllocation > MaxMemoryMB)
             {
                 MemoryAllocation = Math.Min(MaxMemoryMB, 4096);
             }
-            
+
             // 加载模组列表
             await LoadMods(versionId);
         }
@@ -324,7 +321,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"初始化游戏设置失败: {ex.Message}");
         }
     }
-    
+
     private void LoadVersionSettings(string versionId)
     {
         // 这里应该从配置文件加载特定版本的设置
@@ -334,7 +331,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         JvmArguments = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200";
         GameArguments = "";
     }
-    
+
     private async Task LoadMods(string versionId)
     {
         // 这里应该从mods文件夹加载mod列表
@@ -345,16 +342,16 @@ public partial class GameSettingsViewModel : ViewModelBase
             new ModInfo { Name = "JourneyMap", Version = "5.9.16", Author = "techbrew", Description = "小地图模组" },
             new ModInfo { Name = "Fabric API", Version = "0.92.0", Author = "FabricMC", Description = "Fabric模组加载器API" }
         };
-        
+
         // 实际实现时需要扫描mods文件夹
         await Task.CompletedTask;
     }
-    
+
     partial void OnMemoryAllocationChanged(int value)
     {
         MemoryAllocationDisplay = $"{value} MB";
     }
-    
+
     [RelayCommand]
     private async Task SelectJava()
     {
@@ -378,7 +375,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             JavaPath = javaPath;
         }
     }
-    
+
     [RelayCommand]
     private async Task SelectGameDirectory()
     {
@@ -388,7 +385,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             GameDirectory = gameDir;
         }
     }
-    
+
     [RelayCommand]
     private async Task SaveSettings()
     {
@@ -396,7 +393,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         {
             // 保存设置
             SaveUserSettings();
-            
+
             // 返回上一个页面
             await _navigationService.GoBackAsync();
         }
@@ -406,14 +403,14 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"保存设置失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task Return()
     {
         // 返回上一页
         await _navigationService.GoBackAsync();
     }
-    
+
     [RelayCommand]
     private void EditVersionName()
     {
@@ -422,14 +419,14 @@ public partial class GameSettingsViewModel : ViewModelBase
             // 实现版本名称编辑功能，需要UI交互
             // 这里暂且仅修改本地变量
             string versionJsonPath = Path.Combine(GameDirectory, "versions", VersionId, $"{VersionId}.json");
-            
+
             if (File.Exists(versionJsonPath))
             {
                 string jsonContent = File.ReadAllText(versionJsonPath);
                 // TODO:修改版本名称需要UI交互
                 // 实际使用时应该弹出对话框让用户输入新名称
                 // var newName = "新版本名称";
-                
+
                 // 回调UI层实现编辑功能
                 System.Diagnostics.Debug.WriteLine("需要UI层实现版本名称编辑功能");
             }
@@ -443,7 +440,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"编辑版本名称失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void EditVersionDescription()
     {
@@ -458,13 +455,13 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"编辑版本描述失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void AddToCollection()
     {
         // 实现添加到收藏的逻辑
     }
-    
+
     [RelayCommand]
     private void OpenVersionFolder()
     {
@@ -485,7 +482,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"打开版本文件夹失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void OpenSaveFolder()
     {
@@ -496,7 +493,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             {
                 Directory.CreateDirectory(saveFolder);
             }
-            
+
             OpenFolder(saveFolder);
         }
         catch (Exception ex)
@@ -504,7 +501,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"打开存档文件夹失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void OpenModFolder()
     {
@@ -515,7 +512,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             {
                 Directory.CreateDirectory(modFolder);
             }
-            
+
             OpenFolder(modFolder);
         }
         catch (Exception ex)
@@ -523,7 +520,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"打开Mod文件夹失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task TestGame()
     {
@@ -535,14 +532,14 @@ public partial class GameSettingsViewModel : ViewModelBase
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 检查Java路径是否有效
             if (string.IsNullOrEmpty(JavaPath) || !File.Exists(JavaPath))
             {
                 System.Diagnostics.Debug.WriteLine("无效的Java路径");
                 return;
             }
-            
+
             // 创建测试启动选项
             var testOptions = new PCL.Neo.Core.Models.Minecraft.Game.LaunchOptions
             {
@@ -559,23 +556,23 @@ public partial class GameSettingsViewModel : ViewModelBase
                 WindowHeight = GameHeight,
                 FullScreen = IsFullScreen,
                 IsOfflineMode = true, // 测试时使用离线模式
-                
+
                 // 添加JVM参数和游戏参数
-                ExtraJvmArgs = string.IsNullOrEmpty(JvmArguments) 
-                    ? new List<string>() 
+                ExtraJvmArgs = string.IsNullOrEmpty(JvmArguments)
+                    ? new List<string>()
                     : JvmArguments.Split(' ').ToList(),
-                
-                ExtraGameArgs = string.IsNullOrEmpty(GameArguments) 
-                    ? new List<string>() 
+
+                ExtraGameArgs = string.IsNullOrEmpty(GameArguments)
+                    ? new List<string>()
                     : GameArguments.Split(' ').ToList(),
-                
+
                 // 环境变量
                 EnvironmentVariables = new Dictionary<string, string>
                 {
                     { "JAVA_TOOL_OPTIONS", "-Dfile.encoding=UTF-8" }
                 }
             };
-            
+
             // 跨平台支持
             if (OperatingSystem.IsLinux())
             {
@@ -587,11 +584,11 @@ public partial class GameSettingsViewModel : ViewModelBase
                 testOptions.ExtraJvmArgs.Add("-XstartOnFirstThread");
                 testOptions.ExtraJvmArgs.Add("-Djava.awt.headless=false");
             }
-            
+
             // 获取GameLauncher实例并启动游戏
             var gameLauncher = new PCL.Neo.Core.Models.Minecraft.Game.GameLauncher(_gameService);
             var process = await gameLauncher.LaunchAsync(testOptions);
-            
+
             System.Diagnostics.Debug.WriteLine($"测试游戏已启动，进程ID: {process.Id}");
         }
         catch (Exception ex)
@@ -599,7 +596,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"测试游戏失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task ExportStarter()
     {
@@ -608,32 +605,32 @@ public partial class GameSettingsViewModel : ViewModelBase
             // 创建启动脚本
             string scriptContent;
             string fileExtension;
-            
+
             // 确定版本ID和Java路径有效
             if (string.IsNullOrEmpty(VersionId))
             {
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             if (string.IsNullOrEmpty(JavaPath) || !File.Exists(JavaPath))
             {
                 System.Diagnostics.Debug.WriteLine("无效的Java路径");
                 return;
             }
-            
+
             // 构建启动命令
             string javaPath = Path.GetFullPath(JavaPath);
             string gameDir = Path.GetFullPath(GameDirectory);
-            
+
             // 构建JVM参数
             string jvmArgs = $"-Xmx{MemoryAllocation}M -Xms{Math.Max(512, MemoryAllocation / 4)}M";
-            
+
             if (!string.IsNullOrEmpty(JvmArguments))
             {
                 jvmArgs += " " + JvmArguments;
             }
-            
+
             // 平台特定JVM参数
             if (OperatingSystem.IsLinux())
             {
@@ -643,15 +640,15 @@ public partial class GameSettingsViewModel : ViewModelBase
             {
                 jvmArgs += " -XstartOnFirstThread -Djava.awt.headless=false";
             }
-            
+
             // 构建游戏参数（简化版）
             string gameArgs = $"--username Player --version {VersionId} --gameDir \"{gameDir}\" --assetsDir \"{Path.Combine(gameDir, "assets")}\"";
-            
+
             if (!string.IsNullOrEmpty(GameArguments))
             {
                 gameArgs += " " + GameArguments;
             }
-            
+
             // 根据操作系统创建不同的脚本
             if (OperatingSystem.IsWindows())
             {
@@ -670,14 +667,14 @@ echo ""Game exited. Press any key to continue...""
 read -n 1 -s";
                 fileExtension = ".sh";
             }
-            
+
             // 保存脚本文件
             var filePath = await _storageService.SaveFile("保存启动脚本", $"启动Minecraft_{VersionId}", fileExtension);
-            
+
             if (!string.IsNullOrEmpty(filePath))
             {
                 File.WriteAllText(filePath, scriptContent);
-                
+
                 // 在Linux/macOS上设置脚本为可执行
                 if (!OperatingSystem.IsWindows())
                 {
@@ -701,7 +698,7 @@ read -n 1 -s";
                         System.Diagnostics.Debug.WriteLine($"设置脚本可执行权限失败: {ex.Message}");
                     }
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine($"启动脚本已导出: {filePath}");
             }
         }
@@ -710,7 +707,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"导出启动脚本失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task CompleteFiles()
     {
@@ -721,41 +718,41 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 补全游戏文件，需要访问GameService
             System.Diagnostics.Debug.WriteLine($"开始补全版本 {VersionId} 的文件...");
-            
+
             string versionFolder = Path.Combine(GameDirectory, "versions", VersionId);
-            
+
             if (!Directory.Exists(versionFolder))
             {
                 System.Diagnostics.Debug.WriteLine($"版本文件夹不存在: {versionFolder}");
                 return;
             }
-            
+
             // 检查版本JSON文件
             string versionJsonPath = Path.Combine(versionFolder, $"{VersionId}.json");
-            
+
             if (!File.Exists(versionJsonPath))
             {
                 System.Diagnostics.Debug.WriteLine($"版本JSON文件不存在: {versionJsonPath}");
                 return;
             }
-            
+
             // 解析版本信息
             string jsonContent = File.ReadAllText(versionJsonPath);
             var versionInfo = System.Text.Json.JsonSerializer.Deserialize<object>(jsonContent);
-            
+
             // 这里需要调用GameService的实际补全文件方法
             // 由于GameService的具体实现可能不同，这里只模拟进度
-            
+
             // 显示进度条或提示（实际实现需要UI交互）
             for (int i = 0; i <= 100; i += 10)
             {
                 System.Diagnostics.Debug.WriteLine($"补全文件进度: {i}%");
                 await Task.Delay(100); // 模拟进度，实际实现中应删除此行
             }
-            
+
             System.Diagnostics.Debug.WriteLine("文件补全完成");
         }
         catch (Exception ex)
@@ -763,7 +760,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"补全文件失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void OpenSaveFile()
     {
@@ -771,16 +768,16 @@ read -n 1 -s";
         {
             // 打开选择存档文件对话框
             System.Diagnostics.Debug.WriteLine("需要实现选择存档文件的UI交互");
-            
+
             // 以下为示例代码，需要UI层实现文件选择
             // var saveFile = await _storageService.SelectFileWithFilters(
-            //     new List<FilePickerFileType> 
-            //     { 
+            //     new List<FilePickerFileType>
+            //     {
             //         new("Minecraft存档") { Patterns = new[] { "*.zip", "*.mcworld" } },
             //         new("所有文件") { Patterns = new[] { "*" } }
-            //     }, 
+            //     },
             //     "选择Minecraft存档文件");
-            // 
+            //
             // if (!string.IsNullOrEmpty(saveFile))
             // {
             //     OpenFile(saveFile);
@@ -791,7 +788,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"打开存档文件失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task PasteSaveFile()
     {
@@ -799,49 +796,49 @@ read -n 1 -s";
         {
             // 实现粘贴存档功能
             string savesFolder = Path.Combine(GameDirectory, "saves");
-            
+
             if (!Directory.Exists(savesFolder))
             {
                 Directory.CreateDirectory(savesFolder);
             }
-            
+
             // 选择要导入的存档文件
             var saveFile = await _storageService.SelectFileWithFilters(
-                new List<FilePickerFileType> 
-                { 
+                new List<FilePickerFileType>
+                {
                     new("Minecraft存档") { Patterns = new[] { "*.zip", "*.mcworld" } },
                     new("所有文件") { Patterns = new[] { "*" } }
-                }, 
+                },
                 "选择Minecraft存档文件");
-                
+
             if (string.IsNullOrEmpty(saveFile) || !File.Exists(saveFile))
             {
                 return;
             }
-            
+
             // 处理存档文件，根据文件类型决定操作
             string extension = Path.GetExtension(saveFile).ToLower();
-            
+
             if (extension == ".zip" || extension == ".mcworld")
             {
                 // 解压存档文件
                 System.Diagnostics.Debug.WriteLine($"正在解压存档文件: {saveFile}");
-                
+
                 // 这里需要实现解压功能
                 // 作为示例，我们只做简单的文件复制
                 string saveFileName = Path.GetFileNameWithoutExtension(saveFile);
                 string targetFolder = Path.Combine(savesFolder, saveFileName);
-                
+
                 if (!Directory.Exists(targetFolder))
                 {
                     Directory.CreateDirectory(targetFolder);
                 }
-                
+
                 // 检查是否为有效的存档文件（应该包含level.dat）
                 // 实际实现应该解压ZIP文件并检查内容
-                
+
                 File.Copy(saveFile, Path.Combine(targetFolder, Path.GetFileName(saveFile)), true);
-                
+
                 System.Diagnostics.Debug.WriteLine($"存档已导入: {targetFolder}");
             }
             else
@@ -849,7 +846,7 @@ read -n 1 -s";
                 // 非ZIP格式，直接复制文件
                 string targetFile = Path.Combine(savesFolder, Path.GetFileName(saveFile));
                 File.Copy(saveFile, targetFile, true);
-                
+
                 System.Diagnostics.Debug.WriteLine($"存档文件已复制: {targetFile}");
             }
         }
@@ -858,7 +855,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"粘贴存档文件失败: {ex.Message}");
         }
     }
-    
+
     // 检测系统内存
     private void DetectSystemMemory()
     {
@@ -866,7 +863,7 @@ read -n 1 -s";
         {
             // 获取系统总内存 (以MB为单位)
             MaxMemoryMB = _gameService.GetSystemMaxMemoryMB();
-            
+
             // 默认分配最大内存的1/4，但至少1GB，最多4GB
             MemoryAllocation = Math.Min(4096, Math.Max(1024, MaxMemoryMB / 4));
         }
@@ -877,7 +874,7 @@ read -n 1 -s";
             MemoryAllocation = 2048;
         }
     }
-    
+
     // 保存用户设置
     private void SaveUserSettings()
     {
@@ -886,7 +883,7 @@ read -n 1 -s";
             // 创建设置目录
             string settingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "settings");
             Directory.CreateDirectory(settingsDir);
-            
+
             // 保存基本设置
             var settings = new Dictionary<string, string>
             {
@@ -904,12 +901,12 @@ read -n 1 -s";
                 { "IsProxyEnabled", IsProxyEnabled.ToString() },
                 { "ProxyAddress", ProxyAddress }
             };
-            
+
             // 写入JSON文件
             string settingsFile = Path.Combine(settingsDir, "game_settings.json");
-            File.WriteAllText(settingsFile, System.Text.Json.JsonSerializer.Serialize(settings, new System.Text.Json.JsonSerializerOptions 
-            { 
-                WriteIndented = true 
+            File.WriteAllText(settingsFile, System.Text.Json.JsonSerializer.Serialize(settings, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true
             }));
         }
         catch (Exception ex)
@@ -918,19 +915,19 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"保存设置失败: {ex.Message}");
         }
     }
-    
+
     // 加载用户设置
     private void LoadUserSettings()
     {
         try
         {
             string settingsFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "settings", "game_settings.json");
-            
+
             if (File.Exists(settingsFile))
             {
                 var json = File.ReadAllText(settingsFile);
                 var settings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                
+
                 if (settings != null)
                 {
                     // 加载Java路径
@@ -942,72 +939,72 @@ read -n 1 -s";
                     {
                         JavaPath = _gameService.DefaultJavaPath;
                     }
-                    
+
                     // 加载游戏目录
                     if (settings.TryGetValue("GameDirectory", out string gameDir) && !string.IsNullOrEmpty(gameDir) && Directory.Exists(gameDir))
                     {
                         GameDirectory = gameDir;
                     }
-                    
+
                     // 加载内存设置
                     if (settings.TryGetValue("MemoryAllocation", out string memAlloc) && int.TryParse(memAlloc, out int memory))
                     {
                         MemoryAllocation = Math.Min(MaxMemoryMB, memory);
                     }
-                    
+
                     // 加载JVM参数
                     if (settings.TryGetValue("JvmArguments", out string jvmArgs))
                     {
                         JvmArguments = jvmArgs;
                     }
-                    
+
                     // 加载游戏参数
                     if (settings.TryGetValue("GameArguments", out string gameArgs))
                     {
                         GameArguments = gameArgs;
                     }
-                    
+
                     // 加载全屏设置
                     if (settings.TryGetValue("IsFullScreen", out string isFullScreen) && bool.TryParse(isFullScreen, out bool fullScreen))
                     {
                         IsFullScreen = fullScreen;
                     }
-                    
+
                     // 加载游戏窗口尺寸
                     if (settings.TryGetValue("GameWidth", out string gameWidth) && int.TryParse(gameWidth, out int width))
                     {
                         GameWidth = width;
                     }
-                    
+
                     if (settings.TryGetValue("GameHeight", out string gameHeight) && int.TryParse(gameHeight, out int height))
                     {
                         GameHeight = height;
                     }
-                    
+
                     // 加载启动后关闭设置
                     if (settings.TryGetValue("CloseAfterLaunch", out string closeAfterLaunch) && bool.TryParse(closeAfterLaunch, out bool close))
                     {
                         CloseAfterLaunch = close;
                     }
-                    
+
                     // 加载日志保存设置
                     if (settings.TryGetValue("SaveGameLog", out string saveGameLog) && bool.TryParse(saveGameLog, out bool saveLog))
                     {
                         SaveGameLog = saveLog;
                     }
-                    
+
                     // 加载崩溃分析设置
                     if (settings.TryGetValue("EnableCrashAnalysis", out string enableCrashAnalysis) && bool.TryParse(enableCrashAnalysis, out bool crashAnalysis))
                     {
                         EnableCrashAnalysis = crashAnalysis;
                     }
-                    
+
                     // 加载代理设置
                     if (settings.TryGetValue("IsProxyEnabled", out string isProxyEnabled) && bool.TryParse(isProxyEnabled, out bool proxyEnabled))
                     {
                         IsProxyEnabled = proxyEnabled;
                     }
-                    
+
                     if (settings.TryGetValue("ProxyAddress", out string proxyAddress))
                     {
                         ProxyAddress = proxyAddress;
@@ -1021,7 +1018,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"加载设置失败: {ex.Message}");
         }
     }
-    
+
     // 跨平台打开文件夹
     private void OpenFolder(string folderPath)
     {
@@ -1072,7 +1069,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"打开文件夹失败: {ex.Message}");
         }
     }
-    
+
     // 跨平台打开文件
     private void OpenFile(string filePath)
     {
@@ -1083,7 +1080,7 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine($"文件不存在: {filePath}");
                 return;
             }
-            
+
             if (OperatingSystem.IsWindows())
             {
                 using var process = new Process
@@ -1128,7 +1125,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"打开文件失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void Reinstall()
     {
@@ -1139,32 +1136,32 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 确认对话框（应该由UI层实现）
             bool confirmed = true; // 假设用户已确认，实际使用时应该显示确认对话框
-            
+
             if (!confirmed)
             {
                 return;
             }
-            
+
             string versionFolder = Path.Combine(GameDirectory, "versions", VersionId);
-            
+
             if (!Directory.Exists(versionFolder))
             {
                 System.Diagnostics.Debug.WriteLine($"版本文件夹不存在: {versionFolder}");
                 return;
             }
-            
+
             // 备份版本JSON文件
             string versionJsonPath = Path.Combine(versionFolder, $"{VersionId}.json");
             string backupJsonPath = Path.Combine(versionFolder, $"{VersionId}.json.bak");
-            
+
             if (File.Exists(versionJsonPath))
             {
                 File.Copy(versionJsonPath, backupJsonPath, true);
             }
-            
+
             // 删除除JSON备份外的所有文件
             foreach (var file in Directory.GetFiles(versionFolder))
             {
@@ -1173,17 +1170,17 @@ read -n 1 -s";
                     File.Delete(file);
                 }
             }
-            
+
             // 恢复JSON文件
             if (File.Exists(backupJsonPath))
             {
                 File.Copy(backupJsonPath, versionJsonPath, true);
                 File.Delete(backupJsonPath);
             }
-            
+
             // 重新下载所需文件（实际应调用GameService方法）
             System.Diagnostics.Debug.WriteLine($"版本 {VersionId} 已准备重新安装");
-            
+
             // TODO: 调用GameService方法重新下载文件
             // 例如: await _gameService.ReinstallVersion(VersionId, GameDirectory);
         }
@@ -1192,7 +1189,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"重装失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task DeleteVersion()
     {
@@ -1203,28 +1200,28 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 确认对话框（应该由UI层实现）
             bool confirmed = true; // 假设用户已确认，实际使用时应该显示确认对话框
-            
+
             if (!confirmed)
             {
                 return;
             }
-            
+
             string versionFolder = Path.Combine(GameDirectory, "versions", VersionId);
-            
+
             if (!Directory.Exists(versionFolder))
             {
                 System.Diagnostics.Debug.WriteLine($"版本文件夹不存在: {versionFolder}");
                 return;
             }
-            
+
             // 删除版本文件夹及其内容
             Directory.Delete(versionFolder, true);
-            
+
             System.Diagnostics.Debug.WriteLine($"版本 {VersionId} 已删除");
-            
+
             // 返回上一页
             await _navigationService.GoBackAsync();
         }
@@ -1233,7 +1230,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"删除版本失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void StartModify()
     {
@@ -1244,13 +1241,13 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 切换到修改页面
             SelectedMenuIndex = 2;
-            
+
             // 准备修改操作
             System.Diagnostics.Debug.WriteLine($"开始修改版本 {VersionId}");
-            
+
             // 可以在这里加载可用的组件，如Forge、Fabric等版本
             // 例如：LoadAvailableComponents();
         }
@@ -1259,7 +1256,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"开始修改失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task ExportPackageGuide()
     {
@@ -1267,7 +1264,7 @@ read -n 1 -s";
         {
             // 打开整合包制作指南，可以是在线链接或本地文档
             string guideUrl = "https://www.mcbbs.net/thread-896219-1-1.html"; // 示例链接，应替换为实际指南URL
-            
+
             // 在浏览器中打开指南
             if (OperatingSystem.IsWindows())
             {
@@ -1307,7 +1304,7 @@ read -n 1 -s";
                 };
                 process.Start();
             }
-            
+
             // 也可以提供本地HTML文档
             // 或显示对话框提示
         }
@@ -1316,7 +1313,7 @@ read -n 1 -s";
             System.Diagnostics.Debug.WriteLine($"打开整合包制作指南失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private async Task Export()
     {
@@ -1327,45 +1324,45 @@ read -n 1 -s";
                 System.Diagnostics.Debug.WriteLine("未选择游戏版本");
                 return;
             }
-            
+
             // 选择导出目录
             var exportDir = await _storageService.SelectFolder("选择整合包导出目录");
-            
+
             if (string.IsNullOrEmpty(exportDir))
             {
                 return;
             }
-            
+
             // 创建整合包目录
             string packageName = $"{PackageName}_{PackageVersion}";
             string packageDir = Path.Combine(exportDir, packageName);
-            
+
             if (Directory.Exists(packageDir))
             {
                 // 提示用户确认覆盖或者重命名
                 // 这里简化处理，直接删除已存在的目录
                 Directory.Delete(packageDir, true);
             }
-            
+
             Directory.CreateDirectory(packageDir);
-            
+
             // 复制游戏核心
             if (ExportGameCore)
             {
                 string versionFolder = Path.Combine(GameDirectory, "versions", VersionId);
                 string targetVersionFolder = Path.Combine(packageDir, "versions", VersionId);
-                
+
                 Directory.CreateDirectory(targetVersionFolder);
-                
+
                 foreach (var file in Directory.GetFiles(versionFolder))
                 {
                     string fileName = Path.GetFileName(file);
                     File.Copy(file, Path.Combine(targetVersionFolder, fileName), true);
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine("已导出游戏核心");
             }
-            
+
             // 复制游戏设置
             if (ExportGameSettings)
             {
@@ -1376,50 +1373,50 @@ read -n 1 -s";
                     System.Diagnostics.Debug.WriteLine("已导出游戏设置");
                 }
             }
-            
+
             // 复制Mods
             if (ExportMods)
             {
                 string modsFolder = Path.Combine(GameDirectory, "mods");
                 string targetModsFolder = Path.Combine(packageDir, "mods");
-                
+
                 if (Directory.Exists(modsFolder))
                 {
                     Directory.CreateDirectory(targetModsFolder);
-                    
+
                     foreach (var file in Directory.GetFiles(modsFolder, "*.jar"))
                     {
                         string fileName = Path.GetFileName(file);
                         File.Copy(file, Path.Combine(targetModsFolder, fileName), true);
                     }
-                    
+
                     System.Diagnostics.Debug.WriteLine("已导出Mods");
                 }
             }
-            
+
             // 复制Mods配置
             if (ExportModsSettings)
             {
                 string configFolder = Path.Combine(GameDirectory, "config");
                 string targetConfigFolder = Path.Combine(packageDir, "config");
-                
+
                 if (Directory.Exists(configFolder))
                 {
                     CopyDirectory(configFolder, targetConfigFolder);
                     System.Diagnostics.Debug.WriteLine("已导出Mods配置");
                 }
             }
-            
+
             // 复制资源包
             if (ExportResourcePacks)
             {
                 string resourcePacksFolder = Path.Combine(GameDirectory, "resourcepacks");
                 string targetResourcePacksFolder = Path.Combine(packageDir, "resourcepacks");
-                
+
                 if (Directory.Exists(resourcePacksFolder))
                 {
                     Directory.CreateDirectory(targetResourcePacksFolder);
-                    
+
                     // 如果选择了特定资源包
                     if (!string.IsNullOrEmpty(SelectedResourcePack))
                     {
@@ -1438,11 +1435,11 @@ read -n 1 -s";
                             File.Copy(file, Path.Combine(targetResourcePacksFolder, fileName), true);
                         }
                     }
-                    
+
                     System.Diagnostics.Debug.WriteLine("已导出资源包");
                 }
             }
-            
+
             // 复制多人游戏服务器列表
             if (ExportMultiServerList)
             {
@@ -1453,14 +1450,14 @@ read -n 1 -s";
                     System.Diagnostics.Debug.WriteLine("已导出服务器列表");
                 }
             }
-            
+
             // 创建启动器程序
             if (ExportLauncherProgram)
             {
                 // 创建启动脚本
                 string scriptContent;
                 string scriptPath;
-                
+
                 if (OperatingSystem.IsWindows())
                 {
                     scriptContent = $@"@echo off
@@ -1481,9 +1478,9 @@ echo ""游戏已退出""
 read -n 1 -s -r -p ""按任意键退出...""";
                     scriptPath = Path.Combine(packageDir, "启动.sh");
                 }
-                
+
                 File.WriteAllText(scriptPath, scriptContent);
-                
+
                 // 设置Linux/macOS脚本权限
                 if (!OperatingSystem.IsWindows() && File.Exists(scriptPath))
                 {
@@ -1507,10 +1504,10 @@ read -n 1 -s -r -p ""按任意键退出...""";
                         System.Diagnostics.Debug.WriteLine($"设置启动脚本权限失败: {ex.Message}");
                     }
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine("已创建启动器程序");
             }
-            
+
             // 创建ReadMe文件
             string readmePath = Path.Combine(packageDir, "ReadMe.txt");
             string readmeContent = $@"{PackageName} v{PackageVersion}
@@ -1524,10 +1521,10 @@ read -n 1 -s -r -p ""按任意键退出...""";
 祝您游戏愉快!";
 
             File.WriteAllText(readmePath, readmeContent);
-            
+
             // 打开导出目录
             OpenFolder(packageDir);
-            
+
             System.Diagnostics.Debug.WriteLine($"整合包已导出到: {packageDir}");
         }
         catch (Exception ex)
@@ -1535,19 +1532,19 @@ read -n 1 -s -r -p ""按任意键退出...""";
             System.Diagnostics.Debug.WriteLine($"导出整合包失败: {ex.Message}");
         }
     }
-    
+
     // 递归复制目录
     private void CopyDirectory(string sourceDir, string targetDir)
     {
         Directory.CreateDirectory(targetDir);
-        
+
         foreach (var file in Directory.GetFiles(sourceDir))
         {
             string fileName = Path.GetFileName(file);
             string targetFile = Path.Combine(targetDir, fileName);
             File.Copy(file, targetFile, true);
         }
-        
+
         foreach (var directory in Directory.GetDirectories(sourceDir))
         {
             string dirName = Path.GetFileName(directory);
@@ -1555,7 +1552,7 @@ read -n 1 -s -r -p ""按任意键退出...""";
             CopyDirectory(directory, targetSubDir);
         }
     }
-    
+
     [RelayCommand]
     private void ReadConfig()
     {
@@ -1563,16 +1560,16 @@ read -n 1 -s -r -p ""按任意键退出...""";
         {
             // 读取游戏配置文件
             string optionsFile = Path.Combine(GameDirectory, "options.txt");
-            
+
             if (File.Exists(optionsFile))
             {
                 var gameOptions = new Dictionary<string, string>();
-                
+
                 foreach (var line in File.ReadAllLines(optionsFile))
                 {
                     if (string.IsNullOrWhiteSpace(line) || !line.Contains(':'))
                         continue;
-                        
+
                     var parts = line.Split(new[] { ':' }, 2);
                     if (parts.Length == 2)
                     {
@@ -1581,13 +1578,13 @@ read -n 1 -s -r -p ""按任意键退出...""";
                         gameOptions[key] = value;
                     }
                 }
-                
+
                 // 根据读取的配置更新UI
                 if (gameOptions.TryGetValue("renderDistance", out string renderDistanceValue) && int.TryParse(renderDistanceValue, out int renderDistance))
                 {
                     RenderDistance = renderDistance;
                 }
-                
+
                 if (gameOptions.TryGetValue("particles", out string particlesValue))
                 {
                     switch (particlesValue)
@@ -1606,22 +1603,22 @@ read -n 1 -s -r -p ""按任意键退出...""";
                             break;
                     }
                 }
-                
+
                 if (gameOptions.TryGetValue("maxFps", out string maxFpsValue) && int.TryParse(maxFpsValue, out int maxFps))
                 {
                     MaxFrameRate = maxFps;
                 }
-                
+
                 if (gameOptions.TryGetValue("soundVolume", out string soundVolumeValue) && float.TryParse(soundVolumeValue, out float soundVolume))
                 {
                     SoundVolume = (int)(soundVolume * 100);
                 }
-                
+
                 if (gameOptions.TryGetValue("musicVolume", out string musicVolumeValue) && float.TryParse(musicVolumeValue, out float musicVolume))
                 {
                     MusicVolume = (int)(musicVolume * 100);
                 }
-                
+
                 // 加载图形设置
                 if (gameOptions.TryGetValue("graphicsMode", out string graphicsModeValue) && int.TryParse(graphicsModeValue, out int graphicsMode))
                 {
@@ -1641,7 +1638,7 @@ read -n 1 -s -r -p ""按任意键退出...""";
                             break;
                     }
                 }
-                
+
                 System.Diagnostics.Debug.WriteLine("游戏配置已加载");
             }
             else
@@ -1654,7 +1651,7 @@ read -n 1 -s -r -p ""按任意键退出...""";
             System.Diagnostics.Debug.WriteLine($"读取配置失败: {ex.Message}");
         }
     }
-    
+
     [RelayCommand]
     private void SaveConfig()
     {
@@ -1662,17 +1659,17 @@ read -n 1 -s -r -p ""按任意键退出...""";
         {
             // 保存游戏配置文件
             string optionsFile = Path.Combine(GameDirectory, "options.txt");
-            
+
             // 读取现有配置（如果存在）
             var gameOptions = new Dictionary<string, string>();
-            
+
             if (File.Exists(optionsFile))
             {
                 foreach (var line in File.ReadAllLines(optionsFile))
                 {
                     if (string.IsNullOrWhiteSpace(line) || !line.Contains(':'))
                         continue;
-                        
+
                     var parts = line.Split(new[] { ':' }, 2);
                     if (parts.Length == 2)
                     {
@@ -1682,10 +1679,10 @@ read -n 1 -s -r -p ""按任意键退出...""";
                     }
                 }
             }
-            
+
             // 更新配置
             gameOptions["renderDistance"] = RenderDistance.ToString();
-            
+
             switch (SelectedParticleOption)
             {
                 case "全部":
@@ -1701,11 +1698,11 @@ read -n 1 -s -r -p ""按任意键退出...""";
                     gameOptions["particles"] = "3";
                     break;
             }
-            
+
             gameOptions["maxFps"] = MaxFrameRate.ToString();
             gameOptions["soundVolume"] = (SoundVolume / 100f).ToString("0.0");
             gameOptions["musicVolume"] = (MusicVolume / 100f).ToString("0.0");
-            
+
             // 设置图形选项
             switch (SelectedGraphicsOption)
             {
@@ -1729,7 +1726,7 @@ read -n 1 -s -r -p ""按任意键退出...""";
                     gameOptions["graphicsMode"] = "3"; // 自定义
                     break;
             }
-            
+
             // 保存配置
             using (var writer = new StreamWriter(optionsFile, false))
             {
@@ -1738,7 +1735,7 @@ read -n 1 -s -r -p ""按任意键退出...""";
                     writer.WriteLine($"{option.Key}:{option.Value}");
                 }
             }
-            
+
             System.Diagnostics.Debug.WriteLine("游戏配置已保存");
         }
         catch (Exception ex)
@@ -1746,4 +1743,4 @@ read -n 1 -s -r -p ""按任意键退出...""";
             System.Diagnostics.Debug.WriteLine($"保存配置失败: {ex.Message}");
         }
     }
-} 
+}

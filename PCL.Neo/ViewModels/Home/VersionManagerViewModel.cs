@@ -340,7 +340,7 @@ public partial class VersionManagerViewModel : ViewModelBase
         }
         
         // 检查Java版本与Minecraft版本的兼容性
-        if (!_gameService.IsJavaCompatible(javaPath, version.Id))
+        if (!_gameService.IsJavaCompatibleWithGame(javaPath, version.Id))
         {
             // 提示用户但不阻止启动
             StatusMessage = "警告：当前Java版本可能与所选Minecraft版本不兼容";

@@ -34,25 +34,20 @@ namespace PCL.Neo
 
         private static IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddTransient<MainWindowViewModel>()
-
-            .AddTransient<PCL.Neo.ViewModels.Home.HomeViewModel>()
+            .AddTransient<ViewModels.Home.HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
             .AddTransient<VersionManagerViewModel>()
             .AddTransient<GameSettingsViewModel>()
-
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
-
             .AddTransient<LogViewModel>()
-
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager, JavaManager>()
             .AddSingleton<HttpClient>()
             .AddSingleton<GameService>()
-            .AddSingleton<PCL.Neo.Core.Models.Minecraft.Game.GameLauncher>(provider => 
-                new PCL.Neo.Core.Models.Minecraft.Game.GameLauncher(provider.GetRequiredService<GameService>()))
+            .AddSingleton<GameLauncher>(provider => new GameLauncher(provider.GetRequiredService<GameService>()))
             .AddSingleton<UserService>()
             .BuildServiceProvider();
 
@@ -66,10 +61,7 @@ namespace PCL.Neo
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = vm
-                };
+                desktop.MainWindow = new MainWindow { DataContext = vm };
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -1,11 +1,5 @@
 using PCL.Neo.Core.Utils;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
@@ -22,13 +16,13 @@ public sealed partial class JavaManager : IJavaManager
     /// <summary>
     /// 获取默认Java路径
     /// </summary>
-    public string DefaultJavaPath 
-    { 
+    public string DefaultJavaPath
+    {
         get
         {
             if (JavaList.Count > 0)
             {
-                return JavaList[0].JavaPath;
+                return JavaList[0].JavaExe;
             }
             // 如果没有Java安装，返回系统默认命令
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "javaw.exe" : "java";
