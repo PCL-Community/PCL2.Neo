@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
 /// <summary>
-/// 测试
+/// Java管理器
 /// </summary>
 public sealed partial class JavaManager : IJavaManager
 {
@@ -18,6 +18,13 @@ public sealed partial class JavaManager : IJavaManager
         // TODO)) 根据版本选择
         get
         {
+            foreach (var javaRuntime in JavaList)
+            {
+                if (javaRuntime.SlugVersion == 8)
+                {
+
+                }
+            }
             return (JavaList[0], JavaList[1], JavaList[2]);
         }
     }
