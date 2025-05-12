@@ -4,7 +4,7 @@ using PCL.Neo.Core.Utils;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game;
 
-using DefaultJavaRuntimeCombine = (JavaRuntime Java8, JavaRuntime Java17, JavaRuntime Java21);
+using DefaultJavaRuntimeCombine = (JavaRuntime? Java8, JavaRuntime? Java17, JavaRuntime? Java21);
 
 public class GameService
 {

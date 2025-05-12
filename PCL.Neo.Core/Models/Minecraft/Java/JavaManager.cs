@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
+using DefaultJavaRuntimeCombine = (JavaRuntime? Java8, JavaRuntime? Java17, JavaRuntime? Java21);
+
 /// <summary>
 /// Java管理器
 /// </summary>
@@ -13,19 +15,23 @@ public sealed partial class JavaManager : IJavaManager
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
-    public (JavaRuntime Java8, JavaRuntime Java17, JavaRuntime Java21) DefaultJavaRuntimes
+    private DefaultJavaRuntimeCombine _javaRuntimes;
+
+    public DefaultJavaRuntimeCombine DefaultJavaRuntimes
     {
-        // TODO)) 根据版本选择
         get
         {
-            foreach (var javaRuntime in JavaList)
-            {
-                if (javaRuntime.SlugVersion == 8)
-                {
-
-                }
-            }
-            return (JavaList[0], JavaList[1], JavaList[2]);
+            _javaRuntimes.Java8 ??= JavaList.Find(runtime => runtime.SlugVersion == 8);
+            _javaRuntimes.Java8 ??= JavaList.Find(runtime => runtime.SlugVersion is > 8 and < 17);
+            _javaRuntimes.Java17 ??= JavaList.Find(runtime => runtime.SlugVersion == 17);
+            _javaRuntimes.Java17 ??= JavaList.Find(runtime => runtime.SlugVersion is > 17 and < 21);
+            _javaRuntimes.Java21 ??= JavaList.Find(runtime => runtime.SlugVersion == 21);
+            _javaRuntimes.Java21 ??= JavaList.Find(runtime => runtime.SlugVersion > 21);
+            return _javaRuntimes;
+        }
+        set
+        {
+            _javaRuntimes = value;
         }
     }
 
