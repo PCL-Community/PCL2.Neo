@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data
@@ -35,13 +30,16 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         Error = 6,
     }
 
+    /// <summary>
+    /// 常规游戏版本的版本号，后续可能会拓展到模组版本
+    /// </summary>
     public record GameVersionNum(byte Sub, byte? Fix = null) : IComparable<GameVersionNum>
     {
-        private readonly (byte Major, byte Sub, int Fix) _version = (1, Sub, Fix ?? 0);
+        private readonly (byte Major, byte Sub, byte Fix) _version = (1, Sub, Fix ?? 0);
 
         public byte Major => _version.Major;
         public byte Sub => _version.Sub;
-        public byte? Fix => _version.Fix > 0 ? (byte)_version.Fix : null;
+        public byte? Fix => _version.Fix > 0 ? _version.Fix : null;
 
         public int CompareTo(GameVersionNum? other)
         {
@@ -63,20 +61,6 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         LiteLoader = 4,
         Rift = 5,
         Quilt = 6
-    }
-
-    public enum McVersionState
-    {
-        Error,
-        Vanilla,
-        Snapshot,
-        FoolsDay,
-        OptiFine,
-        Legacy,
-        Forge,
-        NeoForge,
-        LiteLoader,
-        Fabric,
     }
 
     public class VersionInfo

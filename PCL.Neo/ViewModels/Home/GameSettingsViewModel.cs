@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using Avalonia.Platform.Storage;
+using PCL.Neo.Core.Utils;
 using System.IO;
 using System.Diagnostics;
 using System.Linq;
@@ -251,7 +252,7 @@ public partial class GameSettingsViewModel : ViewModelBase
         UpdateContentView();
 
         // 设置默认Java路径
-        JavaPath = _gameService.DefaultJavaPath;
+        JavaPath = _gameService.DefaultJavaRuntimes.Java21.JavaWExe;
 
         // 设置默认游戏目录
         GameDirectory = GameService.DefaultGameDirectory;
@@ -312,7 +313,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             }
 
             // 加载系统信息
-            MaxMemoryMB = _gameService.GetSystemMaxMemoryMB();
+            MaxMemoryMB = SystemUtils.SystemMaxMemoryMB;
 
             // 确保内存分配合理
             if (MemoryAllocation > MaxMemoryMB)
@@ -334,7 +335,7 @@ public partial class GameSettingsViewModel : ViewModelBase
     {
         // 这里应该从配置文件加载特定版本的设置
         // 以下是示例数据
-        JavaPath = _gameService.DefaultJavaPath;
+        JavaPath = _gameService.DefaultJavaRuntimes.Java21.JavaWExe;
         GameDirectory = GameService.DefaultGameDirectory;
         JvmArguments = "-XX:+UseG1GC -XX:+ParallelRefProcEnabled -XX:MaxGCPauseMillis=200";
         GameArguments = "";
@@ -870,7 +871,7 @@ read -n 1 -s";
         try
         {
             // 获取系统总内存 (以MB为单位)
-            MaxMemoryMB = _gameService.GetSystemMaxMemoryMB();
+            MaxMemoryMB = SystemUtils.SystemMaxMemoryMB;
 
             // 默认分配最大内存的1/4，但至少1GB，最多4GB
             MemoryAllocation = Math.Min(4096, Math.Max(1024, MaxMemoryMB / 4));
@@ -947,7 +948,7 @@ read -n 1 -s";
                     }
                     else
                     {
-                        JavaPath = _gameService.DefaultJavaPath;
+                        JavaPath = _gameService.DefaultJavaRuntimes.Java21.JavaWExe;
                     }
 
                     // 加载游戏目录

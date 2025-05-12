@@ -34,7 +34,7 @@ public enum HomeLayoutType
 public partial class HomeSubViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
-    private readonly PCL.Neo.Core.Models.Minecraft.Game.GameLauncher _gameLauncher;
+    private readonly GameLauncher _gameLauncher;
     private readonly UserService _userService;
     private readonly StorageService _storageService;
     private readonly GameService _gameService;

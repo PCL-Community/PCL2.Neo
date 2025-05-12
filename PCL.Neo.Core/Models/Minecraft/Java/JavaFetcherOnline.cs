@@ -1,4 +1,3 @@
-using PCL.Neo.Core.Helpers;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.Json;
@@ -6,8 +5,9 @@ using System.Text.Json.Nodes;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
-public sealed partial class JavaManager
+public sealed partial class JavaManager(DownloadService downloadService)
 {
+    private DownloadService DownloadService => downloadService;
     private static string MetaUrl
     {
         get =>
@@ -37,13 +37,13 @@ public sealed partial class JavaManager
     /// <param name="cancellationToken">用于中断下载</param>
     /// <param name="version">要下载的版本，有α、β、γ、δ等</param>
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
-    public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
+    public async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
         MojangJavaVersion version,
         IProgress<ValueTuple<int, int>>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
         Uri metaUrl = new(MetaUrl);
-        var allJson = await FileHelper.HttpClient.GetStringAsync(metaUrl, cancellationToken);
+        var allJson = await DownloadService.HttpClient.GetStringAsync(metaUrl, cancellationToken);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -57,7 +57,7 @@ public sealed partial class JavaManager
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await FileHelper.HttpClient.GetStringAsync(manifestUri, cancellationToken);
+                    manifestJson = await DownloadService.HttpClient.GetStringAsync(manifestUri, cancellationToken);
                 }
             }
 
@@ -113,10 +113,10 @@ public sealed partial class JavaManager
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
             // 要分类讨论，sb MOJANG
             if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
-                tasks.Add(FileHelper.DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
+                tasks.Add(DownloadService.DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
                     cancellationToken));
             else
-                tasks.Add(FileHelper.DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
+                tasks.Add(DownloadService.DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
                     cancellationToken: cancellationToken));
         }
 

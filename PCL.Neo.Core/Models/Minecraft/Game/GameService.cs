@@ -1,5 +1,3 @@
-using PCL.Neo.Core.Helpers;
-using System.Runtime.InteropServices;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Core.Utils;
@@ -10,22 +8,25 @@ using DefaultJavaRuntimeCombine = (JavaRuntime Java8, JavaRuntime Java17, JavaRu
 
 public class GameService
 {
-    private readonly IJavaManager _javaManager;
-    private static HttpClient HttpClient => FileHelper.HttpClient;
+    private IJavaManager JavaManager { get; }
+    private DownloadService DownloadService { get; }
 
     public static string DefaultGameDirectory =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
-    DefaultJavaRuntimeCombine DefaultJavaRuntimes => _javaManager.DefaultJavaRuntimes;
-    public GameService(IJavaManager javaManager)
+
+    public DefaultJavaRuntimeCombine DefaultJavaRuntimes => JavaManager.DefaultJavaRuntimes;
+
+    public GameService(IJavaManager javaManager, DownloadService downloadService)
     {
-        _javaManager = javaManager;
-        _javaManager.JavaListInit(); // 初始化Java管理器
+        JavaManager = javaManager;
+        DownloadService = downloadService;
+        JavaManager.JavaListInit(); // 初始化Java管理器
     }
 
     /// <summary>
     /// 获取游戏版本列表
     /// </summary>
-    public static async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null,
+    public async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null,
         bool forceRefresh = false)
     {
         string directory = minecraftDirectory ?? DefaultGameDirectory;
@@ -51,7 +52,7 @@ public class GameService
                     versionDict.TryAdd(version.Id, version);
                 }
 
-                return new List<VersionInfo>(versionDict.Values);
+                return [..versionDict.Values];
             }
             catch
             {
@@ -61,14 +62,6 @@ public class GameService
         }
 
         return localVersions;
-    }
-
-    /// <summary>
-    /// 获取Java安装列表
-    /// </summary>
-    public List<JavaRuntime> GetJavaInstallations()
-    {
-        return _javaManager.JavaList;
     }
 
     /// <summary>
@@ -98,7 +91,7 @@ public class GameService
         // 下载Minecraft主JAR文件
         var jarUrl = versionInfo.Downloads.Client.Url;
         var jarPath = Path.Combine(versionDir, $"{versionId}.jar");
-        await DownloadFileAsync(jarUrl, jarPath, progressCallback);
+        await DownloadService.DownloadFileAsync(new Uri(jarUrl), jarPath);
 
         return true;
     }
@@ -119,7 +112,7 @@ public class GameService
         var assetsIndexUrl = versionInfo.AssetIndex.Url;
         var assetsIndexPath = Path.Combine(indexesDir, $"{versionInfo.AssetIndex.Id}.json");
 
-        await DownloadFileAsync(assetsIndexUrl, assetsIndexPath);
+        await DownloadService.DownloadFileAsync(new Uri(assetsIndexUrl), assetsIndexPath);
 
         // 解析assets索引文件
         var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
@@ -145,7 +138,7 @@ public class GameService
             {
                 Directory.CreateDirectory(assetObjectDir);
                 var assetUrl = $"https://resources.download.minecraft.net/{prefix}/{hash}";
-                await DownloadFileAsync(assetUrl, assetObjectPath);
+                await DownloadService.DownloadFileAsync(new Uri(assetUrl), assetObjectPath);
             }
 
             downloadedAssets++;
@@ -187,11 +180,11 @@ public class GameService
             if (!File.Exists(libraryPath))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(libraryPath)!);
-                var libraryUrl = library.Downloads?.Artifact?.Url;
+                var libraryUri = library.Downloads?.Artifact?.Url;
 
-                if (!string.IsNullOrEmpty(libraryUrl))
+                if (!string.IsNullOrEmpty(libraryUri))
                 {
-                    await DownloadFileAsync(libraryUrl, libraryPath);
+                    await DownloadService.DownloadFileAsync(new Uri(libraryUri), libraryPath);
                 }
             }
 
@@ -206,7 +199,7 @@ public class GameService
                     if (!File.Exists(nativePath))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(nativePath)!);
-                        await DownloadFileAsync(nativeDownload.Url, nativePath);
+                        await DownloadService.DownloadFileAsync(new Uri(nativeDownload.Url), nativePath);
                     }
                 }
             }
@@ -229,55 +222,28 @@ public class GameService
 
             if (rule.Os != null)
             {
-                string currentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" :
-                    RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
-                    RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
-
-                if (rule.Os.Name != null && rule.Os.Name != currentOs)
-                {
-                    matches = false;
-                }
-
-                if (rule.Os.Arch != null && rule.Os.Arch != (Environment.Is64BitOperatingSystem ? "64" : "32"))
-                {
-                    matches = false;
-                }
+                // string currentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" :
+                //     RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
+                //     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
+                //
+                // if (rule.Os.Name != null && rule.Os.Name != currentOs)
+                // {
+                //     matches = false;
+                // }
+                //
+                // if (rule.Os.Arch != null && rule.Os.Arch != (Environment.Is64BitOperatingSystem ? "64" : "32"))
+                // {
+                //     matches = false;
+                // }
             }
 
             if (matches)
             {
-                allow = rule.Action == "allow";
+                allow = rule.Allow;
             }
         }
 
         return allow;
-    }
-
-    /// <summary>
-    /// 下载文件
-    /// </summary>
-    private async Task DownloadFileAsync(string url, string savePath, IProgress<int>? progress = null)
-    {
-        try
-        {
-            // 确保目录存在
-            var directory = Path.GetDirectoryName(savePath);
-            if (!string.IsNullOrEmpty(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            // 下载文件
-            var response = await HttpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-            response.EnsureSuccessStatusCode();
-
-            using var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await response.Content.CopyToAsync(fileStream);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"下载文件 {url} 失败: {ex.Message}");
-        }
     }
 
     /// <summary>

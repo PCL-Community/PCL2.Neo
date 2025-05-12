@@ -5,6 +5,7 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Neo.Core.Models;
 using PCL.Neo.Services;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.ViewModels;
@@ -46,7 +47,7 @@ namespace PCL.Neo
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager, JavaManager>()
-            .AddSingleton<HttpClient>()
+            .AddSingleton<DownloadService>()
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>(provider => new GameLauncher(provider.GetRequiredService<GameService>()))
             .AddSingleton<UserService>()
@@ -57,7 +58,8 @@ namespace PCL.Neo
             Ioc.Default.ConfigureServices(ConfigureServices());
 
             var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
-            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
+            // JavaManager应该在GameService构造时自动初始化，而非在此调用初始化，故注释下面一行
+            // Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.

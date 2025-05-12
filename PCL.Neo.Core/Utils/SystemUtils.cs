@@ -8,6 +8,7 @@ public static class SystemUtils
     /// 系统是否为64位。
     /// </summary>
     public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
+
     public enum RunningOs
     {
         Windows,
@@ -63,17 +64,20 @@ public static class SystemUtils
     /// <summary>
     /// 获取系统最大可用内存 (MB)
     /// </summary>
-    public static int GetSystemMaxMemoryMB()
+    public static int SystemMaxMemoryMB
     {
-        try
+        get
         {
-            // 简化实现，保留Core项目中可用的逻辑
-            return 8192; // 默认8GB
-        }
-        catch
-        {
-            // 出错时使用默认值
-            return 4096;
+            try
+            {
+                // 简化实现，保留Core项目中可用的逻辑
+                return 8192; // 默认8GB
+            }
+            catch
+            {
+                // 出错时使用默认值
+                return 4096;
+            }
         }
     }
 
