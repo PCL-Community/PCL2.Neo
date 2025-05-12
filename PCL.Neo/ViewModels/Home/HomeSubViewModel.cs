@@ -237,17 +237,17 @@ public partial class HomeSubViewModel : ViewModelBase
             StatusMessage = "无效的Java路径，请在设置中选择正确的Java可执行文件";
             return;
         }
-
-        // 检查Java版本与Minecraft版本的兼容性
-        if (!_gameService.IsJavaCompatibleWithGame(_gameSettingsViewModel.JavaPath, SelectedGameVersion.Id))
-        {
-            // 提示用户但不阻止启动
-            StatusMessage = "警告：当前Java版本可能与所选Minecraft版本不兼容";
-
-            // 可以在这里添加对话框提示，让用户确认是否继续
-            // 这里简化处理，直接等待3秒后继续
-            await Task.Delay(3000);
-        }
+        // TODO)) 默认Java版本应该设置3个（参考Modrinth启动器）
+        //  此处应该判断的应该是当前要启动的那一个游戏实例设置的Java
+        // if (!_gameService.IsJavaCompatibleWithGame(_gameSettingsViewModel.JavaPath, SelectedGameVersion.Id))
+        // {
+        //     // 提示用户但不阻止启动
+        //     StatusMessage = "警告：当前Java版本可能与所选Minecraft版本不兼容";
+        //
+        //     // 可以在这里添加对话框提示，让用户确认是否继续
+        //     // 这里简化处理，直接等待3秒后继续
+        //     await Task.Delay(3000);
+        // }
 
         try
         {

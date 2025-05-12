@@ -105,6 +105,13 @@ namespace PCL.Neo.ViewModels
         }
 
         [RelayCommand]
+        public async Task NavigateToSetup()
+        {
+            await NavigationService.GotoAsync<SetupViewModel>();
+            ClearNavBtnState();
+        }
+
+        [RelayCommand]
         public async Task NavBtn1_Click()
         {
             await NavigationService.GotoAsync<HomeViewModel>();

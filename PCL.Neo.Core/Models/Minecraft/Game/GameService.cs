@@ -26,7 +26,7 @@ public class GameService
     /// <summary>
     /// 获取游戏版本列表
     /// </summary>
-    public async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null,
+    public static async Task<List<VersionInfo>> GetVersionsAsync(string? minecraftDirectory = null,
         bool forceRefresh = false)
     {
         string directory = minecraftDirectory ?? DefaultGameDirectory;

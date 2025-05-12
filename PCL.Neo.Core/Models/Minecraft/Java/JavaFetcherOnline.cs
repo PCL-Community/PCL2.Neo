@@ -8,6 +8,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java;
 public sealed partial class JavaManager(DownloadService downloadService)
 {
     private DownloadService DownloadService => downloadService;
+    // TODO)) 应该设置多个下载源，从配置文件中获取
     private static string MetaUrl
     {
         get =>
@@ -151,7 +152,6 @@ public sealed partial class JavaManager(DownloadService downloadService)
             SystemUtils.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
             SystemUtils.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
             SystemUtils.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
-            SystemUtils.RunningOs.Unknown => throw new ArgumentOutOfRangeException(),
             _ => throw new ArgumentOutOfRangeException()
         };
         return targetFolder;
