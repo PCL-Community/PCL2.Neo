@@ -185,6 +185,7 @@
                                     Tag="2"
                                     Text="{DynamicResource LangTitleLink}" />
                                 <pc:MyRadioButton
+                                    Command="{Binding NavigateToSetup}"
                                     IsChecked="{Binding IsNavBtn4Checked}"
                                     Logo="{DynamicResource BtnTitleSelect3}"
                                     LogoScale="1.1"

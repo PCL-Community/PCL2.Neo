@@ -25,17 +25,17 @@ namespace PCL.Neo.ViewModels
         private ViewModelBase? _currentViewModel;
         [ObservableProperty]
         private ViewModelBase? _currentSubViewModel;
-        
+
         [ObservableProperty]
         private bool _canGoBack;
 
         // 添加新的属性和命令用于PCL II风格主界面
-        [ObservableProperty] 
+        [ObservableProperty]
         private string _selectedGameVersion = "1.20.2-Fabric 0.15.7-OptiFine_I7_pre1";
 
-        [ObservableProperty] 
+        [ObservableProperty]
         private bool _isPremiumAccount = false;
-        
+
         // 添加CurrentUserName属性以解决绑定错误
         [ObservableProperty]
         private string _currentUserName = "Player";
@@ -55,7 +55,7 @@ namespace PCL.Neo.ViewModels
             NavigationService.CurrentViewModelChanged += vm =>
             {
                 CurrentViewModel = vm;
-                
+
                 // 更新返回按钮状态
                 CanGoBack = NavigationService.CanGoBack;
             };

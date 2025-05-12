@@ -7,6 +7,6 @@ public interface IJavaManager
     // string DefaultJavaPath { get; }
     (JavaRuntime Java8, JavaRuntime Java17, JavaRuntime Java21) DefaultJavaRuntime { get; }
     Task JavaListInit();
-    Task ManualAdd(string javaDir);
+    Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir);
     Task Refresh();
 }

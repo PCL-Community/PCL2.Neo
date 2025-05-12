@@ -73,14 +73,14 @@ public sealed partial class JavaManager : IJavaManager
         }
     }
 
-    public async Task ManualAdd(string javaDir)
+    public async Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir)
     {
-        if (!IsInitialized) return;
+        if (!IsInitialized) return (null, false);
         if (JavaList.FirstOrDefault(runtime => runtime.DirectoryPath == javaDir) is { } existingRuntime)
         {
             Console.WriteLine("选择的 Java 在列表中已存在，将其标记为手动导入。");
             existingRuntime.IsUserImport = true;
-            return;
+            return (existingRuntime, true);
         }
 
         var entity = await JavaRuntime.CreateJavaEntityAsync(javaDir, true);
@@ -88,8 +88,10 @@ public sealed partial class JavaManager : IJavaManager
         {
             JavaList.Add(entity);
             Console.WriteLine("已成功添加！");
+            return (entity, false);
         }
-        else Console.WriteLine("添加的 Java 文件无法运行！");
+        Console.WriteLine("添加的 Java 文件无法运行！");
+        return (null, false);
     }
 
     public async Task Refresh()
@@ -110,7 +112,7 @@ public sealed partial class JavaManager : IJavaManager
             else
                 Console.WriteLine($"[Java] 用户导入的 Java 已不可用，已自动剔除：{oldRuntime.DirectoryPath}");
         JavaList = newEntities;
-        Console.WriteLine("[Java] 刷新 Java 完成");
+        Console.WriteLine($"[Java] 刷新 Java 完成，现在共有 {JavaList.Count} 个Java");
         if (JavaList.Count == 0)
         {
             // TODO)) 提示用户未找到已安装的 java，是否自动下载合适版本，然后再下载
