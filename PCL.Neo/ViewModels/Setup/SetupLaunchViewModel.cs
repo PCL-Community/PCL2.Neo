@@ -38,13 +38,11 @@ public partial class SetupLaunchViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RefreshJava()
+    private async Task RefreshJava()
     {
-        Task.Run(async () =>
-        {
-            await _javaManager.Refresh();
-            DoUiRefresh();
-        });
+        JavaInfoList.Clear();
+        await _javaManager.Refresh();
+        DoUiRefresh();
     }
 
     [RelayCommand]
