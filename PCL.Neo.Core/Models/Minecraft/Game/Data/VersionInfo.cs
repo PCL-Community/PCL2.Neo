@@ -19,6 +19,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         NeoForge = 12
     }
 
+    // TODO)) 此枚举为UI显示，后续建议移到ViewModel中
     public enum VersionCardType : byte
     {
         Auto = 0,
@@ -63,6 +64,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         Quilt = 6
     }
 
+    // TODO)) 最好把GameEntity里的合并到这里来
     public class VersionInfo
     {
         [JsonPropertyName("id")]

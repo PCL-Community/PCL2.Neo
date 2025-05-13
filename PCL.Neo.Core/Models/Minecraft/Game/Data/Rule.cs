@@ -4,34 +4,41 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data;
 
+public partial class Rule
+{
+    [JsonPropertyName("action")] public string Action { get; set; } = string.Empty;
+
+    [JsonPropertyName("os")] public OsRule? Os { get; set; }
+
+    public bool Allow => Action == "allow";
+}
+
 public class OsRule
 {
-    [JsonPropertyName("name")] public SystemUtils.RunningOs Name { get; set; }
+    [JsonPropertyName("name")] public string? Name { get; set; }
 
-    [JsonPropertyName("arch")] public Architecture? Arch { get; set; }
+    /// 本条好像并没有参考性，因为API里写的全是X86
+    [JsonPropertyName("arch")]
+    public string? Arch { get; set; }
 }
 
 public class ArgRule
 {
-    [JsonPropertyName("allow")] public bool Allow { get; set; }
+    [JsonPropertyName("allow")] public string Action { get; set; } = string.Empty;
 
     [JsonPropertyName("features")] public Dictionary<string, bool>? Features { get; set; }
 
     [JsonPropertyName("os")] public OsRule? Os { get; set; }
 }
 
-public class Rule
+public partial class Rule
 {
-    [JsonPropertyName("allow")] public bool Allow { get; set; }
-
-    [JsonPropertyName("os")] public OsRule? Os { get; set; }
-
     private bool IsOsRuleAllow
     {
         get
         {
-            if (Os?.Name is null) return true;
-            bool isCurrentOs = this.Os.Name == SystemUtils.Os;
+            if (Os is null) return true;
+            bool isCurrentOs = this.Os.Name == SystemUtils.Os.ToMajangApiName();
             return (isCurrentOs && Allow) || (!isCurrentOs && !Allow);
         }
     }
@@ -41,7 +48,7 @@ public class Rule
         get
         {
             if (Os?.Arch is null) return true;
-            bool isCurrentArch = Os.Arch == SystemUtils.Architecture;
+            bool isCurrentArch = Os.Arch == SystemUtils.Architecture.ToMajangApiName();
             return (isCurrentArch && Allow) || (!isCurrentArch && !Allow);
         }
     }

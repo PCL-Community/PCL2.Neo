@@ -25,6 +25,29 @@ public static class SystemUtils
                 ? RunningOs.MacOs
                 : RunningOs.Unknown;
 
+    public static string ToMajangApiName(this RunningOs os)
+    {
+        return os switch
+        {
+            RunningOs.Windows => "windows",
+            RunningOs.Linux => "linux",
+            RunningOs.MacOs => "macos",
+            _ => throw new ArgumentOutOfRangeException(nameof(os), os, null)
+        };
+    }
+
+    /// 本条好像并没有参考性，因为API里写的全是X86
+    public static string ToMajangApiName(this Architecture architecture)
+    {
+        return architecture switch
+        {
+            Architecture.X64 => "x86",
+            Architecture.X86 => "x86",
+            Architecture.Arm64 => "arm64",
+            _ => "",
+        };
+    }
+
     public static readonly Architecture Architecture = RuntimeInformation.ProcessArchitecture;
 
     /// <summary>

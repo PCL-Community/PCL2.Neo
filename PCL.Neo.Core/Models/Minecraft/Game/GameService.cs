@@ -221,25 +221,12 @@ public class GameService
 
             if (rule.Os != null)
             {
-                // string currentOs = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows" :
-                //     RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "linux" :
-                //     RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "";
-                //
-                // if (rule.Os.Name != null && rule.Os.Name != currentOs)
-                // {
-                //     matches = false;
-                // }
-                //
-                // if (rule.Os.Arch != null && rule.Os.Arch != (Environment.Is64BitOperatingSystem ? "64" : "32"))
-                // {
-                //     matches = false;
-                // }
+                if (rule.Os.Name != null && rule.Os.Name != SystemUtils.Os.ToMajangApiName()) matches = false;
+                if (rule.Os.Arch != null && rule.Os.Arch != SystemUtils.Architecture.ToMajangApiName()) matches = false;
             }
 
             if (matches)
-            {
                 allow = rule.Allow;
-            }
         }
 
         return allow;
