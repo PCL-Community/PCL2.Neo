@@ -7,11 +7,12 @@ using PCL.Neo.ViewModels.Home;
 
 namespace PCL.Neo.ViewModels.Home
 {
-    public partial class HomeViewModel : ObservableObject
+    // TODO)) 暂未使用
+    public partial class HomeViewModelBackup : ObservableObject
     {
         private readonly INavigationService _navigationService;
 
-        public HomeViewModel(INavigationService navigationService)
+        public HomeViewModelBackup(INavigationService navigationService)
         {
             _navigationService = navigationService;
         }
@@ -22,7 +23,7 @@ namespace PCL.Neo.ViewModels.Home
             // 导航到用户管理页面
             await _navigationService.GotoAsync<HomeSubViewModel>();
         }
-        
+
         [RelayCommand]
         private async Task ManageVersions()
         {
@@ -30,4 +31,4 @@ namespace PCL.Neo.ViewModels.Home
             await _navigationService.GotoAsync<VersionManagerViewModel>();
         }
     }
-} 
+}

@@ -33,7 +33,7 @@ namespace PCL.Neo
 
         private static IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddTransient<MainWindowViewModel>()
-            .AddTransient<ViewModels.Home.HomeViewModel>()
+            .AddTransient<HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
             .AddTransient<VersionManagerViewModel>()
             .AddTransient<GameSettingsViewModel>()
@@ -49,7 +49,7 @@ namespace PCL.Neo
             .AddSingleton<IJavaManager, JavaManager>()
             .AddSingleton<DownloadService>()
             .AddSingleton<GameService>()
-            .AddSingleton<GameLauncher>(provider => new GameLauncher(provider.GetRequiredService<GameService>()))
+            .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
             .BuildServiceProvider();
 
@@ -65,6 +65,8 @@ namespace PCL.Neo
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
                 desktop.MainWindow = new MainWindow { DataContext = vm };
+                // 由于导航改成了异步方法，在构造函数中无法正常导向首页，需要在此处导向
+                Ioc.Default.GetRequiredService<INavigationService>().GotoAsync<HomeViewModel>();
             }
 
             base.OnFrameworkInitializationCompleted();

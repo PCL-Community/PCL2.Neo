@@ -41,7 +41,7 @@ public class VersionComponent
     public bool IsClickable { get; set; } = false;
 }
 
-[SubViewModelOf(typeof(HomeViewModel))]
+[SubViewModelOf(typeof(HomeViewModelBackup))]
 public partial class GameSettingsViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;

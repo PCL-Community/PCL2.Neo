@@ -35,7 +35,7 @@ public class VersionItem
     public VersionInfo VersionInfo { get; set; } = null!;
 }
 
-[SubViewModelOf(typeof(HomeViewModel))]
+[SubViewModelOf(typeof(HomeViewModelBackup))]
 public partial class VersionManagerViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;

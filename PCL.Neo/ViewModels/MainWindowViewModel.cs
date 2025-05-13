@@ -38,7 +38,9 @@ namespace PCL.Neo.ViewModels
         }
 
 
-        [ObservableProperty] private ViewModelBase? _currentViewModel;
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(CheckedBtn))]
+        private ViewModelBase? _currentViewModel;
+
         [ObservableProperty] private ViewModelBase? _currentSubViewModel;
 
         [ObservableProperty] private bool _canGoBack;
@@ -68,9 +70,10 @@ namespace PCL.Neo.ViewModels
             NavigationService.CurrentViewModelChanged += vm =>
             {
                 CurrentViewModel = vm;
-
                 // 更新返回按钮状态
                 CanGoBack = NavigationService.CanGoBack;
+                // 由外部的页面跳转反向触发设置按钮状态
+                UpdateNavBtnState();
             };
             NavigationService.CurrentSubViewModelChanged += vm => CurrentSubViewModel = vm;
         }
@@ -144,8 +147,9 @@ namespace PCL.Neo.ViewModels
             {
                 HomeViewModel => 1,
                 DownloadViewModel => 2,
-                SetupViewModel => 3,
-                LogViewModel => 4,
+                // LinkViewModel => 3,
+                SetupViewModel => 4,
+                // MoreViewModel => 4,
                 _ => throw new ArgumentOutOfRangeException()
             };
         }
