@@ -20,7 +20,6 @@ public class GameService
     {
         JavaManager = javaManager;
         DownloadService = downloadService;
-        JavaManager.JavaListInit(); // 初始化Java管理器
     }
 
     /// <summary>

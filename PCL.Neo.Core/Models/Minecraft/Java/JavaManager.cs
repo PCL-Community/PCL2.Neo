@@ -12,6 +12,7 @@ public sealed partial class JavaManager : IJavaManager
 {
     public const int JavaListCacheVersion = 0; // [INFO] Java 缓存版本号，大版本更新后应该增加
     public bool IsInitialized { get; private set; } = false;
+    private bool _isBusy = false;
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
@@ -42,7 +43,7 @@ public sealed partial class JavaManager : IJavaManager
     /// </summary>
     public async Task JavaListInit()
     {
-        if (IsInitialized) return;
+        if (IsInitialized || _isBusy) return;
         JavaList = [];
         try
         {
@@ -82,7 +83,7 @@ public sealed partial class JavaManager : IJavaManager
 
     public async Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir)
     {
-        if (!IsInitialized) return (null, false);
+        if (_isBusy || !IsInitialized) return (null, false);
         if (JavaList.FirstOrDefault(runtime => runtime.DirectoryPath == javaDir) is { } existingRuntime)
         {
             Console.WriteLine("选择的 Java 在列表中已存在，将其标记为手动导入。");
@@ -104,8 +105,8 @@ public sealed partial class JavaManager : IJavaManager
 
     public async Task Refresh()
     {
-        if (!IsInitialized) return;
-        IsInitialized = false;
+        if (_isBusy || !IsInitialized) return;
+        _isBusy = true;
         Console.WriteLine("[Java] 正在刷新 Java");
         List<JavaRuntime> newEntities = [];
         // 对于用户手动导入的 Java，保留并重新检查可用性
@@ -141,7 +142,7 @@ public sealed partial class JavaManager : IJavaManager
             }
         }
 
-        IsInitialized = true;
+        _isBusy = false;
         TestOutput();
     }
 

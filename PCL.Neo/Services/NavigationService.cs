@@ -17,18 +17,15 @@ public enum NavigationType
     Backward
 }
 
-public class NavigationEventArgs : EventArgs
+public class NavigationEventArgs(
+    ViewModelBase? oldViewModel,
+    ViewModelBase? newViewModel,
+    NavigationType navigationType)
+    : EventArgs
 {
-    public ViewModelBase? OldViewModel { get; }
-    public ViewModelBase? NewViewModel { get; }
-    public NavigationType NavigationType { get; }
-
-    public NavigationEventArgs(ViewModelBase? oldViewModel, ViewModelBase? newViewModel, NavigationType navigationType)
-    {
-        OldViewModel = oldViewModel;
-        NewViewModel = newViewModel;
-        NavigationType = navigationType;
-    }
+    public ViewModelBase? OldViewModel { get; } = oldViewModel;
+    public ViewModelBase? NewViewModel { get; } = newViewModel;
+    public NavigationType NavigationType { get; } = navigationType;
 }
 
 public class NavigationService : INavigationService
@@ -52,7 +49,7 @@ public class NavigationService : INavigationService
         {
             if (value == _currentViewModel)
                 return;
-                
+
             var oldViewModel = _currentViewModel;
             _currentViewModel = value;
             CurrentViewModelChanged?.Invoke(value);
@@ -67,7 +64,7 @@ public class NavigationService : INavigationService
         {
             if (value == _currentSubViewModel)
                 return;
-            
+
             var oldSubViewModel = _currentSubViewModel;
             _currentSubViewModel = value;
             CurrentSubViewModelChanged?.Invoke(value);
@@ -75,10 +72,10 @@ public class NavigationService : INavigationService
     }
 
     public bool CanGoBack => _navigationHistory.Count > 0;
-    
+
     // 页面导航控件引用
     private UserControl? _navigationControl;
-    
+
     // 设置页面导航控件
     public void SetNavigationControl(UserControl control)
     {
@@ -89,62 +86,44 @@ public class NavigationService : INavigationService
     {
         ServiceProvider = serviceProvider;
     }
-    
+
     public async Task<T> GotoAsync<T>() where T : ViewModelBase
     {
         Type viewModelType = typeof(T);
-        
+
         // 创建新的视图模型实例
         T newViewModel = ServiceProvider.GetRequiredService<T>();
-        
+
         // 检查是否为子视图模型
         Type? mainViewModelType = null;
         SubViewModelOfAttribute? subViewModelOfAttribute = viewModelType.GetCustomAttribute<SubViewModelOfAttribute>();
-        
+
         if (subViewModelOfAttribute != null)
         {
             mainViewModelType = subViewModelOfAttribute.MainViewModelType;
-            
+
             // 如果是子视图模型，且主视图模型与当前不同，先导航到主视图模型
             if (CurrentViewModel?.GetType() != mainViewModelType)
             {
-                // 创建主视图模型实例
                 var mainViewModelInstance = ServiceProvider.GetRequiredService(mainViewModelType) as ViewModelBase;
                 if (mainViewModelInstance == null)
                     throw new InvalidOperationException($"无法创建主视图模型实例: {mainViewModelType.Name}");
-                
-                // 保存当前视图模型到历史记录
+
                 if (CurrentViewModel != null)
                 {
                     _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
                     // 限制历史记录数量
-                    if (_navigationHistory.Count > MaxHistoryCount)
-                    {
-                        var temp = new Stack<(Type, Type?)>();
-                        for (int i = 0; i < MaxHistoryCount - 1; i++)
-                        {
-                            if (_navigationHistory.Count > 0)
-                                temp.Push(_navigationHistory.Pop());
-                        }
-                        _navigationHistory.Clear();
-                        while (temp.Count > 0)
-                            _navigationHistory.Push(temp.Pop());
-                    }
+                    TrimHistory();
                 }
-                
-                // 触发导航事件
+
                 Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, mainViewModelInstance, NavigationType.Forward));
-                
-                // 设置当前视图模型
                 CurrentViewModel = mainViewModelInstance;
             }
-            
-            // 设置子视图模型
+
             CurrentSubViewModel = newViewModel;
-            
-            // 应用导航动画
+
             await ApplyNavigationAnimation(NavigationType.Forward);
-            
+
             return newViewModel;
         }
         else
@@ -154,172 +133,173 @@ public class NavigationService : INavigationService
             {
                 _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
                 // 限制历史记录数量
-                if (_navigationHistory.Count > MaxHistoryCount)
-                {
-                    var temp = new Stack<(Type, Type?)>();
-                    for (int i = 0; i < MaxHistoryCount - 1; i++)
-                    {
-                        if (_navigationHistory.Count > 0)
-                            temp.Push(_navigationHistory.Pop());
-                    }
-                    _navigationHistory.Clear();
-                    while (temp.Count > 0)
-                        _navigationHistory.Push(temp.Pop());
-                }
+                TrimHistory();
             }
-            
+
             // 触发导航事件
             Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, newViewModel, NavigationType.Forward));
-            
+
             // 设置当前视图模型和子视图模型
             CurrentViewModel = newViewModel;
-            CurrentSubViewModel = null;
-            
-            // 应用导航动画
+
+            // 自动设置 DefaultSubViewModel
+            var defaultSubAttr = viewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
+            if (defaultSubAttr != null)
+            {
+                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
+                CurrentSubViewModel = subVm;
+            }
+            else
+            {
+                CurrentSubViewModel = null;
+            }
+
             await ApplyNavigationAnimation(NavigationType.Forward);
-            
+
             return newViewModel;
         }
     }
-    
+
     public async Task<bool> GoBackAsync()
     {
         if (!CanGoBack)
             return false;
-            
+
         var (previousViewModelType, previousSubViewModelType) = _navigationHistory.Pop();
-        
+
         // 创建前一个视图模型实例
         var previousViewModel = ServiceProvider.GetRequiredService(previousViewModelType) as ViewModelBase;
         if (previousViewModel == null)
             throw new InvalidOperationException($"无法创建视图模型实例: {previousViewModelType.Name}");
-            
+
         // 触发导航事件
         Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, previousViewModel, NavigationType.Backward));
-        
+
         // 设置当前视图模型
         CurrentViewModel = previousViewModel;
-        
+
         // 如果有子视图模型，创建并设置
         if (previousSubViewModelType != null)
         {
             var previousSubViewModel = ServiceProvider.GetRequiredService(previousSubViewModelType) as ViewModelBase;
             if (previousSubViewModel == null)
                 throw new InvalidOperationException($"无法创建子视图模型实例: {previousSubViewModelType.Name}");
-                
+
             CurrentSubViewModel = previousSubViewModel;
         }
         else
         {
-            CurrentSubViewModel = null;
+            // 自动设置 DefaultSubViewModel
+            var defaultSubAttr = previousViewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
+            if (defaultSubAttr != null)
+            {
+                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
+                CurrentSubViewModel = subVm;
+            }
+            else
+            {
+                CurrentSubViewModel = null;
+            }
         }
-        
-        // 应用导航动画
+
         await ApplyNavigationAnimation(NavigationType.Backward);
-        
+
         return true;
     }
-    
+
+    public async Task<bool> GotoViewModelAsync(ViewModelBase viewModel)
+    {
+        Type viewModelType = viewModel.GetType();
+        SubViewModelOfAttribute? subViewModelOfAttribute = viewModelType.GetCustomAttribute<SubViewModelOfAttribute>();
+
+        if (subViewModelOfAttribute != null)
+        {
+            Type mainViewModelType = subViewModelOfAttribute.MainViewModelType;
+
+            if (CurrentViewModel?.GetType() != mainViewModelType)
+            {
+                var mainViewModelInstance = ServiceProvider.GetRequiredService(mainViewModelType) as ViewModelBase;
+                if (mainViewModelInstance == null)
+                    throw new InvalidOperationException($"无法创建主视图模型实例: {mainViewModelType.Name}");
+
+                if (CurrentViewModel != null)
+                {
+                    _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
+                    TrimHistory();
+                }
+
+                Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, mainViewModelInstance, NavigationType.Forward));
+                CurrentViewModel = mainViewModelInstance;
+            }
+
+            CurrentSubViewModel = viewModel;
+
+            await ApplyNavigationAnimation(NavigationType.Forward);
+
+            return true;
+        }
+        else
+        {
+            if (CurrentViewModel != null)
+            {
+                _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
+                TrimHistory();
+            }
+
+            Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, viewModel, NavigationType.Forward));
+
+            CurrentViewModel = viewModel;
+
+            // 自动设置 DefaultSubViewModel
+            var defaultSubAttr = viewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
+            if (defaultSubAttr != null)
+            {
+                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
+                CurrentSubViewModel = subVm;
+            }
+            else
+            {
+                CurrentSubViewModel = null;
+            }
+
+            await ApplyNavigationAnimation(NavigationType.Forward);
+
+            return true;
+        }
+    }
+
+    // 裁剪历史记录到最大数量
+    private void TrimHistory()
+    {
+        if (_navigationHistory.Count > MaxHistoryCount)
+        {
+            var tempStack = new Stack<(Type, Type?)>();
+            var count = 0;
+            while (_navigationHistory.Count > 0 && count < MaxHistoryCount)
+            {
+                tempStack.Push(_navigationHistory.Pop());
+                count++;
+            }
+            _navigationHistory.Clear();
+            while (tempStack.Count > 0)
+            {
+                _navigationHistory.Push(tempStack.Pop());
+            }
+        }
+    }
+
     // 清除导航历史记录
     public void ClearHistory()
     {
         _navigationHistory.Clear();
     }
-    
-    // 直接导航到现有视图模型实例
-    public async Task<bool> GotoViewModelAsync(ViewModelBase viewModel)
-    {
-        // 检查是否为子视图模型
-        Type viewModelType = viewModel.GetType();
-        SubViewModelOfAttribute? subViewModelOfAttribute = viewModelType.GetCustomAttribute<SubViewModelOfAttribute>();
-        
-        if (subViewModelOfAttribute != null)
-        {
-            Type mainViewModelType = subViewModelOfAttribute.MainViewModelType;
-            
-            // 如果是子视图模型，且主视图模型与当前不同，先导航到主视图模型
-            if (CurrentViewModel?.GetType() != mainViewModelType)
-            {
-                // 创建主视图模型实例
-                var mainViewModelInstance = ServiceProvider.GetRequiredService(mainViewModelType) as ViewModelBase;
-                if (mainViewModelInstance == null)
-                    throw new InvalidOperationException($"无法创建主视图模型实例: {mainViewModelType.Name}");
-                
-                // 保存当前视图模型到历史记录
-                if (CurrentViewModel != null)
-                {
-                    _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                    // 限制历史记录数量
-                    if (_navigationHistory.Count > MaxHistoryCount)
-                    {
-                        var temp = new Stack<(Type, Type?)>();
-                        for (int i = 0; i < MaxHistoryCount - 1; i++)
-                        {
-                            if (_navigationHistory.Count > 0)
-                                temp.Push(_navigationHistory.Pop());
-                        }
-                        _navigationHistory.Clear();
-                        while (temp.Count > 0)
-                            _navigationHistory.Push(temp.Pop());
-                    }
-                }
-                
-                // 触发导航事件
-                Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, mainViewModelInstance, NavigationType.Forward));
-                
-                // 设置当前视图模型
-                CurrentViewModel = mainViewModelInstance;
-            }
-            
-            // 设置子视图模型
-            CurrentSubViewModel = viewModel;
-            
-            // 应用导航动画
-            await ApplyNavigationAnimation(NavigationType.Forward);
-            
-            return true;
-        }
-        else
-        {
-            // 如果不是子视图模型，直接设置当前视图模型
-            if (CurrentViewModel != null)
-            {
-                _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                // 限制历史记录数量
-                if (_navigationHistory.Count > MaxHistoryCount)
-                {
-                    var temp = new Stack<(Type, Type?)>();
-                    for (int i = 0; i < MaxHistoryCount - 1; i++)
-                    {
-                        if (_navigationHistory.Count > 0)
-                            temp.Push(_navigationHistory.Pop());
-                    }
-                    _navigationHistory.Clear();
-                    while (temp.Count > 0)
-                        _navigationHistory.Push(temp.Pop());
-                }
-            }
-            
-            // 触发导航事件
-            Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, viewModel, NavigationType.Forward));
-            
-            // 设置当前视图模型和子视图模型
-            CurrentViewModel = viewModel;
-            CurrentSubViewModel = null;
-            
-            // 应用导航动画
-            await ApplyNavigationAnimation(NavigationType.Forward);
-            
-            return true;
-        }
-    }
-    
+
     // 应用导航动画
     private async Task ApplyNavigationAnimation(NavigationType navigationType)
     {
         if (_navigationControl == null)
             return;
-            
+
         try
         {
             // 导航动画在MainWindow中通过事件处理

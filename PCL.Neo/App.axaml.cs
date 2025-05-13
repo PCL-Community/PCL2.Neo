@@ -58,8 +58,7 @@ namespace PCL.Neo
             Ioc.Default.ConfigureServices(ConfigureServices());
 
             var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
-            // JavaManager应该在GameService构造时自动初始化，而非在此调用初始化，故注释下面一行
-            // Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
+            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
