@@ -16,19 +16,36 @@ public sealed partial class JavaManager : IJavaManager
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
-    private DefaultJavaRuntimeCombine _javaRuntimes;
+    private DefaultJavaRuntimeCombine? _javaRuntimes;
 
     public DefaultJavaRuntimeCombine DefaultJavaRuntimes
     {
         get
         {
-            _javaRuntimes.Java8 ??= JavaList.Find(runtime => runtime.SlugVersion == 8);
-            _javaRuntimes.Java8 ??= JavaList.Find(runtime => runtime.SlugVersion is > 8 and < 17);
-            _javaRuntimes.Java17 ??= JavaList.Find(runtime => runtime.SlugVersion == 17);
-            _javaRuntimes.Java17 ??= JavaList.Find(runtime => runtime.SlugVersion is > 17 and < 21);
-            _javaRuntimes.Java21 ??= JavaList.Find(runtime => runtime.SlugVersion == 21);
-            _javaRuntimes.Java21 ??= JavaList.Find(runtime => runtime.SlugVersion > 21);
-            return _javaRuntimes;
+            if (_javaRuntimes != null) return (_javaRuntimes?.Java8, _javaRuntimes?.Java17, _javaRuntimes?.Java21);
+            DefaultJavaRuntimeCombine runtimes = new();
+            (int minDiff8, int minDiff17, int minDiff21) = (int.MaxValue, int.MaxValue, int.MaxValue);
+            int diff;
+            JavaList.ForEach(runtime =>
+            {
+                switch (runtime.SlugVersion)
+                {
+                    case >= 8 and < 17:
+                        diff = runtime.SlugVersion - 8;
+                        if (diff < minDiff8) (minDiff8, runtimes.Java8) = (diff, runtime);
+                        break;
+                    case >= 17 and < 21:
+                        diff = runtime.SlugVersion - 17;
+                        if (diff < minDiff17) (minDiff17, runtimes.Java17) = (diff, runtime);
+                        break;
+                    case >= 21:
+                        diff = runtime.SlugVersion - 21;
+                        if (diff < minDiff21) (minDiff21, runtimes.Java21) = (diff, runtime);
+                        break;
+                }
+            });
+            _javaRuntimes = runtimes;
+            return (_javaRuntimes?.Java8, _javaRuntimes?.Java17, _javaRuntimes?.Java21);
         }
         set
         {
