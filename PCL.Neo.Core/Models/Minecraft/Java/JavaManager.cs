@@ -16,13 +16,13 @@ public sealed partial class JavaManager : IJavaManager
 
     public List<JavaRuntime> JavaList { get; private set; } = [];
 
-    private DefaultJavaRuntimeCombine? _javaRuntimes;
+    private DefaultJavaRuntimeCombine? _defaultJavaRuntimes;
 
     public DefaultJavaRuntimeCombine DefaultJavaRuntimes
     {
         get
         {
-            if (_javaRuntimes != null) return (_javaRuntimes?.Java8, _javaRuntimes?.Java17, _javaRuntimes?.Java21);
+            if (_defaultJavaRuntimes != null) return (_defaultJavaRuntimes?.Java8, _defaultJavaRuntimes?.Java17, _defaultJavaRuntimes?.Java21);
             DefaultJavaRuntimeCombine runtimes = new();
             (int minDiff8, int minDiff17, int minDiff21) = (int.MaxValue, int.MaxValue, int.MaxValue);
             int diff;
@@ -44,12 +44,8 @@ public sealed partial class JavaManager : IJavaManager
                         break;
                 }
             });
-            _javaRuntimes = runtimes;
-            return (_javaRuntimes?.Java8, _javaRuntimes?.Java17, _javaRuntimes?.Java21);
-        }
-        set
-        {
-            _javaRuntimes = value;
+            _defaultJavaRuntimes = runtimes;
+            return (_defaultJavaRuntimes?.Java8, _defaultJavaRuntimes?.Java17, _defaultJavaRuntimes?.Java21);
         }
     }
 
@@ -113,6 +109,7 @@ public sealed partial class JavaManager : IJavaManager
         {
             JavaList.Add(entity);
             Console.WriteLine("已成功添加！");
+            _defaultJavaRuntimes = null;
             return (entity, false);
         }
 
@@ -158,7 +155,7 @@ public sealed partial class JavaManager : IJavaManager
                 JavaList.Add(runtime!);
             }
         }
-
+        _defaultJavaRuntimes = null;
         _isBusy = false;
         TestOutput();
     }
