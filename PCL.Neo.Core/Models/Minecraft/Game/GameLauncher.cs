@@ -122,7 +122,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             // 确保目录存在
             string mcDir = options.MinecraftDirectory;
             if (string.IsNullOrEmpty(mcDir))
-                mcDir = _gameService.DefaultGameDirectory;
+                mcDir = GameService.DefaultGameDirectory;
             
             string gameDir = options.GameDirectory;
             if (string.IsNullOrEmpty(gameDir))

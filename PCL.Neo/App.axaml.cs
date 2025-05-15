@@ -1,15 +1,13 @@
 using System.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using PCL.Neo.Core.Models;
 using PCL.Neo.Services;
-using Avalonia.Platform.Storage;
-using PCL.Neo.Helpers;
-using PCL.Neo.Utils;
+using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.ViewModels;
 using PCL.Neo.ViewModels.Download;
 using PCL.Neo.ViewModels.Home;
@@ -19,6 +17,7 @@ using PCL.Neo.Core.Models.Minecraft.Java;
 using System;
 using System.Threading.Tasks;
 using System.Net.Http;
+using PCL.Neo.ViewModels.Setup;
 
 namespace PCL.Neo
 {
@@ -34,25 +33,23 @@ namespace PCL.Neo
 
         private static IServiceProvider ConfigureServices() => new ServiceCollection()
             .AddTransient<MainWindowViewModel>()
-
-            .AddTransient<PCL.Neo.ViewModels.Home.HomeViewModel>()
+            .AddTransient<HomeViewModel>()
             .AddTransient<HomeSubViewModel>()
             .AddTransient<VersionManagerViewModel>()
             .AddTransient<GameSettingsViewModel>()
-
             .AddTransient<DownloadViewModel>()
             .AddTransient<DownloadGameViewModel>()
             .AddTransient<DownloadModViewModel>()
-
             .AddTransient<LogViewModel>()
+            .AddTransient<SetupViewModel>()
+            .AddTransient<SetupLaunchViewModel>()
 
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager, JavaManager>()
-            .AddSingleton<HttpClient>()
+            .AddSingleton<DownloadService>()
             .AddSingleton<GameService>()
-            .AddSingleton<PCL.Neo.Core.Models.Minecraft.Game.GameLauncher>(provider => 
-                new PCL.Neo.Core.Models.Minecraft.Game.GameLauncher(provider.GetRequiredService<GameService>()))
+            .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
             .BuildServiceProvider();
 
@@ -61,15 +58,15 @@ namespace PCL.Neo
             Ioc.Default.ConfigureServices(ConfigureServices());
 
             var vm = Ioc.Default.GetRequiredService<MainWindowViewModel>();
+            Task.Run(Ioc.Default.GetRequiredService<IJavaManager>().JavaListInit);
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Avoid duplicate validations from both Avalonia and the CommunityToolkit.
                 // More info: https://docs.avaloniaui.net/docs/guides/development-guides/data-validation#manage-validationplugins
                 DisableAvaloniaDataAnnotationValidation();
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = vm
-                };
+                desktop.MainWindow = new MainWindow { DataContext = vm };
+                // 由于导航改成了异步方法，在构造函数中无法正常导向首页，需要在此处导向
+                Ioc.Default.GetRequiredService<INavigationService>().GotoAsync<HomeViewModel>();
             }
 
             base.OnFrameworkInitializationCompleted();

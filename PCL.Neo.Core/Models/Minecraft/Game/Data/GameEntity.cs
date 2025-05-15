@@ -5,16 +5,20 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data;
 
 public record GameEntityInfo
 {
-#nullable disable
     /// <summary>
     /// The Game Version information.
     /// </summary>
-    public GameVersionInfo GameVersion { get; set; }
+    public GameVersionNum? GameVersion { get; init; }
+
+    /// <summary>
+    /// String typed game version. eg: 25w19a、1.21.5-rc2、25w14craftmine.
+    /// </summary>
+    public required string GameVersionString { get; init; }
 
     /// <summary>
     /// Game Name that is used to display in the UI.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Game Description that is used to display in the UI.
@@ -24,12 +28,12 @@ public record GameEntityInfo
     /// <summary>
     /// Game Folder Path.
     /// </summary>
-    public string GamePath { get; set; }
+    public required string GamePath { get; set; }
 
     /// <summary>
     /// Game Root Path.
     /// </summary>
-    public string RootPath { get; set; }
+    public required string RootPath { get; set; }
 
     /// <summary>
     /// Game Icon that is used to display in the UI.
@@ -39,7 +43,7 @@ public record GameEntityInfo
     /// <summary>
     /// The origin Game Json Content. Type is <see langword="string"/>.
     /// </summary>
-    public string JsonOrigContent { get; set; }
+    public required string JsonOrigContent { get; set; }
 
     /// <summary>
     /// The Parsed Game Json Content. Type is <see cref="VersionInfo"/>.
@@ -48,12 +52,12 @@ public record GameEntityInfo
 
     /// <summary>
     /// Demonstrate the Game Version Type.
-    /// Content is <see cref="VersionType"/>.
+    /// Content is <see cref="VersionCardType"/>.
     /// </summary>
-    public VersionType Type { get; set; }
+    public VersionCardType Type { get; set; }
 
     /// <summary>
-    /// If <see cref="Type"/> is <see cref="VersionType"/>.Modable, Loader will have value that is used to display in the UI.
+    /// If <see cref="Type"/> is <see cref="VersionCardType"/>.Moddable, Loader will have value that is used to display in the UI.
     /// </summary>
     public ModLoader Loader { get; set; }
 
@@ -64,9 +68,9 @@ public record GameEntityInfo
     /// <summary>
     /// Demonstrate is the version has been loader (runed).
     /// </summary>
-    public bool IsLoadded { get; set; } = false;
+    public bool IsLoaded { get; set; } = false;
 
-    private bool? _isIndie { get; set; }
+    private bool? _isIndie;
 
     public bool IsIndie
     {
@@ -87,8 +91,7 @@ public record GameEntityInfo
     /// <summary>
     /// THe Game Jar File Path.
     /// </summary>
-    public string JarPath { get; set; }
-#nullable enable
+    public required string JarPath { get; set; }
 }
 
 public class GameEntity

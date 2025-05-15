@@ -1,18 +1,12 @@
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game
 {
     public static class Versions
     {
-        // Minecraft版本清单API地址
+        /// Minecraft版本清单API地址
         private const string VersionManifestUrl = "https://launchermeta.mojang.com/mc/game/version_manifest.json";
-        private static readonly HttpClient _httpClient = new HttpClient();
 
         /// <summary>
         /// 获取本地已安装的Minecraft版本
@@ -74,7 +68,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             try
             {
                 // 获取版本清单
-                var response = await _httpClient.GetStringAsync(VersionManifestUrl);
+                var response = await DownloadService.HttpClient.GetStringAsync(VersionManifestUrl);
                 var manifest = JsonSerializer.Deserialize<VersionManifest>(response);
 
                 if (manifest == null || manifest.Versions == null)
@@ -176,7 +170,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             try
             {
                 // 先获取版本清单
-                var response = await _httpClient.GetStringAsync(VersionManifestUrl);
+                var response = await DownloadService.HttpClient.GetStringAsync(VersionManifestUrl);
                 var manifest = JsonSerializer.Deserialize<VersionManifest>(response);
 
                 if (manifest == null || manifest.Versions == null)
@@ -192,7 +186,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 }
 
                 // 获取详细版本信息
-                var versionJsonResponse = await _httpClient.GetStringAsync(version.Url);
+                var versionJsonResponse = await DownloadService.HttpClient.GetStringAsync(version.Url);
                 var versionInfo = JsonSerializer.Deserialize<VersionInfo>(versionJsonResponse, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
@@ -221,7 +215,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         }
     }
 
-    // 用于解析版本清单的内部类
+    /// 用于解析版本清单的内部类
     internal class VersionManifest
     {
         public LatestVersions? Latest { get; set; }

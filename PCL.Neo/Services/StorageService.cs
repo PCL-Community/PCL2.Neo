@@ -1,7 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,19 +21,17 @@ public class StorageService
     /// 打开系统文件选择框选择一个文件
     /// </summary>
     /// <param name="title">文件选择框的标题</param>
+    /// <param name="filters">选择文件的要求</param>
     /// <returns>获得文件的路径</returns>
-    public async Task<string?> SelectFile(string title)
+    public async Task<string?> SelectFile(string title = "选择文件", IReadOnlyList<FilePickerFileType>? filters = null)
     {
         if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
         if (!StorageProvider.CanOpen) throw new InvalidOperationException(nameof(StorageProvider));
         var files = await StorageProvider.OpenFilePickerAsync(
             new FilePickerOpenOptions { Title = title, AllowMultiple = false });
-        if (files.Count < 1)
-            return null;
-        var file = files[0];
-        return file.Path.LocalPath;
+        return files.Count > 0 ? files[0].Path.LocalPath : null;
     }
-    
+
     /// <summary>
     /// 打开系统文件夹选择框选择一个文件夹
     /// </summary>
@@ -44,17 +41,17 @@ public class StorageService
     {
         if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
         if (!StorageProvider.CanPickFolder) throw new InvalidOperationException("无法打开文件夹选择对话框");
-        
+
         var folders = await StorageProvider.OpenFolderPickerAsync(
             new FolderPickerOpenOptions { Title = title, AllowMultiple = false });
-        
+
         if (folders.Count < 1)
             return null;
-            
+
         var folder = folders[0];
         return folder.Path.LocalPath;
     }
-    
+
     /// <summary>
     /// 打开系统文件保存对话框
     /// </summary>
@@ -66,26 +63,21 @@ public class StorageService
     {
         if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
         if (!StorageProvider.CanSave) throw new InvalidOperationException("无法打开文件保存对话框");
-        
-        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions 
-        { 
+
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
             Title = title,
             SuggestedFileName = fileName + extension,
             DefaultExtension = extension,
-            FileTypeChoices = new[] 
-            { 
+            FileTypeChoices = new[]
+            {
                 new FilePickerFileType(extension)
                 {
-                    Patterns = new[] { "*" + extension },
-                    MimeTypes = new[] { "application/octet-stream" }
+                    Patterns = new[] { "*" + extension }, MimeTypes = new[] { "application/octet-stream" }
                 }
             }
         });
-        
-        if (file == null)
-            return null;
-            
-        return file.Path.LocalPath;
+        return file?.Path.LocalPath;
     }
 
     /// <summary>
@@ -99,38 +91,10 @@ public class StorageService
         var result = file?.GetAwaiter().GetResult();
         return result != null;
     }
-    
+
     /// <summary>
     /// 获取应用数据目录
     /// </summary>
-    public string AppDataDirectory => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
-        "PCL.Neo");
-    
-    /// <summary>
-    /// 选择文件的异步方法
-    /// </summary>
-    public async Task<string?> SelectFileWithFilters(IReadOnlyList<FilePickerFileType>? filters = null, string title = "选择文件")
-    {
-        if (StorageProvider == null) throw new NullReferenceException(nameof(StorageProvider));
-        if (!StorageProvider.CanOpen) throw new InvalidOperationException(nameof(StorageProvider));
-        
-        var options = new FilePickerOpenOptions
-        { 
-            Title = title, 
-            AllowMultiple = false
-        };
-        
-        if (filters != null)
-        {
-            options.FileTypeFilter = filters;
-        }
-        
-        var files = await StorageProvider.OpenFilePickerAsync(options);
-        if (files.Count < 1)
-            return null;
-            
-        var file = files[0];
-        return file.Path.LocalPath;
-    }
+    public static string AppDataDirectory =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo");
 }

@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Controls.MyMsg;
 using PCL.Neo.Services;
 using PCL.Neo.Helpers;
+using System;
 using System.Threading.Tasks;
 
 
@@ -14,50 +15,65 @@ namespace PCL.Neo.ViewModels
         private Window? _window;
         public INavigationService NavigationService { get; }
 
-        // quite shitty, maybe consider using enum and converters
         [ObservableProperty] private bool _isNavBtn1Checked = true;
         [ObservableProperty] private bool _isNavBtn2Checked;
         [ObservableProperty] private bool _isNavBtn3Checked;
         [ObservableProperty] private bool _isNavBtn4Checked;
         [ObservableProperty] private bool _isNavBtn5Checked;
 
-        [ObservableProperty]
+        /// <summary>
+        /// 设置按钮的选中状态
+        /// </summary>
+        private int CheckedBtn
+        {
+            set
+            {
+                if (value is < 1 or > 5) return;
+                IsNavBtn1Checked = value == 1;
+                IsNavBtn2Checked = value == 2;
+                IsNavBtn3Checked = value == 3;
+                IsNavBtn4Checked = value == 4;
+                IsNavBtn5Checked = value == 5;
+            }
+        }
+
+
+        [ObservableProperty] [NotifyPropertyChangedFor(nameof(CheckedBtn))]
         private ViewModelBase? _currentViewModel;
-        [ObservableProperty]
-        private ViewModelBase? _currentSubViewModel;
-        
-        [ObservableProperty]
-        private bool _canGoBack;
+
+        [ObservableProperty] private ViewModelBase? _currentSubViewModel;
+
+        [ObservableProperty] private bool _canGoBack;
 
         // 添加新的属性和命令用于PCL II风格主界面
-        [ObservableProperty] 
-        private string _selectedGameVersion = "1.20.2-Fabric 0.15.7-OptiFine_I7_pre1";
+        [ObservableProperty] private string _selectedGameVersion = "1.20.2-Fabric 0.15.7-OptiFine_I7_pre1";
 
-        [ObservableProperty] 
-        private bool _isPremiumAccount = false;
-        
+        [ObservableProperty] private bool _isPremiumAccount = false;
+
         // 添加CurrentUserName属性以解决绑定错误
-        [ObservableProperty]
-        private string _currentUserName = "Player";
+        [ObservableProperty] private string _currentUserName = "Player";
 
         // 为了设计时的 DataContext
         public MainWindowViewModel()
         {
             throw new System.NotImplementedException();
         }
+
         public MainWindowViewModel(Window window)
         {
             this._window = window;
         }
+
         public MainWindowViewModel(INavigationService navigationService)
         {
             NavigationService = navigationService;
             NavigationService.CurrentViewModelChanged += vm =>
             {
                 CurrentViewModel = vm;
-                
                 // 更新返回按钮状态
                 CanGoBack = NavigationService.CanGoBack;
+                // 由外部的页面跳转反向触发设置按钮状态
+                UpdateNavBtnState();
             };
             NavigationService.CurrentSubViewModelChanged += vm => CurrentSubViewModel = vm;
         }
@@ -65,11 +81,7 @@ namespace PCL.Neo.ViewModels
         [RelayCommand]
         private void Close()
         {
-            // 确保window不为空
-            if (_window != null)
-            {
-                _window.Close();
-            }
+            _window?.Close();
         }
 
         [RelayCommand]
@@ -88,62 +100,37 @@ namespace PCL.Neo.ViewModels
             // 确保window不为空
             if (_window != null)
             {
-                _window.WindowState = _window.WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+                _window.WindowState = _window.WindowState == WindowState.Maximized
+                    ? WindowState.Normal
+                    : WindowState.Maximized;
             }
         }
 
         [RelayCommand]
-        public async Task NavigateToHome()
+        public async Task Navigate(int tag)
         {
-            await NavBtn1_ClickCommand.ExecuteAsync(null);
-        }
-
-        [RelayCommand]
-        public async Task NavigateToDownload()
-        {
-            await NavBtn2_ClickCommand.ExecuteAsync(null);
-        }
-
-        [RelayCommand]
-        public async Task NavBtn1_Click()
-        {
-            await NavigationService.GotoAsync<HomeViewModel>();
-            ClearNavBtnState();
-            IsNavBtn1Checked = true;
-        }
-
-        [RelayCommand]
-        public async Task NavBtn2_Click()
-        {
-            await NavigationService.GotoAsync<DownloadViewModel>();
-            ClearNavBtnState();
-            IsNavBtn2Checked = true;
-        }
-
-        [RelayCommand]
-        public async Task NavBtn3_Click()
-        {
-            // 导航到版本管理器
-            await NavigationService.GotoAsync<PCL.Neo.ViewModels.Home.VersionManagerViewModel>();
-            ClearNavBtnState();
-            IsNavBtn3Checked = true;
-        }
-
-        [RelayCommand]
-        public async Task NavBtn4_Click()
-        {
-            await NavigationService.GotoAsync<LogViewModel>();
-            ClearNavBtnState();
-            IsNavBtn4Checked = true;
-        }
-
-        [RelayCommand]
-        public async Task NavBtn5_Click()
-        {
-            // 可以使用依赖注入或直接创建并使用SettingsViewModel
-            // await NavigationService.GotoAsync<SettingsViewModel>();
-            ClearNavBtnState();
-            IsNavBtn5Checked = true;
+            CheckedBtn = tag;
+            switch (tag)
+            {
+                case 1:
+                    await NavigationService.GotoAsync<HomeViewModel>();
+                    break;
+                case 2:
+                    await NavigationService.GotoAsync<DownloadViewModel>();
+                    break;
+                case 3:
+                    // NavigationService.GotoAsync<LinkViewModel>();
+                    break;
+                case 4:
+                    await NavigationService.GotoAsync<SetupViewModel>();
+                    break;
+                case 5:
+                    // await NavigationService.GoBackAsync<OtherViewModel>();
+                    break;
+                default:
+                    Console.WriteLine("Unknown tag");
+                    break;
+            }
         }
 
         [RelayCommand]
@@ -154,32 +141,21 @@ namespace PCL.Neo.ViewModels
             UpdateNavBtnState();
         }
 
-        private void ClearNavBtnState()
-        {
-            IsNavBtn1Checked = false;
-            IsNavBtn2Checked = false;
-            IsNavBtn3Checked = false;
-            IsNavBtn4Checked = false;
-            IsNavBtn5Checked = false;
-        }
-
         private void UpdateNavBtnState()
         {
-            ClearNavBtnState();
-            if (CurrentViewModel is HomeViewModel)
-                IsNavBtn1Checked = true;
-            else if (CurrentViewModel is DownloadViewModel)
-                IsNavBtn2Checked = true;
-            else if (CurrentViewModel is PCL.Neo.ViewModels.Home.VersionManagerViewModel)
-                IsNavBtn3Checked = true;
-            else if (CurrentViewModel is LogViewModel)
-                IsNavBtn4Checked = true;
-            // 还可以添加其他ViewModel类型的检查
+            CheckedBtn = CurrentViewModel switch
+            {
+                HomeViewModel => 1,
+                DownloadViewModel => 2,
+                // LinkViewModel => 3,
+                SetupViewModel => 4,
+                // MoreViewModel => 4,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         public void ShowMessageBox((MessageBoxParam, TaskCompletionSource<MessageBoxResult>) messageBox)
         {
-
         }
 
         /// <summary>
@@ -187,7 +163,6 @@ namespace PCL.Neo.ViewModels
         /// </summary>
         public void CloseMessageBox()
         {
-
         }
 
         [RelayCommand]
