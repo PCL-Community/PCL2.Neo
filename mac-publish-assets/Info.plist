@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleName</key>
+    <string>PCL.Neo</string>
+    <key>CFBundleDisplayName</key>
+    <string>PCL.Neo</string>
+    <key>CFBundleIdentifier</key>
+    <string>github.com/PCL-Community/PCL.Neo</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundlePackageType</key>
+    <string>AAPL</string>
+    <key>CFBundleSignature</key>
+    <string>PCL.Neo</string>
+    <key>CFBundleExecutable</key>
+    <string>PCL.Neo</string>
+    <key>CFBundleIconFile</key>
+    <string>PCL.Neo.icns</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <true />
+  </dict>
+</plist>
