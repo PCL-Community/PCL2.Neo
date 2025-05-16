@@ -43,23 +43,22 @@ public class MinecraftInfo
 
     public static async ValueTask<string> GetMinecraftAccessToken(string uhs, string xstsToken)
     {
-        var jsonContent = new OAuthData.RequireData.MiecraftAccessTokenRequire
+        var jsonContent = new OAuthData.RequireData.MinecraftAccessTokenRequire()
         {
             IdentityToken = $"XBL3.0 x={uhs};{xstsToken}"
         };
 
-        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.MinecraftAccessTokenResponce>(
+        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.MinecraftAccessTokenResponse>(
             HttpMethod.Post,
             OAuthData.RequestUrls.MinecraftAccessTokenUri,
-            jsonContent,
-            JsonSerializerOptions.Web);
+            jsonContent);
 
         return response.AccessToken;
     }
 
     public static async ValueTask<bool> HaveGame(string accessToken)
     {
-        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.CheckHaveGameResponce>(
+        var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.CheckHaveGameResponse>(
             HttpMethod.Get,
             OAuthData.RequestUrls.CheckHasMc,
             bearerToken: accessToken);
