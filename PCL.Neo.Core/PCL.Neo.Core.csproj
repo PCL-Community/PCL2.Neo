@@ -10,4 +10,16 @@
       <PackageReference Include="SevenZip" Version="19.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Models\Minecraft\Game\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Models\Minecraft\Game\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Models\Minecraft\Game\**" />
+    </ItemGroup>
+
 </Project>
