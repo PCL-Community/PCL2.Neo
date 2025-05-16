@@ -1,6 +1,8 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
+using PCL.Neo.Core.Models.Minecraft.Game;
+using PCL.Neo.Services;
 
 namespace PCL.Neo
 {
@@ -19,16 +21,16 @@ namespace PCL.Neo
                 .UsePlatformDetect()
                 .WithInterFont()
                 .LogToTrace()
-                .With(new FontManagerOptions
+                .With(() => new FontManagerOptions
                 {
                     FontFallbacks =
                     [
-                        new() {FontFamily = "HarmonyOS Sans SC"},
-                        new() {FontFamily = "鸿蒙黑体 SC"},
-                        new() {FontFamily = ".AppleSystemUIFont"},
-                        new() {FontFamily = "Microsoft YaHei UI"},
-                        new() {FontFamily = "思源黑体 CN"},
-                        new() {FontFamily = "Noto Sans CJK SC"}
+                        new() { FontFamily = "HarmonyOS Sans SC" },
+                        new() { FontFamily = "鸿蒙黑体 SC" },
+                        new() { FontFamily = ".AppleSystemUIFont" },
+                        new() { FontFamily = "Microsoft YaHei UI" },
+                        new() { FontFamily = "思源黑体 CN" },
+                        new() { FontFamily = "Noto Sans CJK SC" }
                     ]
                 });
     }

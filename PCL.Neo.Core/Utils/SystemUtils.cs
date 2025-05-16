@@ -1,13 +1,14 @@
 using System.Runtime.InteropServices;
 
-namespace PCL.Neo.Core;
+namespace PCL.Neo.Core.Utils;
 
-public static class Const
+public static class SystemUtils
 {
     /// <summary>
     /// 系统是否为64位。
     /// </summary>
     public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
+
     public enum RunningOs
     {
         Windows,
@@ -23,6 +24,29 @@ public static class Const
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
                 ? RunningOs.MacOs
                 : RunningOs.Unknown;
+
+    public static string ToMajangApiName(this RunningOs os)
+    {
+        return os switch
+        {
+            RunningOs.Windows => "windows",
+            RunningOs.Linux => "linux",
+            RunningOs.MacOs => "macos",
+            _ => throw new ArgumentOutOfRangeException(nameof(os), os, null)
+        };
+    }
+
+    /// 本条好像并没有参考性，因为API里写的全是X86
+    public static string ToMajangApiName(this Architecture architecture)
+    {
+        return architecture switch
+        {
+            Architecture.X64 => "x86",
+            Architecture.X86 => "x86",
+            Architecture.Arm64 => "arm64",
+            _ => "",
+        };
+    }
 
     public static readonly Architecture Architecture = RuntimeInformation.ProcessArchitecture;
 
@@ -58,5 +82,46 @@ public static class Const
                 _ => "unknown"
             };
         }
+    }
+
+    /// <summary>
+    /// 获取系统最大可用内存 (MB)
+    /// </summary>
+    public static int SystemMaxMemoryMB
+    {
+        get
+        {
+            try
+            {
+                // 简化实现，保留Core项目中可用的逻辑
+                return 8192; // 默认8GB
+            }
+            catch
+            {
+                // 出错时使用默认值
+                return 4096;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取当前系统的native键
+    /// </summary>
+    public static string? GetNativeKey()
+    {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return Environment.Is64BitOperatingSystem ? "natives-windows-64" : "natives-windows-32";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return "natives-linux";
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            return "natives-osx";
+        }
+
+        return null;
     }
 }

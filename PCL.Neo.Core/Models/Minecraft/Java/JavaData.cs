@@ -96,26 +96,23 @@ public class JavaRuntime
     private static async Task<JavaInfo> JavaInfoInitAsync(string directoryPath)
     {
         // 首先直接设置JavaExe、JavawExe、releaseFile、javac的路径
-        var javaExe = Path.Combine(directoryPath, Const.Os is Const.RunningOs.Windows ? "java.exe" : "java");
+        var javaExe = Path.Combine(directoryPath, SystemUtils.Os is SystemUtils.RunningOs.Windows ? "java.exe" : "java");
         string? releaseFile = null;
         var parentDir = Directory.GetParent(directoryPath);
         if (parentDir != null) releaseFile = Path.Combine(parentDir.FullName, "release");
-        var javacPath = Const.Os is Const.RunningOs.Windows
+        var javacPath = SystemUtils.Os is SystemUtils.RunningOs.Windows
             ? Path.Combine(directoryPath, "javac.exe")
             : Path.Combine(directoryPath, "javac");
         var info = new JavaInfo
         {
             JavaExe = javaExe,
-            JavaWExe = Const.Os is Const.RunningOs.Windows ? Path.Combine(directoryPath, "javaw.exe") : javaExe,
+            JavaWExe = SystemUtils.Os is SystemUtils.RunningOs.Windows ? Path.Combine(directoryPath, "javaw.exe") : javaExe,
             IsJre = !File.Exists(javacPath)
         };
 
         // 尝试读取RELEASE文件的信息
         if (releaseFile != null && File.Exists(releaseFile))
-        {
-            var readResult = ReadReleaseFile(releaseFile);
-            (info.Implementor, info.Version, info.Architecture) = readResult;
-        }
+            (info.Implementor, info.Version, info.Architecture) = ReadReleaseFile(releaseFile);
 
         // 若版本未被设置，运行 java -version 获取版本
         if (string.IsNullOrWhiteSpace(info.Version))
@@ -131,12 +128,15 @@ public class JavaRuntime
                 info.Compability = JavaCompability.Error;
                 return info;
             }
+
             info.Version = MatchVersion(runJavaOutput) ?? string.Empty;
         }
 
         // 设置slug Version
         var versionSplit = info.Version.Split('.');
-        info.SlugVersion = int.TryParse(versionSplit[0] == "1" ? versionSplit[1] : versionSplit[0], out int slugVersion) ? slugVersion : 0;
+        info.SlugVersion = int.TryParse(versionSplit[0] == "1" ? versionSplit[1] : versionSplit[0], out int slugVersion)
+            ? slugVersion
+            : 0;
 
         // 若架构未被设置，读取PE/ELF/Mach-O文件头获得架构
         if (info.Architecture == ExeArchitectureUtils.ExeArchitecture.Unknown)
@@ -187,31 +187,19 @@ public class JavaRuntime
         return regexMatch.Success ? regexMatch.Groups[1].Value : null;
     }
 
-    private static bool MatchIs64Bit(string runJavaOutput)
-    {
-        var regexMatch = Regex.Match(runJavaOutput, @"\b(\d+)-Bit\b"); // get bit
-        return (regexMatch.Success ? regexMatch.Groups[1].Value : string.Empty) == "64";
-    }
-
     private static ValueTuple<string?, string, ExeArchitectureUtils.ExeArchitecture> ReadReleaseFile(string releaseFile)
     {
         if (!File.Exists(releaseFile))
             throw new FileNotFoundException("Release file not found.", releaseFile);
-
         string implementor = string.Empty;
         string version = string.Empty;
         var osArch = ExeArchitectureUtils.ExeArchitecture.Unknown;
-
         foreach (var line in File.ReadLines(releaseFile))
         {
             if (line.StartsWith("IMPLEMENTOR="))
-            {
                 implementor = line.Split('=')[1].Trim('"');
-            }
             else if (line.StartsWith("JAVA_VERSION="))
-            {
                 version = line.Split('=')[1].Trim('"');
-            }
             else if (line.StartsWith("OS_ARCH="))
             {
                 string arch = line.Split('=')[1].Trim('"');
@@ -224,10 +212,10 @@ public class JavaRuntime
                 };
             }
 
-            if (!string.IsNullOrEmpty(implementor) && !string.IsNullOrEmpty(version) && osArch is not ExeArchitectureUtils.ExeArchitecture.Unknown)
+            if (!string.IsNullOrEmpty(implementor) && !string.IsNullOrEmpty(version) &&
+                osArch is not ExeArchitectureUtils.ExeArchitecture.Unknown)
                 break;
         }
-
         return (implementor, version, osArch);
     }
 }
