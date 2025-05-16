@@ -15,7 +15,7 @@ namespace PCL.Neo.Core.Service.Accounts.Storage
     {
         // Properties common to all account types
         public required string Uuid { get; set; } // Made set for flexibility, could be init
-        public required string UserName { get; init; }
+        public required string UserName { get; set; }
         public string UserType { get; } = UserType; // This is crucial for discrimination
         public string UserProperties { get; init; } = string.Empty;
         public required List<Skin> Skins { get; init; } = [];

@@ -21,10 +21,10 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
-      <AvaloniaXaml Remove="Models\Minecraft\**"/>
-      <Compile Remove="Models\Minecraft\**"/>
-      <EmbeddedResource Remove="Models\Minecraft\**"/>
-      <None Remove="Models\Minecraft\**"/>
+      <AvaloniaXaml Remove="Models\Minecraft\**" />
+      <Compile Remove="Models\Minecraft\**" />
+      <EmbeddedResource Remove="Models\Minecraft\**" />
+      <None Remove="Models\Minecraft\**" />
     <None Remove="Resources\Font.ttf" />
   </ItemGroup>
 
@@ -42,10 +42,10 @@
     <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.7.1" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
-      <PackageReference Include="System.Reactive" Version="6.0.1"/>
-      <PackageReference Include="System.Reactive.Linq" Version="6.0.1"/>
+      <PackageReference Include="System.Reactive" Version="6.0.1" />
+      <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -76,6 +76,9 @@
   <ItemGroup>
     <Folder Include="Views\MainPage\" />
     <Folder Include="Views\SubPage\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

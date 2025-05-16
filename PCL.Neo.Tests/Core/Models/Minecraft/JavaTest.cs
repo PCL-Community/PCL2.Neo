@@ -1,5 +1,7 @@
 using PCL.Neo.Core.Models;
 using PCL.Neo.Core.Models.Minecraft.Java;
+using System;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Tests.Core.Models.Minecraft
 {

@@ -41,7 +41,7 @@ public class AuthCodeMode
 
     private static string GetAuthCode()
     {
-        var url = OAuthData.FormUrlReqData.AuthCodeData;
+        var url = OAuthData.FormUrlReqData.GetAuthCodeData();
         var redirectServer = new RedirectServer.RedirectServer(5050); // todo: set prot in app configureation
         var authCode = new AuthCode();
         redirectServer.Subscribe(authCode);
@@ -53,12 +53,14 @@ public class AuthCodeMode
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.FormUrlReqData))]
-    public static async ValueTask<OAuthData.ResponseData.AccessTokenResponce> GetAuthToken(string authCode)
+    public static async ValueTask<OAuthData.ResponseData.AccessTokenResponse> GetAuthToken(string authCode)
     {
-        var authTokenData = OAuthData.FormUrlReqData.AuthTokenData;
-        authTokenData["authCode"] = authCode;
+        var authTokenData = new Dictionary<string, string>(OAuthData.FormUrlReqData.AuthTokenData)
+        {
+            ["authCode"] = authCode
+        };
 
-        return await Net.SendHttpRequestAsync<OAuthData.ResponseData.AccessTokenResponce>(
+        return await Net.SendHttpRequestAsync<OAuthData.ResponseData.AccessTokenResponse>(
             HttpMethod.Post,
             OAuthData.RequestUrls.TokenUri,
             new FormUrlEncodedContent(authTokenData));
