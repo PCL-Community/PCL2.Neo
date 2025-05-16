@@ -60,30 +60,24 @@ jobs:
                     sudo apt-get install fuse
             - name: Build-MacOsApp
               run: |
-                cd ./PCL.Neo
                 sudo su
-                dotnet restore -r osx-x64
-                dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-x64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
-                dotnet restore -r osx-arm64
-                dotnet msbuild -t:BundleApp -p:RuntimeIdentifier=osx-arm64  -property:Configuration=Release -p:SelfContained=true -p:TrimMode=link
-                cd ./bin/Release/net9.0/
-                cd ./osx-x64/publish/
-                zip -9 -r ../../PCL.Neo.osx.mac.x64.app.zip ./PCL.Neo.app
-                cd ../../
-                cd ./osx-arm64/publish/
-                zip -9 -r ../../PCL.Neo.osx.mac.arm64.app.zip ./PCL.Neo.app
+                sh ./mac-publish-assets/package-mac.sh
+                cd ./mac-publish-assets/x64
+                zip -9 -r PCL.Neo.osx.mac.x64.app.zip PCL.Neo.app
+                cd ../arm64
+                zip -9 -r PCL.Neo.osx.mac.arm64.app.zip PCL.Neo.app
             - name: UploadArtifacts osx.mac.arm64
               uses: actions/upload-artifact@v4
               with:
                     name: osx.mac.arm64
                     path: |
-                        PCL.Neo/bin/Release/net9.0/PCL.Neo.osx.mac.arm64.app.zip
+                        mac-publish-assets/arm64/PCL.Neo.osx.mac.arm64.app.zip
             - name: UploadArtifacts osx.mac.x64
               uses: actions/upload-artifact@v4
               with:
                     name: osx.mac.x64
                     path: |
-                        PCL.Neo/bin/Release/net9.0/PCL.Neo.osx.mac.x64.app.zip
+                        mac-publish-assets/x64/PCL.Neo.osx.mac.x64.app.zip
     build-WinExe:
         runs-on: ubuntu-22.04
         steps:
