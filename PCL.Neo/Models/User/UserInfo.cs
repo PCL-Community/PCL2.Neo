@@ -1,4 +1,7 @@
 using System;
+using PCL.Neo.Core.Service.Accounts.Storage;
+using PCL.Neo.Core.Utils;
+using PCL.Neo.Utils;
 
 namespace PCL.Neo.Models.User;
 
@@ -12,84 +15,63 @@ public enum UserType
 public class UserInfo
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Username { get; set; } = string.Empty;
-    public string UUID { get; set; } = string.Empty;
-    public string AccessToken { get; set; } = string.Empty;
-    public UserType Type { get; set; } = UserType.Offline;
-    public string Email { get; set; } = string.Empty;
+    public required BaseAccount Account { get; set; }
+
+    // UI/本地管理相关属性
     public string AvatarUrl { get; set; } = string.Empty;
     public bool Selected { get; set; }
     public DateTime LastUsed { get; set; } = DateTime.Now;
     public DateTime AddedTime { get; set; } = DateTime.Now;
-    public DateTime? AuthExpireTime { get; set; }
-    
-    // Microsoft账户特有属性
-    public string RefreshToken { get; set; } = string.Empty;
-    public bool HasCape { get; set; }
-    
-    // Authlib账户特有属性
-    public string ServerUrl { get; set; } = string.Empty;
-    
-    // 创建离线账户
-    public static UserInfo CreateOfflineUser(string username)
+    public DateTimeOffset? AuthExpireTime { get; set; }
+
+    // 只读属性，便于UI绑定
+    public string Username => Account.UserName;
+    public string UUID => Account.Uuid;
+
+    public UserType Type => Account switch
     {
-        return new UserInfo
+        MsaAccount => UserType.Microsoft,
+        OfflineAccount => UserType.Offline,
+        YggdrasilAccount => UserType.Authlib,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
+    public string ServerUrl { get; set; }
+
+
+    // 工厂方法示例
+    public static UserInfo CreateOfflineUser(OfflineAccount account)
+    {
+        return new UserInfo { Account = account, AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png" };
+    }
+
+    public static UserInfo CreateOfflineUser(string userName)
+    {
+        var account = new OfflineAccount()
         {
-            Username = username,
-            UUID = GenerateOfflineUUID(username),
-            Type = UserType.Offline,
-            AccessToken = Guid.NewGuid().ToString(),
-            AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png"
+            Capes = [],
+            Skins = [],
+            UserName = "Player",
+            UserProperties = string.Empty,
+            Uuid = UuidUtils.GenerateOfflineUuid("Player")
         };
+
+        return new UserInfo { Account = account, AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png" };
     }
-    
-    // 根据用户名生成离线UUID
-    private static string GenerateOfflineUUID(string username)
-    {
-        // 离线模式使用用户名的MD5作为UUID
-        using var md5 = System.Security.Cryptography.MD5.Create();
-        var inputBytes = System.Text.Encoding.UTF8.GetBytes($"OfflinePlayer:{username}");
-        var hashBytes = md5.ComputeHash(inputBytes);
-        
-        // 设置UUID版本 (版本3 = MD5)
-        hashBytes[6] = (byte)((hashBytes[6] & 0x0F) | 0x30);
-        // 设置UUID变体
-        hashBytes[8] = (byte)((hashBytes[8] & 0x3F) | 0x80);
-        
-        // 转换为UUID字符串格式
-        return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-    }
-    
+
     // 检查账户是否过期
-    public bool IsExpired()
-    {
-        return Type != UserType.Offline && AuthExpireTime.HasValue && DateTime.Now > AuthExpireTime.Value;
-    }
-    
-    // 获取用户显示名
-    public string GetDisplayName()
-    {
-        return Username;
-    }
-    
-    // 获取用户首字母
-    public string GetInitial()
-    {
-        if (string.IsNullOrEmpty(Username))
-            return "?";
-            
-        return Username.Substring(0, 1).ToUpper();
-    }
-    
-    // 获取用户类型显示文本
-    public string GetUserTypeText()
-    {
-        return Type switch
+    public bool IsExpired() =>
+        Type != UserType.Offline && AuthExpireTime.HasValue && DateTime.Now > AuthExpireTime.Value;
+
+    public string GetDisplayName() => Username;
+    public string GetInitial() => string.IsNullOrEmpty(Username) ? "?" : Username[..1].ToUpper();
+
+    public string GetUserTypeText() =>
+        Account.UserType switch
         {
-            UserType.Offline => "离线账户",
-            UserType.Microsoft => "微软账户",
-            UserType.Authlib => "外置登录",
+            UserTypeConstants.Offline => "离线账户",
+            UserTypeConstants.Msa => "微软账户",
+            UserTypeConstants.Yggdrasil => "外置登录",
             _ => "未知账户"
         };
-    }
-} 
+}

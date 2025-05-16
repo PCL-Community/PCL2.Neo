@@ -1,6 +1,9 @@
 using PCL.Neo.Core.Models;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Core.Models.Minecraft.Mod;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Tests.Core.Models.FileHelper;
 

@@ -17,6 +17,7 @@ using System.Windows.Input;
 using System.Runtime.InteropServices;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.Core.Service.Accounts.Storage;
 using System.Diagnostics;
 
 namespace PCL.Neo.ViewModels.Home;
@@ -254,6 +255,13 @@ public partial class HomeSubViewModel : ViewModelBase
             IsLaunching = true;
             StatusMessage = "正在启动游戏...";
 
+            var accessToken = SelectedUser.Account switch
+            {
+                MsaAccount msa => msa.McAccessToken,
+                YggdrasilAccount yggdrasil => yggdrasil.McAccessToken,
+                OfflineAccount => Guid.NewGuid().ToString()
+            };
+
             // 创建完善的启动选项
             var launchOptions = new PCL.Neo.Core.Models.Minecraft.Game.LaunchOptions
             {
@@ -265,7 +273,7 @@ public partial class HomeSubViewModel : ViewModelBase
                 MinMemoryMB = Math.Max(512, _gameSettingsViewModel.MemoryAllocation / 4), // 最小内存设为最大内存的1/4，但不低于512MB
                 Username = SelectedUser.Username,
                 UUID = string.IsNullOrEmpty(SelectedUser.UUID) ? Guid.NewGuid().ToString() : SelectedUser.UUID,
-                AccessToken = string.IsNullOrEmpty(SelectedUser.AccessToken) ? Guid.NewGuid().ToString() : SelectedUser.AccessToken,
+                AccessToken = string.IsNullOrEmpty(accessToken) ? Guid.NewGuid().ToString() : accessToken,
                 WindowWidth = _gameSettingsViewModel.GameWidth,
                 WindowHeight = _gameSettingsViewModel.GameHeight,
                 FullScreen = _gameSettingsViewModel.IsFullScreen,
