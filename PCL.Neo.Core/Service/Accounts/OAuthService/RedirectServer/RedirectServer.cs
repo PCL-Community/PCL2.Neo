@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace PCL.Neo.Core.Models.Account.OAuthService.RedirectServer;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
 
 public class RedirectServer : IObservable<RedirectAuthCode>
 {
@@ -27,7 +27,7 @@ public class RedirectServer : IObservable<RedirectAuthCode>
             return new Unsubscriber<RedirectAuthCode>(_observers, observer);
         }
 
-        if (_authCode != null)
+        if (_authCode is not null)
         {
             observer.OnNext(_authCode);
         }
@@ -35,7 +35,7 @@ public class RedirectServer : IObservable<RedirectAuthCode>
         return new Unsubscriber<RedirectAuthCode>(_observers, observer);
     }
 
-    public void Start()
+    private void Start()
     {
         Listener.AuthenticationSchemes = AuthenticationSchemes.Anonymous;
         Listener.Prefixes.Add($"http://127.0.0.1:{Port}/");
@@ -51,7 +51,7 @@ public class RedirectServer : IObservable<RedirectAuthCode>
 
     private void Receive()
     {
-        Listener.BeginGetContext(new AsyncCallback(EndReceive), null);
+        Listener.BeginGetContext(EndReceive, null);
     }
 
     private void EndReceive(IAsyncResult asyncResult)

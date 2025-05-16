@@ -1,6 +1,6 @@
-using PCL.Neo.Core.Models.Account;
-using PCL.Neo.Core.Models.Account.OAuthService;
 using PCL.Neo.Core.Service.Accounts.Exceptions;
+using PCL.Neo.Core.Service.Accounts.OAuthService;
+using PCL.Neo.Core.Service.Accounts.Storage;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Net.Http.Headers;
@@ -59,17 +59,15 @@ public class MicrosoftAuthService : IMicrosoftAuthService
 
             var accountInfo = accountInfoResult.Value;
 
-            var account = new AccountInfo
+            var account = new MsaAccount()
             {
                 McAccessToken = mcToken.Value,
+                OAuthToken = new OAuthTokenData(tokenInfo.AccessToken, tokenInfo.RefreshToken, tokenInfo.ExpiresIn),
                 UserName = accountInfo.UserName,
-                UserType = AccountInfo.UserTypeEnum.Msa,
-                OAuthToken =
-                    new AccountInfo.OAuthTokenData(tokenInfo.AccessToken, tokenInfo.RefreshToken,
-                        tokenInfo.ExpiresIn),
+                UserProperties = string.Empty,
                 Uuid = accountInfo.Uuid,
-                Skins = accountInfo.Skins,
-                Capes = accountInfo.Capes
+                Capes = accountInfo.Capes,
+                Skins = accountInfo.Skins
             };
 
             observer.OnNext(new DeviceFlowSucceeded(account));
@@ -87,7 +85,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         try
         {
             var temp = await Net.SendHttpRequestAsync<DeviceCodeMode.DeviceCodeInfo>(HttpMethod.Post,
-                OAuthData.RequestUrls.DeviceCode, content, JsonSerializerOptions.Web);
+                OAuthData.RequestUrls.DeviceCode, content);
             var resutlt = new DeviceCodeMode.DeviceCodeInfo(temp.DeviceCode, temp.UserCode, temp.VerificationUri,
                 temp.Interval);
             return Result<DeviceCodeMode.DeviceCodeInfo, HttpError>.Ok(resutlt);
@@ -114,8 +112,11 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         string deviceCode, int interval)
     {
         var tempInterval = interval;
-        var content = OAuthData.FormUrlReqData.UserAuthStateData;
-        content["device_code"] = deviceCode;
+        var content = new Dictionary<string, string>(OAuthData.FormUrlReqData.UserAuthStateData)
+        {
+            ["device_code"] = deviceCode
+        };
+
         var msg = new FormUrlEncodedContent(content)
         {
             Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
@@ -129,7 +130,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
 
                 var tempResult =
                     await Net.SendHttpRequestAsync<OAuthData.ResponseData.UserAuthStateResponse>(HttpMethod.Post,
-                        OAuthData.RequestUrls.TokenUri, msg, JsonSerializerOptions.Web);
+                        OAuthData.RequestUrls.TokenUri, msg);
 
                 // handle response
                 if (!string.IsNullOrEmpty(tempResult.Error))
@@ -217,25 +218,29 @@ public class MicrosoftAuthService : IMicrosoftAuthService
     }
 
     /// <inheritdoc />
-    public async Task<Result<AccountInfo.OAuthTokenData, Exception>> RefreshTokenAsync(string refreshToken)
+    public async Task<Result<OAuthTokenData, Exception>> RefreshTokenAsync(string refreshToken)
     {
         var newToken = await OAuth.RefreshToken(refreshToken);
         try
         {
-            var newTokenData = new AccountInfo.OAuthTokenData(newToken.AccessToken, newToken.RefreshToken,
-                new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(newToken.ExpiresIn)));
+            var newTokenData = new OAuthTokenData(newToken.AccessToken, newToken.RefreshToken,
+                new DateTimeOffset(DateTime.Now, TimeSpan.FromSeconds(newToken.ExpiresIn)));
 
-            return Result<AccountInfo.OAuthTokenData, Exception>.Ok(newTokenData);
+            return Result<OAuthTokenData, Exception>.Ok(newTokenData);
         }
         catch (Exception e)
         {
-            return Result<AccountInfo.OAuthTokenData, Exception>.Fail(e);
+            return Result<OAuthTokenData, Exception>.Fail(e);
         }
     }
 
     private static void OpenBrowserAsync(string requiredUrl)
     {
-        var processStartInfo = new ProcessStartInfo { FileName = requiredUrl, UseShellExecute = true };
+        var processStartInfo =
+            new ProcessStartInfo
+            {
+                FileName = requiredUrl, UseShellExecute = true
+            }; // #WARN this method may cant run on linux and macos
 
         Process.Start(processStartInfo);
     }

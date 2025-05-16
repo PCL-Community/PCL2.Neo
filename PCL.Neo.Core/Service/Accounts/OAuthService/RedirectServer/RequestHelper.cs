@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace PCL.Neo.Core.Models.Account.OAuthService.RedirectServer;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
 
 public class RequestHelper(HttpListenerRequest request)
 {

@@ -1,10 +1,12 @@
+using System.Collections.Immutable;
 using System.Text.Json.Serialization;
 
-namespace PCL.Neo.Core.Models.Account.OAuthService;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService;
+
+#nullable disable
 
 public static class OAuthData
 {
-#nullable disable
     public static class RequestUrls
     {
         public static readonly Uri AuthCodeUri =
@@ -26,76 +28,79 @@ public static class OAuthData
 
     public static class FormUrlReqData
     {
-        public static readonly string ClientId = string.Empty;
+        public const string ClientId = "";
         public static readonly Uri RedirectUri = new("http://127.0.0.1:5050"); // TODO: update Uri
-        public static readonly string ClientSecret = string.Empty; // TODO: Set client secret
+        public const string ClientSecret = ""; // TODO: Set client secret
 
-        public static string AuthCodeData =
-            new(
-                $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access");
+        public static string GetAuthCodeData() =>
+            $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access";
 
-        public static readonly Dictionary<string, string> DeviceCodeData = new()
-        {
-            { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" }
-        };
+        public static IReadOnlyDictionary<string, string> DeviceCodeData { get; } =
+            new Dictionary<string, string> { { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" } }
+                .ToImmutableDictionary();
 
-        public static readonly Dictionary<string, string> UserAuthStateData = new()
-        {
-            { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" },
-            { "client_id", ClientId },
-            { "device_code", string.Empty }
-        };
+        public static IReadOnlyDictionary<string, string> UserAuthStateData { get; } =
+            new Dictionary<string, string>
+            {
+                { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" },
+                { "client_id", ClientId },
+                { "device_code", "" }
+            }.ToImmutableDictionary();
 
-        public static readonly Dictionary<string, string> AuthTokenData = new()
-        {
-            { "client_id", ClientId },
-            { "code", string.Empty },
-            { "grant_type", "authorization_code" },
-            { "redirect_uri", RedirectUri.ToString() },
-            { "scope", "XboxLive.signin offline_access" }
-        };
+        public static IReadOnlyDictionary<string, string> AuthTokenData { get; } =
+            new Dictionary<string, string>
+            {
+                { "client_id", ClientId },
+                { "code", "" },
+                { "grant_type", "authorization_code" },
+                { "redirect_uri", RedirectUri.ToString() },
+                { "scope", "XboxLive.signin offline_access" }
+            }.ToImmutableDictionary();
 
-        public static readonly Dictionary<string, string> RefreshTokenData = new()
-        {
-            { "client_id", ClientId },
-            { "client_secret", ClientSecret },
-            { "refresh_token", string.Empty },
-            { "grant_type", "refresh_token" },
-            { "scope", "XboxLive.signin offline_access" }
-        };
-        // todo: optimize this code with class for safe
+        public static IReadOnlyDictionary<string, string> RefreshTokenData { get; } =
+            new Dictionary<string, string>
+            {
+                { "client_id", ClientId },
+                { "client_secret", ClientSecret },
+                { "refresh_token", "" },
+                { "grant_type", "refresh_token" },
+                { "scope", "XboxLive.signin offline_access" }
+            }.ToImmutableDictionary();
     }
 
     public static class RequireData
     {
-        public record XboxLiveAuthRequire
+        public record XboxLiveAuthRequire(
+            [property: JsonPropertyName("PropertiesData")]
+            OAuthData.RequireData.XboxLiveAuthRequire.PropertiesData Properties)
         {
-            [JsonPropertyName("TokenType")] public static string TokenType = "JWT";
-            [JsonPropertyName("PropertiesData")] public PropertiesData Properties { get; set; }
-            [JsonPropertyName("RelyingParty")] public static string RelyingParty => "http://auth.xboxlive.com";
+            public const string TokenType = "JWT";
+            public static string RelyingParty => "http://auth.xboxlive.com";
 
-            public record PropertiesData
+            public record PropertiesData(
+                [property: JsonPropertyName("RpsTicket")]
+                string RpsTicket)
             {
-                [JsonPropertyName("AuthMethod")] public static string AuthMethod = "RPS";
-                [JsonPropertyName("SiteName")] public static string SiteName = "user.auth.xboxlive.com";
-                [JsonPropertyName("RpsTicket")] public required string RpsTicket { get; set; }
+                public const string AuthMethod = "RPS";
+                public const string SiteName = "user.auth.xboxlive.com";
             }
         }
 
-        public record XstsRequire
+        public record XstsRequire(
+            OAuthData.RequireData.XstsRequire.PropertiesData Properties)
         {
-            public static string RelyingParty = "rp://api.minecraftservices.com/";
-            public static string TokenType = "JWT";
-            public PropertiesData Properties { get; set; }
+            public const string RelyingParty = "rp://api.minecraftservices.com/";
+            public const string TokenType = "JWT";
 
-            public record PropertiesData
+            public record PropertiesData(
+                [property: JsonPropertyName("UserTokens")]
+                List<string> UserTokens)
             {
-                public static string SandboxId = "RETAIL";
-                public required List<string> UserTokens { get; set; }
+                public const string SandboxId = "RETAIL";
             }
         }
 
-        public class MiecraftAccessTokenRequire
+        public class MinecraftAccessTokenRequire
         {
             [JsonPropertyName("identityToken")] public string IdentityToken { get; set; }
         }
@@ -103,17 +108,17 @@ public static class OAuthData
 
     public static class ResponseData
     {
-        public record AccessTokenResponce
+        public record AccessTokenResponse
         {
             [JsonPropertyName("token_type")] public string TokenType { get; set; }
-            [JsonPropertyName("scope")] public string Scopr { get; set; }
+            [JsonPropertyName("scope")] public string Scope { get; set; }
             [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
             [JsonPropertyName("ext_expires_in")] public int ExtExpiresIn { get; set; }
             [JsonPropertyName("access_token")] public string AccessToken { get; set; }
             [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; }
         }
 
-        public record DeviceCodeResponce(
+        public record DeviceCodeResponse(
             [property: JsonPropertyName("device_code")]
             string DeviceCode,
             [property: JsonPropertyName("user_code")]
@@ -145,14 +150,14 @@ public static class OAuthData
             string CorrelationId
         );
 
-        public record XboxResponce
+        public record XboxResponse
         {
             [JsonPropertyName("IssueInstant")] public DateTime IssueInstant { get; set; }
             [JsonPropertyName("NotAfter")] public DateTime NotAfter { get; set; }
             [JsonPropertyName("Token")] public string Token { get; set; }
-            [JsonPropertyName("DisplayClaims")] public DisplayClainsData DisplayClains { get; set; }
+            [JsonPropertyName("DisplayClaims")] public DisplayClaimsData DisplayClaims { get; set; }
 
-            public record DisplayClainsData
+            public record DisplayClaimsData
             {
                 [JsonPropertyName("xui")] public List<XuiData> Xui { get; set; }
 
@@ -163,7 +168,7 @@ public static class OAuthData
             }
         }
 
-        public record MinecraftAccessTokenResponce
+        public record MinecraftAccessTokenResponse
         {
             [JsonPropertyName("username")] public string Username { get; set; }
             [JsonPropertyName("roles")] public List<object> Roles { get; set; }
@@ -172,7 +177,7 @@ public static class OAuthData
             [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
         }
 
-        public record CheckHaveGameResponce
+        public record CheckHaveGameResponse
         {
             [JsonPropertyName("items")] public List<Item> Items { get; set; }
             [JsonPropertyName("signature")] public string Signature { get; set; }

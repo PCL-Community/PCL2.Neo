@@ -1,4 +1,4 @@
-namespace PCL.Neo.Core.Models.Account.OAuthService.RedirectServer;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
 
 public class AuthCode : IObserver<RedirectAuthCode>
 {

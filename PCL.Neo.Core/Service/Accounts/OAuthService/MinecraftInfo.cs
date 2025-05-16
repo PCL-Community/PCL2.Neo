@@ -1,44 +1,45 @@
 using PCL.Neo.Core.Utils;
+using System.Security.AccessControl;
 using System.Text.Json;
 
-namespace PCL.Neo.Core.Models.Account.OAuthService;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService;
 
 public class MinecraftInfo
 {
-    public static List<AccountInfo.Skin> CollectSkins(
+    public static List<Storage.Skin> CollectSkins(
         IEnumerable<OAuthData.ResponseData.MinecraftPlayerUuidResponse.Skin> skins) =>
         skins.Select(skin => new
             {
                 skin,
                 state = skin.State switch
                 {
-                    "ACTIVE" => AccountInfo.State.Active,
-                    "INACTIVE" => AccountInfo.State.Inactive,
+                    "ACTIVE" => Storage.AccountState.Active,
+                    "INACTIVE" => Storage.AccountState.Inactive,
                     _ => throw new ArgumentOutOfRangeException()
                 },
                 url = new Uri(skin.Url)
             })
             .Select(t =>
-                new AccountInfo.Skin(t.skin.Id, t.url, t.skin.Variant, t.skin.TextureKey,
+                new Storage.Skin(t.skin.Id, t.url, t.skin.Variant, t.skin.TextureKey,
                     t.state))
             .ToList();
 
-    public static List<AccountInfo.Cape> CollectCapes(
+    public static List<Storage.Cape> CollectCapes(
         IEnumerable<OAuthData.ResponseData.MinecraftPlayerUuidResponse.Cape> capes) =>
-        (capes.Select(cape => new
-        {
-            cape,
-            state = cape.State switch
+        capes.Select(cape => new
             {
-                "ACTIVE" => AccountInfo.State.Active,
-                "INACTIVE" => AccountInfo.State.Inactive,
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            url = new Uri(cape.Url)
-        }))
-        .Select(t =>
-            new AccountInfo.Cape(t.cape.Id, t.state, t.url, t.cape.Alias))
-        .ToList();
+                cape,
+                state = cape.State switch
+                {
+                    "ACTIVE" => Storage.AccountState.Active,
+                    "INACTIVE" => Storage.AccountState.Inactive,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                url = new Uri(cape.Url)
+            })
+            .Select(t =>
+                new Storage.Cape(t.cape.Id, t.state, t.url, t.cape.Alias))
+            .ToList();
 
     public static async ValueTask<string> GetMinecraftAccessToken(string uhs, string xstsToken)
     {

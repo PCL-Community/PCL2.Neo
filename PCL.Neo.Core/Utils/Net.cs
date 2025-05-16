@@ -13,7 +13,6 @@ public static class Net
         HttpMethod method,
         Uri url,
         object? content = null,
-        JsonSerializerOptions? jsonOptions = null,
         string? bearerToken = null)
     {
         using var request = new HttpRequestMessage(method, url);
@@ -27,7 +26,7 @@ public static class Net
             }
             else
             {
-                request.Content = JsonContent.Create(content, options: jsonOptions);
+                request.Content = JsonContent.Create(content);
             }
         }
 
@@ -42,7 +41,7 @@ public static class Net
         response.EnsureSuccessStatusCode();
 
         // 解析响应
-        var result = await response.Content.ReadFromJsonAsync<TResponse>(jsonOptions);
+        var result = await response.Content.ReadFromJsonAsync<TResponse>();
         ArgumentNullException.ThrowIfNull(result);
 
         return result;

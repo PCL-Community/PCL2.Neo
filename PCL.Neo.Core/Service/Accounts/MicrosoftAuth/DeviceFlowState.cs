@@ -1,4 +1,4 @@
-using PCL.Neo.Core.Models.Account;
+using PCL.Neo.Core.Service.Accounts.Storage;
 
 namespace PCL.Neo.Core.Service.Accounts.MicrosoftAuth
 {
@@ -20,10 +20,10 @@ namespace PCL.Neo.Core.Service.Accounts.MicrosoftAuth
 
     public class DeviceFlowGetAccountInfo : DeviceFlowState;
 
-    public class DeviceFlowSucceeded(AccountInfo account) : DeviceFlowState
+    public class DeviceFlowSucceeded(MsaAccount account) : DeviceFlowState
 
     {
-        public AccountInfo Account { get; } = account;
+        public MsaAccount Account { get; } = account;
     }
 
     public class DeviceFlowUnkonw : DeviceFlowState;

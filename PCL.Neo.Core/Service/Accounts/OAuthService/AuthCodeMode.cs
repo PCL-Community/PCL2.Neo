@@ -1,14 +1,15 @@
-using PCL.Neo.Core.Models.Account.OAuthService.RedirectServer;
+using PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
+using PCL.Neo.Core.Service.Accounts.Storage;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace PCL.Neo.Core.Models.Account.OAuthService;
+namespace PCL.Neo.Core.Service.Accounts.OAuthService;
 
 [Obsolete]
 public class AuthCodeMode
 {
-    public static async Task<AccountInfo> LogIn()
+    public static async Task<MsaAccount> LogIn()
     {
         try
         {
@@ -18,15 +19,14 @@ public class AuthCodeMode
 
             var playerUuidAndName = await MinecraftInfo.GetPlayerUuid(minecraftAccessToken);
 
-            return new AccountInfo
+            return new MsaAccount()
             {
                 McAccessToken = minecraftAccessToken,
                 OAuthToken =
-                    new AccountInfo.OAuthTokenData(authToken.AccessToken, authToken.RefreshToken,
+                    new OAuthTokenData(authToken.AccessToken, authToken.RefreshToken,
                         new DateTimeOffset(DateTime.Today, TimeSpan.FromSeconds(authToken.ExpiresIn))),
                 UserName = playerUuidAndName.Name,
                 UserProperties = string.Empty,
-                UserType = AccountInfo.UserTypeEnum.Msa,
                 Uuid = playerUuidAndName.Uuid,
                 Capes = MinecraftInfo.CollectCapes(playerUuidAndName.Capes),
                 Skins = MinecraftInfo.CollectSkins(playerUuidAndName.Skins)
