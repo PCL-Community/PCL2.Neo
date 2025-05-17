@@ -6,8 +6,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using PCL.Neo.Core.Service.Accounts.Exceptions;
 using PCL.Neo.Models.User;
-using System.Net.Http;
+using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
+using PCL.Neo.Core.Service.Accounts.Storage;
+using PCL.Neo.Utils;
 
 namespace PCL.Neo.Services;
 
@@ -19,8 +22,9 @@ public class UserService : ObservableObject
     private const string UserConfigFile = "users.json";
     private readonly string _configPath;
     private readonly StorageService _storageService;
-    
-    private ObservableCollection<UserInfo> _users = new();
+    private readonly IMicrosoftAuthService _microsoftAuthService;
+
+    private ObservableCollection<UserInfo> _users = [];
     public ReadOnlyObservableCollection<UserInfo> Users { get; }
     
     private UserInfo? _currentUser;
@@ -29,14 +33,13 @@ public class UserService : ObservableObject
         get => _currentUser;
         private set => SetProperty(ref _currentUser, value);
     }
-    
-    private readonly HttpClient _httpClient = new();
-    
+
     public event Action<UserInfo?>? CurrentUserChanged;
-    
-    public UserService(StorageService storageService)
+
+    public UserService(StorageService storageService, IMicrosoftAuthService microsoftAuthService)
     {
         _storageService = storageService;
+        _microsoftAuthService = microsoftAuthService;
         _configPath = Path.Combine(StorageService.AppDataDirectory, UserConfigFile);
         Users = new ReadOnlyObservableCollection<UserInfo>(_users);
         
@@ -76,15 +79,15 @@ public class UserService : ObservableObject
             {
                 var json = await File.ReadAllTextAsync(_configPath);
                 var users = JsonSerializer.Deserialize<List<UserInfo>>(json);
-                
-                if (users != null && users.Count > 0)
+
+                if (users is { Count: > 0 })
                 {
                     _users.Clear();
                     foreach (var user in users)
                     {
                         _users.Add(user);
                     }
-                    
+
                     // 设置当前用户为列表中的第一个用户
                     CurrentUser = _users.FirstOrDefault();
                     return;
@@ -230,26 +233,26 @@ public class UserService : ObservableObject
         {
             throw new ArgumentException("授权码不能为空");
         }
-        
-        // TODO: 实现微软账户登录逻辑
-        // 1. 使用授权码获取访问令牌
+
+        // #TODO 实现微软账户登录逻辑
+        // 1. 使用授权码获取访问令牌 
         // 2. 使用访问令牌获取Xbox Live令牌
         // 3. 使用Xbox Live令牌获取XSTS令牌
         // 4. 使用XSTS令牌获取Minecraft令牌
-        // 5. 使用Minecraft令牌获取用户信息
-        
+        // finished
+
+        // 5. 使用Minecraft令牌获取用户信息 not finished
+
+        var account = await StartMicrosoftAuthAsync();
+
         // 这里是简化实现，实际需要与Minecraft API交互
         var user = new UserInfo
         {
-            Username = "MicrosoftUser",
-            UUID = Guid.NewGuid().ToString().Replace("-", ""),
-            Type = UserType.Microsoft,
-            AccessToken = Guid.NewGuid().ToString(),
-            RefreshToken = "refresh_token",
-            AuthExpireTime = DateTime.Now.AddDays(1),
-            AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png"
+            Account = account,
+            AuthExpireTime = account.OAuthToken.ExpiresAt,
+            AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png" // #TODO set skin
         };
-        
+
         _users.Add(user);
         await SaveUsersAsync();
         
@@ -265,15 +268,24 @@ public class UserService : ObservableObject
         {
             throw new ArgumentException("用户名、密码或服务器URL不能为空");
         }
-        
+
         // TODO: 实现Authlib外置登录逻辑
         // 这里是简化实现，实际需要与外置登录服务器交互
+
+        var account = new YggdrasilAccount
+        {
+            Capes = [],
+            Skins = [],
+            ClientToken = string.Empty,
+            McAccessToken = string.Empty,
+            UserName = username,
+            UserProperties = string.Empty,
+            Uuid = Guid.NewGuid().ToString()
+        };
+
         var user = new UserInfo
         {
-            Username = username,
-            UUID = Guid.NewGuid().ToString().Replace("-", ""),
-            Type = UserType.Authlib,
-            AccessToken = Guid.NewGuid().ToString(),
+            Account = account,
             ServerUrl = serverUrl,
             AuthExpireTime = DateTime.Now.AddDays(1),
             AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png"
@@ -343,10 +355,11 @@ public class UserService : ObservableObject
             {
                 throw new ArgumentException($"用户名 {newUsername} 已存在");
             }
-            
-            user.Username = newUsername;
-            user.UUID = UserInfo.CreateOfflineUser(newUsername).UUID;
-            
+
+            var newAccount = user.Account as OfflineAccount;
+            newAccount.UserName = newUsername;
+            newAccount.Uuid = UuidUtils.GenerateOfflineUuid(newUsername);
+
             await SaveUsersAsync();
         }
         else
@@ -361,15 +374,16 @@ public class UserService : ObservableObject
     public async Task RefreshMicrosoftTokenAsync(string userId)
     {
         var user = _users.FirstOrDefault(u => u.Id == userId && u.Type == UserType.Microsoft);
-        if (user != null && !string.IsNullOrEmpty(user.RefreshToken))
+
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (user.Account is MsaAccount account && !string.IsNullOrEmpty(account.OAuthToken.RefreshToken))
         {
             // TODO: 实现令牌刷新逻辑
             // 使用RefreshToken获取新的AccessToken
-            
+
             // 这里是简化实现
-            user.AccessToken = Guid.NewGuid().ToString();
-            user.AuthExpireTime = DateTime.Now.AddDays(1);
-            
+
             await SaveUsersAsync();
         }
         else
@@ -377,19 +391,38 @@ public class UserService : ObservableObject
             throw new ArgumentException("找不到指定的微软用户或刷新令牌为空");
         }
     }
-    
+
     /// <summary>
     /// 启动Microsoft登录流程
     /// </summary>
-    public async Task<string> StartMicrosoftAuthAsync()
+    public async Task<MsaAccount> StartMicrosoftAuthAsync()
     {
-        // TODO: 实现微软登录流程
-        // 1. 生成OAuth请求URL
-        // 2. 启动浏览器或嵌入式WebView进行登录
-        // 3. 获取授权码并返回
-        
-        // 这里直接返回一个假的授权URL
-        return "https://login.live.com/oauth20_authorize.srf";
+        var tcs = new TaskCompletionSource<MsaAccount>();
+        var observable = _microsoftAuthService.StartDeviceCodeFlow();
+        IDisposable? subscription = observable.Subscribe(state =>
+        {
+            switch (state)
+            {
+                case DeviceFlowAwaitUser awaitUser:
+                    // 可在UI层提示用户输入验证码
+                    // #TODO : 提示用户输入验证码
+                    break;
+                case DeviceFlowSucceeded succeeded:
+                    // 这里获得了 MsaAccount
+                    var account = succeeded.Account;
+                    // 适配为 UserInfo 或直接存储为 BaseAccount
+                    tcs.SetResult(account);
+
+                    break;
+                case DeviceFlowError error:
+                    tcs.SetException(error.Exc ?? new Exception("微软登录失败"));
+                    break;
+            }
+        });
+
+        subscription.Dispose();
+
+        return await tcs.Task;
     }
     
     /// <summary>
@@ -398,48 +431,53 @@ public class UserService : ObservableObject
     public async Task<string> GetUserAvatarUrlAsync(string userId)
     {
         var user = _users.FirstOrDefault(u => u.Id == userId);
-        if (user != null)
+        if (user == null)
         {
-            // 如果已经有缓存的头像URL，直接返回
-            if (!string.IsNullOrEmpty(user.AvatarUrl))
-            {
-                return user.AvatarUrl;
-            }
-            
-            // 否则根据用户类型获取头像
-            switch (user.Type)
-            {
-                case UserType.Microsoft:
-                    // 从Minecraft皮肤服务获取头像
-                    try
-                    {
-                        var url = $"https://sessionserver.mojang.com/session/minecraft/profile/{user.UUID}";
-                        // var response = await _httpClient.GetStringAsync(url);
-                        // 解析响应，获取皮肤URL
-                        // 这里简化处理
-                    }
-                    catch
-                    {
-                        // 出错时使用默认头像
-                    }
-                    break;
-                    
-                case UserType.Authlib:
-                    // 从外置登录服务获取头像
-                    // 略
-                    break;
-            }
-            
-            // 如果没有获取到头像，使用默认头像
-            if (string.IsNullOrEmpty(user.AvatarUrl))
-            {
-                user.AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png";
-                await SaveUsersAsync();
-            }
-            
+            return "avares://PCL.Neo/Assets/DefaultSkin.png";
+        }
+
+        // 如果已经有缓存的头像URL，直接返回
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
             return user.AvatarUrl;
         }
-        
-        return "avares://PCL.Neo/Assets/DefaultSkin.png";
+
+        // 否则根据用户类型获取头像
+        switch (user.Type)
+        {
+            case UserType.Microsoft:
+                // 从Minecraft皮肤服务获取头像
+                try
+                {
+                    var url = $"https://sessionserver.mojang.com/session/minecraft/profile/{user.UUID}";
+                    // var response = await _httpClient.GetStringAsync(url);
+                    // 解析响应，获取皮肤URL
+                    // 这里简化处理
+                }
+                catch
+                {
+                    // 出错时使用默认头像
+                }
+
+                break;
+
+            case UserType.Authlib:
+                // 从外置登录服务获取头像
+                // 略
+                break;
+            case UserType.Offline:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        // 如果没有获取到头像，使用默认头像
+        if (string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            user.AvatarUrl = "avares://PCL.Neo/Assets/DefaultSkin.png";
+            await SaveUsersAsync();
+        }
+
+        return user.AvatarUrl;
     }
 } 

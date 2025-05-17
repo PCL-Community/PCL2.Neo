@@ -28,7 +28,7 @@
             <ScrollViewer Name="LogScrollViewer">
                 <ItemsControl ItemsSource="{Binding LogEntries}">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="game:LogEntry">
+                        <DataTemplate DataType="vm:LogEntry">
                             <Grid Margin="0,1">
                                 <Border Background="{Binding IsError, Converter={StaticResource BoolToColorConverter}}" Padding="5,2" CornerRadius="3">
                                     <StackPanel Orientation="Horizontal">
