@@ -1,0 +1,47 @@
+name: Bug 报告
+description: (简体中文)提交一个Bug
+labels: bug
+title: '[Bug]: '
+body:
+  - type: checkboxes
+    id: '1'
+    attributes:
+      label: 检查项
+      description: 查看一下检查项
+      options:
+        - label: 使用的是最新的PCL.Neo版本
+          required: true
+        - label: 使用官方发布的版本（非第三方下载/修改版本）
+          required: true
+        - label: 已经查看过PCL.Neo官方文档并使用了所有可能的解决方案
+          required: true
+        - label: 已经尝试过重启启动器
+          required: true
+        - label: 已经尝试过重启电脑
+          required: true
+        - label: 已经浏览过Issues并没有发现重复Issue
+          required: true
+  - type: textarea
+    id: '2'
+    attributes:
+      label: Bug现象
+      description: 简述Bug的现象
+    validations:
+      required: true
+  - type: textarea
+    id: '3'
+    attributes:
+      label: 复现步骤
+      description: 简述你导致bug的操作步骤
+      value: |-
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: '4'
+    attributes:
+      label: 日志与截图
+      description: 提供日志/截图/录屏等方便我们查错
+      placeholder: 先点击这个文本框，然后拖拽文件到上面上传
