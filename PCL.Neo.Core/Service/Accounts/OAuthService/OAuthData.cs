@@ -9,6 +9,8 @@ public static class OAuthData
 {
     public static class RequestUrls
     {
+        public static readonly Uri AuthCodeUri =
+            new("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize");
         public static readonly Uri DeviceCode =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
 
@@ -42,6 +44,9 @@ public static class OAuthData
         // TODO: 配置微软OAuth客户端密钥
         public const string ClientSecret = "";
 
+        public static string GetAuthCodeData() =>
+            $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access";
+
         public static IReadOnlyDictionary<string, string> DeviceCodeData { get; } =
             new Dictionary<string, string> { { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" } }
                 .ToImmutableDictionary();
@@ -63,6 +68,16 @@ public static class OAuthData
                 { "grant_type", "refresh_token" },
                 { "scope", "XboxLive.signin offline_access" }
             }.ToImmutableDictionary();
+
+        public static IReadOnlyDictionary<string, string> AuthTokenData { get; } =
+        new Dictionary<string, string>
+        {
+            { "client_id", ClientId },
+            { "code", "" },
+            { "grant_type", "authorization_code" },
+            { "redirect_uri", RedirectUri.ToString() },
+            { "scope", "XboxLive.signin offline_access" }
+        }.ToImmutableDictionary();
     }
 
     public static class RequireData
