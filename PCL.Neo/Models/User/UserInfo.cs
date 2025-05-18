@@ -1,6 +1,5 @@
 using System;
 using PCL.Neo.Core.Service.Accounts.Storage;
-using PCL.Neo.Core.Utils;
 using PCL.Neo.Utils;
 
 namespace PCL.Neo.Models.User;
@@ -26,15 +25,21 @@ public class UserInfo
 
     // 只读属性，便于UI绑定
     public string Username => Account.UserName;
-    public string UUID => Account.Uuid;
+    public string Uuid     => Account.Uuid;
 
-    public UserType Type => Account switch
+    private UserType? _type;
+
+    public UserType Type
     {
-        MsaAccount => UserType.Microsoft,
-        OfflineAccount => UserType.Offline,
-        YggdrasilAccount => UserType.Authlib,
-        _ => throw new ArgumentOutOfRangeException()
-    };
+        get =>
+            _type ??= Account.UserType switch
+            {
+                UserTypeConstants.Msa => UserType.Microsoft,
+                UserTypeConstants.Yggdrasil => UserType.Authlib,
+                UserTypeConstants.Offline => UserType.Offline,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+    }
 
     public string ServerUrl { get; set; }
 
@@ -67,11 +72,11 @@ public class UserInfo
     public string GetInitial() => string.IsNullOrEmpty(Username) ? "?" : Username[..1].ToUpper();
 
     public string GetUserTypeText() =>
-        Account.UserType switch
+        Type switch
         {
-            UserTypeConstants.Offline => "离线账户",
-            UserTypeConstants.Msa => "微软账户",
-            UserTypeConstants.Yggdrasil => "外置登录",
+            UserType.Offline => "离线账户",
+            UserType.Microsoft => "微软账户",
+            UserType.Authlib => "外置登录",
             _ => "未知账户"
         };
 }

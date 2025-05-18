@@ -9,31 +9,32 @@ public static class OAuthData
 {
     public static class RequestUrls
     {
-        public static readonly Uri AuthCodeUri =
-            new("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize");
-
         public static readonly Uri DeviceCode =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
 
-        public static readonly Uri TokenUri = new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
-        public static readonly Uri XboxLiveAuth = new("https://user.auth.xboxlive.com/user/authenticate");
-        public static readonly Uri XstsAuth = new("https://xsts.auth.xboxlive.com/xsts/authorize");
+        public static readonly Uri TokenUri =
+            new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
+
+        public static readonly Uri XboxLiveAuth =
+            new("https://user.auth.xboxlive.com/user/authenticate");
+
+        public static readonly Uri XstsAuth =
+            new("https://xsts.auth.xboxlive.com/xsts/authorize");
 
         public static readonly Uri MinecraftAccessTokenUri =
             new("https://api.minecraftservices.com/authentication/login_with_xbox");
 
-        public static readonly Uri CheckHasMc = new("https://api.minecraftservices.com/entitlements/mcstore");
-        public static readonly Uri PlayerUuidUri = new("https://api.minecraftservices.com/minecraft/profile");
+        public static readonly Uri CheckHasMc =
+            new("https://api.minecraftservices.com/entitlements/mcstore");
+
+        public static readonly Uri PlayerUuidUri =
+            new("https://api.minecraftservices.com/minecraft/profile");
     }
 
     public static class FormUrlReqData
     {
-        public const string ClientId = "";
-        public static readonly Uri RedirectUri = new("http://127.0.0.1:5050"); // TODO: update Uri
+        public const string ClientId     = "";
         public const string ClientSecret = ""; // TODO: Set client secret
-
-        public static string GetAuthCodeData() =>
-            $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access";
 
         public static IReadOnlyDictionary<string, string> DeviceCodeData { get; } =
             new Dictionary<string, string> { { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" } }
@@ -45,16 +46,6 @@ public static class OAuthData
                 { "grant_type", "urn:ietf:params:oauth:grant-type:device_code" },
                 { "client_id", ClientId },
                 { "device_code", "" }
-            }.ToImmutableDictionary();
-
-        public static IReadOnlyDictionary<string, string> AuthTokenData { get; } =
-            new Dictionary<string, string>
-            {
-                { "client_id", ClientId },
-                { "code", "" },
-                { "grant_type", "authorization_code" },
-                { "redirect_uri", RedirectUri.ToString() },
-                { "scope", "XboxLive.signin offline_access" }
             }.ToImmutableDictionary();
 
         public static IReadOnlyDictionary<string, string> RefreshTokenData { get; } =
@@ -70,11 +61,12 @@ public static class OAuthData
 
     public static class RequireData
     {
-        public record XboxLiveAuthRequire(
-            [property: JsonPropertyName("PropertiesData")]
-            OAuthData.RequireData.XboxLiveAuthRequire.PropertiesData Properties)
+        public record XboxLiveAuthRequire
         {
-            public const string TokenType = "JWT";
+            [property: JsonPropertyName("PropertiesData")]
+            public PropertiesData Properties { get; set; }
+
+            public const  string TokenType = "JWT";
             public static string RelyingParty => "http://auth.xboxlive.com";
 
             public record PropertiesData(
@@ -82,15 +74,15 @@ public static class OAuthData
                 string RpsTicket)
             {
                 public const string AuthMethod = "RPS";
-                public const string SiteName = "user.auth.xboxlive.com";
+                public const string SiteName   = "user.auth.xboxlive.com";
             }
         }
 
         public record XstsRequire(
-            OAuthData.RequireData.XstsRequire.PropertiesData Properties)
+            XstsRequire.PropertiesData Properties)
         {
             public const string RelyingParty = "rp://api.minecraftservices.com/";
-            public const string TokenType = "JWT";
+            public const string TokenType    = "JWT";
 
             public record PropertiesData(
                 [property: JsonPropertyName("UserTokens")]
@@ -110,50 +102,41 @@ public static class OAuthData
     {
         public record AccessTokenResponse
         {
-            [JsonPropertyName("token_type")] public string TokenType { get; set; }
-            [JsonPropertyName("scope")] public string Scope { get; set; }
-            [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
-            [JsonPropertyName("ext_expires_in")] public int ExtExpiresIn { get; set; }
-            [JsonPropertyName("access_token")] public string AccessToken { get; set; }
-            [JsonPropertyName("refresh_token")] public string RefreshToken { get; set; }
+            [JsonPropertyName("expires_in")]     public int    ExpiresIn    { get; set; }
+            [JsonPropertyName("ext_expires_in")] public int    ExtExpiresIn { get; set; }
+            [JsonPropertyName("access_token")]   public string AccessToken  { get; set; }
+            [JsonPropertyName("refresh_token")]  public string RefreshToken { get; set; }
         }
 
-        public record DeviceCodeResponse(
-            [property: JsonPropertyName("device_code")]
-            string DeviceCode,
-            [property: JsonPropertyName("user_code")]
-            string UserCode,
-            [property: JsonPropertyName("verification_uri")]
-            string VerificationUri,
+        public record UserAuthStateResponse
+        {
             [property: JsonPropertyName("expires_in")]
-            int ExpiresIn,
-            [property: JsonPropertyName("interval")]
-            int Interval,
-            [property: JsonPropertyName("message")]
-            string Message
-        );
+            public int ExpiresIn { get; set; }
 
-        public record UserAuthStateResponse(
-            [property: JsonPropertyName("token_type")]
-            string TokenType,
-            [property: JsonPropertyName("scope")] string Scope,
-            [property: JsonPropertyName("expires_in")]
-            int ExpiresIn,
             [property: JsonPropertyName("access_token")]
-            string AccessToken,
+            public string AccessToken { get; set; }
+
             [property: JsonPropertyName("refresh_token")]
-            string RefreshToken,
-            [property: JsonPropertyName("error")] string Error,
+            public string RefreshToken { get; set; }
+
+            [property: JsonPropertyName("error")]
+            public string Error { get; set; }
+
             [property: JsonPropertyName("error_description")]
-            string ErrorDescription,
+            public string ErrorDescription { get; set; }
+
             [property: JsonPropertyName("correlation_id")]
-            string CorrelationId
-        );
+            public string CorrelationId { get; set; }
+        }
 
         public record XboxResponse
         {
+/*
             [JsonPropertyName("IssueInstant")] public DateTime IssueInstant { get; set; }
+*/
+/*
             [JsonPropertyName("NotAfter")] public DateTime NotAfter { get; set; }
+*/
             [JsonPropertyName("Token")] public string Token { get; set; }
             [JsonPropertyName("DisplayClaims")] public DisplayClaimsData DisplayClaims { get; set; }
 
@@ -180,8 +163,12 @@ public static class OAuthData
         public record CheckHaveGameResponse
         {
             [JsonPropertyName("items")] public List<Item> Items { get; set; }
+/*
             [JsonPropertyName("signature")] public string Signature { get; set; }
+*/
+/*
             [JsonPropertyName("keyId")] public string KeyId { get; set; }
+*/
 
             public record Item
             {
@@ -207,12 +194,20 @@ public static class OAuthData
                 [JsonPropertyName("alias")] public string Alias { get; set; }
             }
 
-            public record Cape(
-                [property: JsonPropertyName("id")] string Id,
-                [property: JsonPropertyName("state")] string State,
-                [property: JsonPropertyName("url")] string Url,
-                [property: JsonPropertyName("alias")] string Alias
-            );
+            public record Cape
+            {
+                [JsonPropertyName("id")]
+                public string Id { get; init; }
+
+                [JsonPropertyName("state")]
+                public string State { get; init; }
+
+                [JsonPropertyName("url")]
+                public string Url { get; init; }
+
+                [JsonPropertyName("alias")]
+                public string Alias { get; init; }
+            }
         }
     }
 }

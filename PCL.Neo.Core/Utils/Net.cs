@@ -7,7 +7,7 @@ namespace PCL.Neo.Core.Utils;
 #pragma warning disable IL2026 // will fixed by dynamic dependency
 public static class Net
 {
-    public static HttpClient SharedHttpClient = new();
+    public static readonly HttpClient SharedHttpClient = new();
 
     public static async Task<TResponse> SendHttpRequestAsync<TResponse>(
         HttpMethod method,

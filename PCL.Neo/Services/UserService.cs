@@ -404,13 +404,10 @@ public class UserService : ObservableObject
             switch (state)
             {
                 case DeviceFlowAwaitUser awaitUser:
-                    // 可在UI层提示用户输入验证码
                     // #TODO : 提示用户输入验证码
                     break;
                 case DeviceFlowSucceeded succeeded:
-                    // 这里获得了 MsaAccount
                     var account = succeeded.Account;
-                    // 适配为 UserInfo 或直接存储为 BaseAccount
                     tcs.SetResult(account);
 
                     break;
@@ -449,7 +446,7 @@ public class UserService : ObservableObject
                 // 从Minecraft皮肤服务获取头像
                 try
                 {
-                    var url = $"https://sessionserver.mojang.com/session/minecraft/profile/{user.UUID}";
+                    var url = $"https://sessionserver.mojang.com/session/minecraft/profile/{user.Uuid}";
                     // var response = await _httpClient.GetStringAsync(url);
                     // 解析响应，获取皮肤URL
                     // 这里简化处理

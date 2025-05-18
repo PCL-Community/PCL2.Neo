@@ -38,9 +38,10 @@ namespace PCL.Neo.Tests
                 },
                 new()
                 {
-                    Account = new YggdrasilAccount()
+                    Account = new YggdrasilAccount
                     {
-                        Uuid = Guid.NewGuid().ToString(),
+                        Uuid = Guid.NewGuid()
+                            .ToString(),
                         UserName = "YggdrasilUser789",
                         McAccessToken = "yggdrasil_access_token",
                         ClientToken = "yggdrasil_client_token", // If you added ClientToken

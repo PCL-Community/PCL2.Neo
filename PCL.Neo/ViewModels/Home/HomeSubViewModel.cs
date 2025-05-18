@@ -272,7 +272,7 @@ public partial class HomeSubViewModel : ViewModelBase
                 MaxMemoryMB = _gameSettingsViewModel.MemoryAllocation,
                 MinMemoryMB = Math.Max(512, _gameSettingsViewModel.MemoryAllocation / 4), // 最小内存设为最大内存的1/4，但不低于512MB
                 Username = SelectedUser.Username,
-                UUID = string.IsNullOrEmpty(SelectedUser.UUID) ? Guid.NewGuid().ToString() : SelectedUser.UUID,
+                UUID = string.IsNullOrEmpty(SelectedUser.Uuid) ? Guid.NewGuid().ToString() : SelectedUser.Uuid,
                 AccessToken = string.IsNullOrEmpty(accessToken) ? Guid.NewGuid().ToString() : accessToken,
                 WindowWidth = _gameSettingsViewModel.GameWidth,
                 WindowHeight = _gameSettingsViewModel.GameHeight,

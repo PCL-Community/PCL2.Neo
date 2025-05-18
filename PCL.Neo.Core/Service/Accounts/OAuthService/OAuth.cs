@@ -24,8 +24,10 @@ public static class OAuth
     public static async Task<OAuthData.ResponseData.XboxResponse> GetXboxToken(string accessToken)
     {
         var jsonContent =
-            new OAuthData.RequireData.XboxLiveAuthRequire(
-                new OAuthData.RequireData.XboxLiveAuthRequire.PropertiesData(accessToken));
+            new OAuthData.RequireData.XboxLiveAuthRequire
+            {
+                Properties = new OAuthData.RequireData.XboxLiveAuthRequire.PropertiesData(accessToken)
+            };
 
         return await Net.SendHttpRequestAsync<OAuthData.ResponseData.XboxResponse>(
             HttpMethod.Post,

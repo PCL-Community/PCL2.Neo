@@ -75,7 +75,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         });
 
     /// <inheritdoc />
-    public async Task<Result<DeviceCodeMode.DeviceCodeInfo, HttpError>> RequestDeviceCodeAsync()
+    public async Task<Result<DeviceCodeData.DeviceCodeInfo, HttpError>> RequestDeviceCodeAsync()
     {
         var content = new FormUrlEncodedContent(OAuthData.FormUrlReqData.DeviceCodeData)
         {
@@ -84,31 +84,31 @@ public class MicrosoftAuthService : IMicrosoftAuthService
 
         try
         {
-            var temp = await Net.SendHttpRequestAsync<DeviceCodeMode.DeviceCodeInfo>(HttpMethod.Post,
+            var temp = await Net.SendHttpRequestAsync<DeviceCodeData.DeviceCodeInfo>(HttpMethod.Post,
                 OAuthData.RequestUrls.DeviceCode, content);
-            var resutlt = new DeviceCodeMode.DeviceCodeInfo(temp.DeviceCode, temp.UserCode, temp.VerificationUri,
+            var result = new DeviceCodeData.DeviceCodeInfo(temp.DeviceCode, temp.UserCode, temp.VerificationUri,
                 temp.Interval);
-            return Result<DeviceCodeMode.DeviceCodeInfo, HttpError>.Ok(resutlt);
+            return Result<DeviceCodeData.DeviceCodeInfo, HttpError>.Ok(result);
         }
         catch (HttpRequestException e)
         {
-            return Result<DeviceCodeMode.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
+            return Result<DeviceCodeData.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
                 "Network error while requesting device code.", Exception: e));
         }
         catch (JsonException e)
         {
-            return Result<DeviceCodeMode.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
+            return Result<DeviceCodeData.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
                 "Failed to parse device code response.", Exception: e));
         }
         catch (Exception e)
         {
-            return Result<DeviceCodeMode.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
+            return Result<DeviceCodeData.DeviceCodeInfo, HttpError>.Fail(new HttpError(null,
                 "An unexpected error occurred.", Exception: e));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>> PollForTokenAsync(
+    public async Task<Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>> PollForTokenAsync(
         string deviceCode, int interval)
     {
         var tempInterval = interval;
@@ -138,13 +138,13 @@ public class MicrosoftAuthService : IMicrosoftAuthService
                     switch (tempResult.Error)
                     {
                         case "authorization_declined":
-                            return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                            return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                                 new DeviceFlowError(new DeviceFlowDeclined(), null));
                         case "expired_token":
-                            return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                            return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                                 new DeviceFlowError(new DeviceFlowExpired(), null));
                         case "bad_verification_code":
-                            return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                            return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                                 new DeviceFlowError(new DeviceFlowDeclined(), null));
                         case "slow_down":
                             tempInterval = Math.Min(tempInterval * 2, 900); // Adjust polling interval
@@ -152,31 +152,31 @@ public class MicrosoftAuthService : IMicrosoftAuthService
                         case "authorization_pending":
                             continue; // Keep polling
                         default:
-                            return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                            return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                                 new DeviceFlowError(new DeviceFlowUnkonw(), null));
                     }
                 }
 
                 // create result
-                var result = new DeviceCodeMode.DeviceCodeAccessToken(tempResult.AccessToken,
+                var result = new DeviceCodeData.DeviceCodeAccessToken(tempResult.AccessToken,
                     tempResult.RefreshToken,
                     DateTimeOffset.UtcNow.AddSeconds(tempResult.ExpiresIn));
 
-                return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Ok(result);
+                return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Ok(result);
             }
             catch (HttpRequestException e)
             {
-                return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                     new DeviceFlowError(new DeviceFlowInternetError(), e));
             }
             catch (JsonException e)
             {
-                return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                     new DeviceFlowError(new DeviceFlowJsonError(), e));
             }
             catch (Exception e)
             {
-                return Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>.Fail(
+                return Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>.Fail(
                     new DeviceFlowError(new DeviceFlowUnkonw(), e));
             }
         }
@@ -199,7 +199,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
     }
 
     /// <inheritdoc />
-    public async Task<Result<DeviceCodeMode.McAccountInfo, Exception>> GetUserAccountInfo(string accessToken)
+    public async Task<Result<DeviceCodeData.McAccountInfo, Exception>> GetUserAccountInfo(string accessToken)
     {
         try
         {
@@ -208,12 +208,12 @@ public class MicrosoftAuthService : IMicrosoftAuthService
             var skins = MinecraftInfo.CollectSkins(playerInfo.Skins);
             var uuid = playerInfo.Uuid;
 
-            return Result<DeviceCodeMode.McAccountInfo, Exception>.Ok(
-                new DeviceCodeMode.McAccountInfo(skins, capes, playerInfo.Name, uuid));
+            return Result<DeviceCodeData.McAccountInfo, Exception>.Ok(
+                new DeviceCodeData.McAccountInfo(skins, capes, playerInfo.Name, uuid));
         }
         catch (Exception e)
         {
-            return Result<DeviceCodeMode.McAccountInfo, Exception>.Fail(e);
+            return Result<DeviceCodeData.McAccountInfo, Exception>.Fail(e);
         }
     }
 

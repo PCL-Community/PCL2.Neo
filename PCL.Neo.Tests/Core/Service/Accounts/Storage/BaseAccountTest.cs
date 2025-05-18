@@ -61,9 +61,10 @@ namespace PCL.Neo.Tests.Core.Service.Accounts.Storage
             accounts.Add(msaAccount);
 
             // Create a Yggdrasil Account
-            var yggdrasilAccount = new YggdrasilAccount()
+            var yggdrasilAccount = new YggdrasilAccount
             {
-                Uuid = Guid.NewGuid().ToString(),
+                Uuid = Guid.NewGuid()
+                    .ToString(),
                 UserName = "YggdrasilUser789",
                 McAccessToken = "yggdrasil_access_token",
                 ClientToken = "yggdrasil_client_token", // If you added ClientToken
