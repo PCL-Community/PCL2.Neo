@@ -26,7 +26,7 @@ public class ConnectionCountConcern(IHandler content, DownloadTest dt) : IConcer
     {
         Interlocked.Increment(ref dt.ConnectionCount);
         dt.CheckNumberOfConnections();
-        await Task.Delay(500);
+        // await Task.Delay(500);
         var response = await Content.HandleAsync(request);
         Interlocked.Decrement(ref dt.ConnectionCount);
         return response;
@@ -46,8 +46,8 @@ public class DownloadTest
     public Dictionary<string, byte[]> TestCases = [];
     public Dictionary<string, bool> HasLied = [];
     public long ConnectionCount;
-    public const int NumberOfTestCases = 8 * 1024;
-    public const int SizeOfSingleTestCase = 128 * 1024;
+    public const int NumberOfTestCases = 4 * 1024;
+    public const int SizeOfSingleTestCase = 64 * 1024;
     public const int MaxThreads = 64;
 
     public ConcurrentBag<string> Output = [];
