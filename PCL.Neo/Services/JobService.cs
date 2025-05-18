@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,12 +18,19 @@ public abstract class Job
 
     public class Stage
     {
+        public Stage()
+        {
+            ProgressHandler ??= new Progress<double>(x => Progress = x);
+        }
+
         public string Name { get; init; } = "N/A";
         public double Weighting { get; init; } = 1.0;
         public double Progress { get; set; } = 0.0;
         public StageStatus Status { get; set; } = StageStatus.Pending;
 
-        public void ReportProgress(double progress) => Progress = progress;
+        public IProgress<double> ProgressHandler { get; init; }
+
+        public void ReportProgress(double progress) => ProgressHandler.Report(progress);
 
         public void Pending() => Status = StageStatus.Pending;
         public void Running() => Status = StageStatus.Running;
