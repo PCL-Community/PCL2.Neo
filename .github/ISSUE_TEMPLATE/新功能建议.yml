@@ -19,7 +19,7 @@ body:
     id: '2'
     attributes:
       label: 你为何需要这个新功能
-      description: 清晰地描述你需要这个功能地原因
+      description: 清晰地描述你需要这个功能的原因
     validations:
       required: true
   - type: textarea
