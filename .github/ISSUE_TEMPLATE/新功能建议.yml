@@ -1,7 +1,7 @@
 name: 新功能建议
 description: 提交一个新功能设想/建议
-labels: Bug
-title: '[Bug]: '
+labels: 新功能
+title: '[新功能]: '
 body:
   - type: checkboxes
     id: '1'
@@ -40,7 +40,7 @@ body:
       description: 清晰地描述这个功能地工作流程
     validations:
       required: true
-    type: textarea
+  - type: textarea
     id: '5'
     attributes:
       label: 附加信息
