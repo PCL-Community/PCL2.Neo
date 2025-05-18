@@ -33,8 +33,14 @@ public static class OAuthData
 
     public static class FormUrlReqData
     {
-        public const string ClientId     = "";
-        public const string ClientSecret = ""; // TODO: Set client secret
+        // TODO: 配置微软OAuth客户端ID
+        public const string ClientId = "";
+
+        // TODO: 配置微软OAuth重定向URI
+        public static readonly Uri RedirectUri = new("http://127.0.0.1:5050");
+
+        // TODO: 配置微软OAuth客户端密钥
+        public const string ClientSecret = "";
 
         public static IReadOnlyDictionary<string, string> DeviceCodeData { get; } =
             new Dictionary<string, string> { { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" } }
