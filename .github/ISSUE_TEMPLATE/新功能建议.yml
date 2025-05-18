@@ -1,0 +1,47 @@
+name: Bug 报告
+description: (简体中文)提交一个Bug
+labels: Bug
+title: '[Bug]: '
+body:
+  - type: checkboxes
+    id: '1'
+    attributes:
+      label: 检查项
+      description: 查看一下检查项
+      options: 
+        - label: 我已查看过issues列表，确认没有与我的issue重复的issue
+          required: true
+        - label:  我清楚PCL.Neo是由社区进行开发和维护的，无法第一时间提供支持
+          required: true
+        - label:  我将对我的言行进行负责
+          required: true
+  - type: textarea
+    id: '2'
+    attributes:
+      label: 你为何需要这个新功能
+      description: 清晰地描述你需要这个功能地原因
+    validations:
+      required: true
+  - type: textarea
+    id: '3'
+    attributes:
+      label: 描述这个功能的作用
+      description: 清晰地描述这个功能的作用
+      value: |-
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: '4'
+    attributes:
+      label: 描述这个功能该如何工作
+      description: 清晰地描述这个功能地工作流程
+      placeholder: 
+     type: textarea
+    id: '5'
+    attributes:
+      label: 附加信息
+      description: 一些其他的信息，可上传文件
+      placeholder: 若要上传文件，请先点击这个文本框，然后拖拽文件到上面上传
