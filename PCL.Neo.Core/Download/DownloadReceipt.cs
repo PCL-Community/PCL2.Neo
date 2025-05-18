@@ -54,19 +54,32 @@ public class DownloadReceipt
     public FileIntegrity? Integrity { get; init; }
     public int MaxRetries { get; init; } = 3;
     public int Attempts { get; private set; }
-    public long Size { get; private set; }
+    private long _size = 0;
+
+    public long Size
+    {
+        get => _size;
+        private set
+        {
+            DeltaSize = value - _size;
+            _size = value;
+            var deltaTime = DateTime.Now - _sizeChangedTime;
+            _sizeChangedTime = DateTime.Now;
+            TransferRate = Math.Max(0.0, DeltaSize / deltaTime.TotalSeconds);
+        }
+    }
+    public long DeltaSize { get; private set; }
     public long TotalSize { get; private set; }
 
     public bool IsCompleted { get; private set; }
 
-    public long TransferRate { get; private set; } // in byte per second
+    public double TransferRate { get; private set; } // in byte per second
 
-    public IProgress<double>? Progress { get; init; }
+    public IProgress<double>? Progress { get; set; }
     public Task? DownloadTask { get; private set; }
 
     // For internal use
     private DateTime _sizeChangedTime = DateTime.MinValue;
-    private long _lastSize;
 
     public Task DownloadInNewTask(HttpClient? client = null, SemaphoreSlim? maxThreadsThrottle = null,
         CancellationToken token = default)
@@ -105,8 +118,6 @@ public class DownloadReceipt
 
                         fs.SetLength(0); // clear file content
                         Size = 0;
-                        _lastSize = 0;
-                        _sizeChangedTime = DateTime.Now;
                         TotalSize = res.Content.Headers.ContentLength ?? 0;
                         TransferRate = 0;
 
@@ -124,17 +135,10 @@ public class DownloadReceipt
                                 new SynchronousProgress<long>(x =>
                                 {
                                     Size = x;
-                                    double deltaS = Size - _lastSize;
-                                    _lastSize = Size;
-                                    double deltaT = (DateTime.Now - _sizeChangedTime).TotalSeconds;
-                                    _sizeChangedTime = DateTime.Now;
-                                    TransferRate = (long)(deltaS / deltaT);
                                     Progress?.Report((double)Size / TotalSize);
                                 }),
                                 token);
                         }
-
-                        TransferRate = 0;
 
                         if (!Integrity?.Verify(fs) ?? false)
                             throw new FileIntegrityException($"Failed to verify integrity for {SourceUrl}");
