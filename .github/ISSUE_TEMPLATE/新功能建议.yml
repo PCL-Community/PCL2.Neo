@@ -1,5 +1,5 @@
-name: Bug 报告
-description: (简体中文)提交一个Bug
+name: 新功能建议
+description: 提交一个新功能设想/建议
 labels: Bug
 title: '[Bug]: '
 body:
@@ -38,8 +38,9 @@ body:
     attributes:
       label: 描述这个功能该如何工作
       description: 清晰地描述这个功能地工作流程
-      placeholder: 
-     type: textarea
+    validations:
+      required: true
+    type: textarea
     id: '5'
     attributes:
       label: 附加信息
