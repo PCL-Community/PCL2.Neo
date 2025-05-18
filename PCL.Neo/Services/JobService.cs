@@ -28,9 +28,9 @@ public abstract class Job
         public double Progress { get; set; } = 0.0;
         public StageStatus Status { get; set; } = StageStatus.Pending;
 
-        public IProgress<double> ProgressHandler { get; init; }
+        public Progress<double> ProgressHandler { get; init; }
 
-        public void ReportProgress(double progress) => ProgressHandler.Report(progress);
+        public void ReportProgress(double progress) => ((IProgress<double>)ProgressHandler).Report(progress);
 
         public void Pending() => Status = StageStatus.Pending;
         public void Running() => Status = StageStatus.Running;
@@ -38,15 +38,23 @@ public abstract class Job
         public void Canceled() => Status = StageStatus.Canceled;
     }
 
-    private Stage[]? _stages;
+    public Job()
+    {
+        Stages ??=
+            this.GetType()
+                .GetFields()
+                .Where(x => x.FieldType.IsAssignableTo(typeof(Stage)))
+                .Select(x => (Stage)x.GetValue(this)!)
+                .ToArray();
+        foreach (Stage s in Stages)
+        {
+            s.ProgressHandler.ProgressChanged += (_, _) => ProgressChanged?.Invoke(this, Progress);
+        }
+    }
 
-    // Lazy loading
-    public Stage[] Stages => _stages ??=
-        this.GetType()
-            .GetFields()
-            .Where(x => x.FieldType.IsAssignableTo(typeof(Stage)))
-            .Select(x => (Stage)x.GetValue(this)!)
-            .ToArray();
+    public event EventHandler<double>? ProgressChanged;
+
+    public Stage[] Stages { get; }
 
     public double Progress
     {
@@ -80,6 +88,8 @@ public class JobService
 {
     public List<Job> Jobs { get; } = [];
 
+    public EventHandler<double>? ProgressChanged;
+
     public double Progress
     {
         get
@@ -92,6 +102,7 @@ public class JobService
     public T Submit<T>(T job) where T : Job
     {
         Jobs.Add(job);
+        job.ProgressChanged += (_, _) => ProgressChanged?.Invoke(this, Progress);
         return job;
     }
 

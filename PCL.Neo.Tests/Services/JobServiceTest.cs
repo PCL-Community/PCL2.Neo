@@ -1,5 +1,7 @@
 using PCL.Neo.Services;
 using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -59,18 +61,18 @@ public class JobServiceTest
 {
     private static void PrintSummary(JobService js)
     {
-        Console.WriteLine($"JobService Progress:\t{js.Progress * 100:0.00}%");
-        Console.WriteLine("Jobs:");
+        TestContext.Progress.WriteLine($"JobService Progress:\t{js.Progress * 100:0.00}%");
+        TestContext.Progress.WriteLine("Jobs:");
         foreach (Job j in js.Jobs)
         {
-            Console.WriteLine($"\t{j.Name}:\t{j.Progress * 100:0.00}%\tIsCompleted: {j.IsCompleted}");
+            TestContext.Progress.WriteLine($"\t{j.Name}:\t{j.Progress * 100:0.00}%\tIsCompleted: {j.IsCompleted}");
             foreach (Job.Stage s in j.Stages)
             {
-                Console.WriteLine($"\t\t{s.Name}:\t{s.Progress * 100:0.00}%\tStatus: {s.Status:G}");
+                TestContext.Progress.WriteLine($"\t\t{s.Name}:\t{s.Progress * 100:0.00}%\tStatus: {s.Status:G}");
             }
         }
 
-        Console.WriteLine();
+        TestContext.Progress.WriteLine();
     }
 
     public async Task MonitorJobService(Func<JobService, Task> callback)
@@ -125,5 +127,25 @@ public class JobServiceTest
             await j1.RunAsync();
             await j2.RunAsync();
         });
+    }
+
+    [Test]
+    public async Task JobServiceProgressChangedEventTest()
+    {
+        var lockObj = new object();
+        var js = new JobService();
+        js.ProgressChanged += (_, _) =>
+        {
+            lock (lockObj)
+            {
+                PrintSummary(js);
+            }
+        };
+
+        var task1 = js.Submit(new TestJob1())
+            .RunInNewTask();
+        var task2 = js.Submit(new TestJob2())
+            .RunInNewTask();
+        await Task.WhenAll(task1, task2);
     }
 }
