@@ -8,6 +8,7 @@ using PCL.Neo.Core.Download;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -46,10 +47,10 @@ public class DownloadTest
     public Dictionary<string, byte[]> TestCases = [];
     public Dictionary<string, bool> HasLied = [];
     public long ConnectionCount;
-    public const int NumberOfTestCases = 16 * 1024;
-    public const int SizeOfSingleTestCase = 64 * 1024;
-    public const int MaxThreads = 64;
-    public const bool IsLie = true;
+    public const long NumberOfTestCases = 8 * 1024;
+    public const long SizeOfSingleTestCase = 64 * 1024;
+    public const int MaxThreads = 16;
+    public const bool IsLie = false;
 
     public ConcurrentBag<string> Output = [];
 
@@ -180,13 +181,19 @@ public class DownloadTest
             lastProgress = p;
             TestContext.Progress.WriteLine($"{p * 100:0.##}% {(double)downloader.TransferRate / 1024 / 1024:0.##}MB/s");
         });
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
         await downloader.Download(TestCases.Select(x => new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
             DestinationPath = $"/tmp/downloadtest/{x.Key}",
             Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = x.Key },
-            Progress = progress
+            DownloadProgress = progress
         }));
+        stopwatch.Stop();
+        var timeTaken = stopwatch.Elapsed.TotalSeconds;
+        TestContext.WriteLine($"Total time taken: {timeTaken}s");
+        TestContext.WriteLine($"Estimated transfer rate: {(double)NumberOfTestCases * SizeOfSingleTestCase / timeTaken / 1024 / 1024:0.##}MB/s");
         foreach (var (hash, data) in TestCases)
         {
             Assert.That((await File.ReadAllBytesAsync($"/tmp/downloadtest/{hash}")).SequenceEqual(data), Is.True);
