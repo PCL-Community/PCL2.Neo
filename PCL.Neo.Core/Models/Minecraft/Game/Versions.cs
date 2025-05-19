@@ -68,7 +68,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             try
             {
                 // 获取版本清单
-                var response = await DownloadService.HttpClient.GetStringAsync(VersionManifestUrl);
+                var response = await Shared.HttpClient.GetStringAsync(VersionManifestUrl);
                 var manifest = JsonSerializer.Deserialize<VersionManifest>(response);
 
                 if (manifest == null || manifest.Versions == null)
@@ -170,7 +170,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             try
             {
                 // 先获取版本清单
-                var response = await DownloadService.HttpClient.GetStringAsync(VersionManifestUrl);
+                var response = await Shared.HttpClient.GetStringAsync(VersionManifestUrl);
                 var manifest = JsonSerializer.Deserialize<VersionManifest>(response);
 
                 if (manifest == null || manifest.Versions == null)
@@ -186,7 +186,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 }
 
                 // 获取详细版本信息
-                var versionJsonResponse = await DownloadService.HttpClient.GetStringAsync(version.Url);
+                var versionJsonResponse = await Shared.HttpClient.GetStringAsync(version.Url);
                 var versionInfo = JsonSerializer.Deserialize<VersionInfo>(versionJsonResponse, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
