@@ -9,26 +9,51 @@ public static class OAuthData
 {
     public static class RequestUrls
     {
+        /// <summary>
+        /// 获取授权码模式下的授权码地址
+        /// </summary>
         public static readonly Uri AuthCodeUri =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize");
+
+        /// <summary>
+        /// 获取设备码模式下的授权码地址
+        /// </summary>
         public static readonly Uri DeviceCode =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode");
 
+        /// <summary>
+        /// 获取令牌
+        /// </summary>
         public static readonly Uri TokenUri =
             new("https://login.microsoftonline.com/consumers/oauth2/v2.0/token");
 
+        /// <summary>
+        /// XboxLive验证地址
+        /// </summary>
         public static readonly Uri XboxLiveAuth =
             new("https://user.auth.xboxlive.com/user/authenticate");
 
+        /// <summary>
+        /// Xsts验证地址
+        /// </summary>
         public static readonly Uri XstsAuth =
             new("https://xsts.auth.xboxlive.com/xsts/authorize");
 
+        /// <summary>
+        /// Mc通行令牌获取地址
+        /// </summary>
         public static readonly Uri MinecraftAccessTokenUri =
             new("https://api.minecraftservices.com/authentication/login_with_xbox");
 
+        /// <summary>
+        /// 检查是否拥有Mc地址
+        /// </summary>
         public static readonly Uri CheckHasMc =
             new("https://api.minecraftservices.com/entitlements/mcstore");
 
+        /// <summary>
+        /// 获取玩家UUID的地址
+        /// </summary>
         public static readonly Uri PlayerUuidUri =
             new("https://api.minecraftservices.com/minecraft/profile");
     }
@@ -36,6 +61,7 @@ public static class OAuthData
     public static class FormUrlReqData
     {
         // TODO: 配置微软OAuth客户端ID
+        // replaceed by config modul, follwed are same
         public const string ClientId = "";
 
         // TODO: 配置微软OAuth重定向URI
@@ -44,13 +70,23 @@ public static class OAuthData
         // TODO: 配置微软OAuth客户端密钥
         public const string ClientSecret = "";
 
+        /// <summary>
+        /// 获取授权码的地址
+        /// </summary>
+        /// <returns>地址</returns>
         public static string GetAuthCodeData() =>
             $"{RequestUrls.AuthCodeUri}?client_id={ClientId}&response_type=code&redirect_uri={RedirectUri}&response_mode=query&scope=XboxLive.signin offline_access";
 
+        /// <summary>
+        /// 设备码申请参数
+        /// </summary>
         public static IReadOnlyDictionary<string, string> DeviceCodeData { get; } =
             new Dictionary<string, string> { { "client_id", ClientId }, { "scope", "XboxLive.signin offline_access" } }
                 .ToImmutableDictionary();
 
+        /// <summary>
+        /// 用户授权状态查询参数
+        /// </summary>
         public static IReadOnlyDictionary<string, string> UserAuthStateData { get; } =
             new Dictionary<string, string>
             {
@@ -59,6 +95,22 @@ public static class OAuthData
                 { "device_code", "" }
             }.ToImmutableDictionary();
 
+        /// <summary>
+        /// 授权令牌参数
+        /// </summary>
+        public static IReadOnlyDictionary<string, string> AuthTokenData { get; } =
+            new Dictionary<string, string>
+            {
+                { "client_id", ClientId },
+                { "code", "" },
+                { "grant_type", "authorization_code" },
+                { "redirect_uri", RedirectUri.ToString() },
+                { "scope", "XboxLive.signin offline_access" }
+            }.ToImmutableDictionary();
+
+        /// <summary>
+        /// 刷新令牌参数
+        /// </summary>
         public static IReadOnlyDictionary<string, string> RefreshTokenData { get; } =
             new Dictionary<string, string>
             {
@@ -68,16 +120,6 @@ public static class OAuthData
                 { "grant_type", "refresh_token" },
                 { "scope", "XboxLive.signin offline_access" }
             }.ToImmutableDictionary();
-
-        public static IReadOnlyDictionary<string, string> AuthTokenData { get; } =
-        new Dictionary<string, string>
-        {
-            { "client_id", ClientId },
-            { "code", "" },
-            { "grant_type", "authorization_code" },
-            { "redirect_uri", RedirectUri.ToString() },
-            { "scope", "XboxLive.signin offline_access" }
-        }.ToImmutableDictionary();
     }
 
     public static class RequireData
@@ -113,7 +155,7 @@ public static class OAuthData
             }
         }
 
-        public class MinecraftAccessTokenRequire
+        public record MinecraftAccessTokenRequire
         {
             [JsonPropertyName("identityToken")] public string IdentityToken { get; set; }
         }

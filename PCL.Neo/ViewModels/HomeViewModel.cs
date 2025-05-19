@@ -176,18 +176,27 @@ public partial class HomeViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadUserHeadImg()
     {
-        const string filePath = @"C:\Users\WhiteCAT\Pictures\temp\Cat_Skin.png";
-        await using var inputStream = File.OpenRead(filePath);
-        using var skiaStream = new SKManagedStream(inputStream);
-        using var bitMap = SKBitmap.Decode(skiaStream);
+        try
+        {
+            const string    filePath    = @"\res\test_skin.png"; // TODO: replace with actual path
+            await using var inputStream = File.OpenRead(filePath);
+            using var       skiaStream  = new SKManagedStream(inputStream);
+            using var       bitMap      = SKBitmap.Decode(skiaStream);
 
-        var croprect = new SKRectI(8, 8, 16, 16);
-        using var cropped = new SKBitmap(croprect.Width, croprect.Height);
-        bitMap.ExtractSubset(cropped, croprect);
+            var       cropRect = new SKRectI(8, 8, 16, 16);
+            using var cropped  = new SKBitmap(cropRect.Width, cropRect.Height);
+            bitMap.ExtractSubset(cropped, cropRect);
 
-        using var image = SKImage.FromBitmap(cropped);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var ms = new MemoryStream(data.ToArray());
-        ShowImageBitmap = new Bitmap(ms);
+            using var image = SKImage.FromBitmap(cropped);
+            using var data  = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var ms    = new MemoryStream(data.ToArray());
+            ShowImageBitmap = new Bitmap(ms);
+        }
+        catch (Exception e)
+        {
+            // TODO: log this error and tell developter
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
