@@ -27,7 +27,7 @@ public class ConnectionCountConcern(IHandler content, DownloadTest dt) : IConcer
     {
         Interlocked.Increment(ref dt.ConnectionCount);
         dt.CheckNumberOfConnections();
-        // await Task.Delay(500);
+        // await Task.Delay(10);
         var response = await Content.HandleAsync(request);
         Interlocked.Decrement(ref dt.ConnectionCount);
         return response;
@@ -48,14 +48,14 @@ public class DownloadTest
     public Dictionary<string, bool> HasLied = [];
     public long ConnectionCount;
     public const long NumberOfTestCases = 8 * 1024;
-    public const long SizeOfSingleTestCase = 64 * 1024;
-    public const int MaxThreads = 64;
+    public const long SizeOfSingleTestCase = 32 * 1024;
+    public const int MaxThreads = 32;
     public const bool IsLie = false;
     public const string CachePath = "/tmp";
 
     public ConcurrentBag<string> Output = [];
 
-    [SetUp]
+    [OneTimeSetUp]
     public async Task Init()
     {
         for (int i = 0; i < NumberOfTestCases; i++)
@@ -258,26 +258,33 @@ public class DownloadTest
                 return;
             if (1.0 - p <= 0.00000001 && 1.0 - lastProgress <= 0.00000001)
                 return;
+            if (p > 0.5)
+            {
+                TestContext.Progress.WriteLine("Cancelling..");
+                downloader.Cancel();
+            }
             lastProgress = p;
             TestContext.Progress.WriteLine($"{p * 100:0.##}% {(double)downloader.TransferRate / 1024 / 1024:0.##}MB/s");
         });
         var stopwatch = new Stopwatch();
         stopwatch.Start();
-        Task task = downloader.Download(TestCases.Select(x => new DownloadReceipt
+        await downloader.Download(TestCases.Select(x => new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
             DestinationPath = Path.Combine(CachePath, $"downloadtest/{x.Key}"),
             Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = x.Key },
             DownloadProgress = progress
         }));
-        await Task.Delay(500);
-        TestContext.Progress.WriteLine("Cancelling..");
-        await downloader.CancelAsync();
-        await task;
         stopwatch.Stop();
         var timeTaken = stopwatch.Elapsed.TotalSeconds;
         TestContext.WriteLine($"Total time taken: {timeTaken}s");
         TestContext.WriteLine($"Estimated transfer rate: {(double)NumberOfTestCases * SizeOfSingleTestCase / timeTaken / 1024 / 1024:0.##}MB/s");
+        foreach (string s in Directory.EnumerateFiles(Path.Combine(CachePath, "downloadtest")))
+        {
+            var filename = Path.GetFileName(s);
+            Assert.That(filename, Is.Not.Contain(".tmp"));
+            Assert.That((await File.ReadAllBytesAsync(s)).SequenceEqual(TestCases[filename]), Is.True);
+        }
     }
 
     [Test]
@@ -301,7 +308,7 @@ public class DownloadTest
             TestContext.Progress.WriteLine("Download failed as expected!");
     }
 
-    [TearDown]
+    [OneTimeTearDown]
     public async Task Cleanup()
     {
         if (File.Exists(Path.Combine(CachePath, "downloadtest.bin")))

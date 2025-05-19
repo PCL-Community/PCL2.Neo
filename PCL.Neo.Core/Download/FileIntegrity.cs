@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 
 namespace PCL.Neo.Core.Download;
 
+public class FileIntegrityException(string? msg = null) : Exception(msg);
+
 public record FileIntegrity(
     long ExpectedSize = -1,
     HashAlgorithm? HashAlgorithm = null,

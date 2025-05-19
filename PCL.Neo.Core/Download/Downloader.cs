@@ -2,15 +2,17 @@ using PCL.Neo.Core.Utils;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading.Channels;
+using System.Threading.Tasks.Dataflow;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace PCL.Neo.Core.Download;
 
 public class Downloader(int degreeOfParallelism = 8)
 {
+    public bool IsCancelled => _cancellationTokenSource.IsCancellationRequested;
+
     private readonly HttpClient _client = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly SemaphoreSlim _maxThreadsThrottle = new(degreeOfParallelism, degreeOfParallelism);
 
     private readonly List<DownloadReceipt> _downloadReceipts = [];
     private readonly List<Task> _downloadTasks = [];
@@ -34,19 +36,6 @@ public class Downloader(int degreeOfParallelism = 8)
 
     public async Task Download<T>(T receipts) where T : IEnumerable<DownloadReceipt>
     {
-        var immutableReceipts = receipts.ToImmutableArray();
-        _downloadReceipts.AddRange(immutableReceipts);
-        foreach (DownloadReceipt r in immutableReceipts)
-        {
-            var origProgress = r.DeltaSizeProgress;
-            r.DeltaSizeProgress = new SynchronousProgress<long>(x =>
-            {
-                _transferRateRecordChannel.Writer.TryWrite((DateTime.Now, x));
-                origProgress?.Report(x);
-            });
-            _downloadTasks.Add(r.DownloadAsync(_client, _maxThreadsThrottle, false, _cancellationTokenSource.Token));
-        }
-
         var daemonCts = new CancellationTokenSource();
         try
         {
@@ -64,9 +53,11 @@ public class Downloader(int degreeOfParallelism = 8)
                         _transferRateRecords.Enqueue(cached);
                         cached = (DateTime.Now, 0);
                     }
+
                     if (_transferRateRecords.Count >= _maxTransferRateRecordSize)
                     {
-                        while (_transferRateRecords.TryDequeue(out var x) && x.Item1 < DateTime.Now - TimeSpan.FromSeconds(1.5))
+                        while (_transferRateRecords.TryDequeue(out var x) &&
+                               x.Item1 < DateTime.Now - TimeSpan.FromSeconds(1.5))
                         {
                         }
                     }
@@ -75,7 +66,36 @@ public class Downloader(int degreeOfParallelism = 8)
         }
         catch (OperationCanceledException) { }
 
-        await Task.WhenAll(_downloadTasks);
+        var immutableReceipts = receipts.ToImmutableArray();
+        _downloadReceipts.AddRange(immutableReceipts);
+
+
+        var receiptExecutor = new ActionBlock<DownloadReceipt>(
+            async r => await r.DownloadAsync(_client, false, _cancellationTokenSource.Token),
+            new ExecutionDataflowBlockOptions
+            {
+                MaxDegreeOfParallelism = degreeOfParallelism,
+                CancellationToken = _cancellationTokenSource.Token
+            });
+
+        foreach (DownloadReceipt r in immutableReceipts)
+        {
+            var origProgress = r.DeltaSizeProgress;
+            r.DeltaSizeProgress = new SynchronousProgress<long>(x =>
+            {
+                _transferRateRecordChannel.Writer.TryWrite((DateTime.Now, x));
+                origProgress?.Report(x);
+            });
+            receiptExecutor.Post(r);
+        }
+
+        receiptExecutor.Complete();
+        try
+        {
+            await receiptExecutor.Completion.WaitAsync(CancellationToken.None);
+        }
+        catch (OperationCanceledException) { }
+
         await daemonCts.CancelAsync();
     }
 

@@ -3,8 +3,6 @@ using System.Security.Cryptography;
 
 namespace PCL.Neo.Core.Download;
 
-public class FileIntegrityException(string? msg = null) : Exception(msg);
-
 public class DownloadReceipt
 {
     private static readonly HttpClient SharedClient = new();
@@ -29,34 +27,33 @@ public class DownloadReceipt
     public IProgress<long>? DeltaSizeProgress { get; set; }
     public IProgress<double>? DownloadProgress { get; set; }
 
-    public Task DownloadInNewTask(HttpClient? client = null, SemaphoreSlim? maxThreadsThrottle = null,
-        CancellationToken token = default)
+    public Task DownloadInNewTask(HttpClient? client = null, CancellationToken token = default)
     {
         try
         {
-            return Task.Run(async () => await DownloadAsync(client, maxThreadsThrottle, false, token), token);
+            return Task.Run(async () => await DownloadAsync(client, false, token), token);
         }
         catch (OperationCanceledException) { }
 
         return Task.FromCanceled(token);
     }
 
-    public async Task DownloadAsync(HttpClient? client = null, SemaphoreSlim? maxThreadsThrottle = null, bool throwException = true,
+    public async Task DownloadAsync(HttpClient? client = null, bool throwException = true,
         CancellationToken token = default)
     {
+        if (token.IsCancellationRequested)
+            return;
+
         IsCompleted = false;
         Error = null;
         client ??= SharedClient;
         try
         {
+            OnBegin?.Invoke(this);
             while (!token.IsCancellationRequested)
             {
-                await (maxThreadsThrottle?.WaitAsync(token) ?? Task.CompletedTask);
                 try
                 {
-                    if (token.IsCancellationRequested)
-                        break;
-                    OnBegin?.Invoke(this);
                     var res = await client.GetAsync(SourceUrl, HttpCompletionOption.ResponseHeadersRead, token);
                     res.EnsureSuccessStatusCode();
 
@@ -106,10 +103,6 @@ public class DownloadReceipt
                         $"[{SourceUrl}] Attempt {Attempts} failed: {ex.Message}. Retry after {delay} ms...");
                     await Task.Delay(delay, token);
                 }
-                finally
-                {
-                    maxThreadsThrottle?.Release();
-                }
             }
 
             if (IsCompleted)
@@ -118,10 +111,7 @@ public class DownloadReceipt
                 OnSuccess?.Invoke(this);
             }
         }
-        catch (OperationCanceledException)
-        {
-
-        }
+        catch (OperationCanceledException) { }
         catch (Exception ex)
         {
             // 寄
