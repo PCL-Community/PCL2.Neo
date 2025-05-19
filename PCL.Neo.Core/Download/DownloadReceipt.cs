@@ -5,8 +5,6 @@ namespace PCL.Neo.Core.Download;
 
 public class DownloadReceipt
 {
-    private static readonly HttpClient SharedClient = new();
-
     public event Action<DownloadReceipt>? OnBegin;
     public event Action<DownloadReceipt>? OnSuccess;
     public event Action<DownloadReceipt, Exception>? OnError;
@@ -46,7 +44,7 @@ public class DownloadReceipt
 
         IsCompleted = false;
         Error = null;
-        client ??= SharedClient;
+        client ??= Shared.HttpClient;
         try
         {
             OnBegin?.Invoke(this);
@@ -83,7 +81,7 @@ public class DownloadReceipt
                         }),
                         token);
 
-                    if (!Integrity?.Verify(fs) ?? false)
+                    if (Integrity is not null && !await Integrity.VerifyAsync(fs, token))
                         throw new FileIntegrityException("Failed to verify integrity");
 
                     IsCompleted = true;
@@ -128,17 +126,17 @@ public class DownloadReceipt
         }
     }
 
-    public static async Task FastDownload(string sourceUrl, string destPath, string? sha1 = null) =>
+    public static async Task FastDownloadAsync(string sourceUrl, string destPath, string? sha1 = null, CancellationToken token = default) =>
         await new DownloadReceipt
         {
             SourceUrl = sourceUrl,
             DestinationPath = destPath,
             Integrity = sha1 is null ? null : new FileIntegrity { Hash = sha1 }
-        }.DownloadAsync();
+        }.DownloadAsync(token: token);
 
-    public static async Task<FileStream> FastDownloadAsStream(string sourceUrl, string destPath, string? sha1 = null)
+    public static async Task<FileStream> FastDownloadAsStreamAsync(string sourceUrl, string destPath, string? sha1 = null, CancellationToken token = default)
     {
-        await FastDownload(sourceUrl, destPath, sha1);
+        await FastDownloadAsync(sourceUrl, destPath, sha1, token);
         return new FileStream(destPath, FileMode.Open, FileAccess.Read, FileShare.Read);
     }
 }

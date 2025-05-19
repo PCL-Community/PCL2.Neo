@@ -15,7 +15,6 @@ public class Downloader(int degreeOfParallelism = 8)
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     private readonly List<DownloadReceipt> _downloadReceipts = [];
-    private readonly List<Task> _downloadTasks = [];
     private readonly ConcurrentQueue<(DateTime, long)> _transferRateRecords = [];
     private readonly int _maxTransferRateRecordSize = degreeOfParallelism * 256;
     private readonly Channel<(DateTime, long)> _transferRateRecordChannel = Channel.CreateUnbounded<(DateTime, long)>();
