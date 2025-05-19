@@ -24,6 +24,7 @@ public class DownloadReceipt
     public long TotalSize { get; private set; }
 
     public bool IsCompleted { get; private set; }
+    public Exception? Error { get; private set; }
 
     public IProgress<long>? DeltaSizeProgress { get; set; }
     public IProgress<double>? DownloadProgress { get; set; }
@@ -33,96 +34,101 @@ public class DownloadReceipt
     {
         try
         {
-            return Task.Run(async () => await DownloadAsync(client, maxThreadsThrottle, token), token);
+            return Task.Run(async () => await DownloadAsync(client, maxThreadsThrottle, false, token), token);
         }
-        catch (TaskCanceledException) { }
+        catch (OperationCanceledException) { }
 
         return Task.FromCanceled(token);
     }
 
-    public async Task DownloadAsync(HttpClient? client = null, SemaphoreSlim? maxThreadsThrottle = null,
+    public async Task DownloadAsync(HttpClient? client = null, SemaphoreSlim? maxThreadsThrottle = null, bool throwException = true,
         CancellationToken token = default)
     {
         IsCompleted = false;
+        Error = null;
         client ??= SharedClient;
         try
         {
-            await using (var fs = new FileStream(
-                             DestinationPath + ".tmp", // to ensure only properly downloaded file exists
-                             FileMode.Create,
-                             FileAccess.ReadWrite, FileShare.None))
-                while (true)
+            while (!token.IsCancellationRequested)
+            {
+                await (maxThreadsThrottle?.WaitAsync(token) ?? Task.CompletedTask);
+                try
                 {
-                    token.ThrowIfCancellationRequested();
+                    if (token.IsCancellationRequested)
+                        break;
+                    OnBegin?.Invoke(this);
+                    var res = await client.GetAsync(SourceUrl, HttpCompletionOption.ResponseHeadersRead, token);
+                    res.EnsureSuccessStatusCode();
 
-                    await (maxThreadsThrottle?.WaitAsync(token) ?? Task.CompletedTask);
-                    try
-                    {
-                        OnBegin?.Invoke(this);
+                    Size = 0;
+                    TotalSize = res.Content.Headers.ContentLength ?? 0;
 
-                        var res = await client.GetAsync(SourceUrl, HttpCompletionOption.ResponseHeadersRead, token);
-                        res.EnsureSuccessStatusCode();
+                    // preparing parent directory
+                    var parentDir = Path.GetDirectoryName(DestinationPath);
+                    if (!string.IsNullOrEmpty(parentDir))
+                        Directory.CreateDirectory(parentDir);
 
-                        fs.SetLength(0); // clear file content
-                        Size = 0;
-                        TotalSize = res.Content.Headers.ContentLength ?? 0;
-
-                        // preparing parent directory
-                        var parentDir = Path.GetDirectoryName(DestinationPath);
-                        if (!string.IsNullOrEmpty(parentDir))
-                            Directory.CreateDirectory(parentDir);
-
-                        // copying file content
-                        await using (var ns = await res.Content.ReadAsStreamAsync(token))
+                    // copying file content
+                    await using var ns = await res.Content.ReadAsStreamAsync(token);
+                    await using var fs = new FileStream(
+                        DestinationPath + ".tmp", // to ensure only properly downloaded file exists
+                        FileMode.Create,
+                        FileAccess.ReadWrite, FileShare.None);
+                    await ns.CopyToAsync(
+                        fs,
+                        81920,
+                        new SynchronousProgress<long>(x =>
                         {
-                            await ns.CopyToAsync(
-                                fs,
-                                81920,
-                                new SynchronousProgress<long>(x =>
-                                {
-                                    var origSize = Size;
-                                    Size = x;
-                                    DeltaSizeProgress?.Report(x - origSize);
-                                    DownloadProgress?.Report((double)Size / TotalSize);
-                                }),
-                                token);
-                        }
+                            var origSize = Size;
+                            Size = x;
+                            DeltaSizeProgress?.Report(x - origSize);
+                            DownloadProgress?.Report((double)Size / TotalSize);
+                        }),
+                        token);
 
-                        if (!Integrity?.Verify(fs) ?? false)
-                            throw new FileIntegrityException($"Failed to verify integrity for {SourceUrl}");
+                    if (!Integrity?.Verify(fs) ?? false)
+                        throw new FileIntegrityException("Failed to verify integrity");
 
-                        IsCompleted = true;
-                        OnSuccess?.Invoke(this);
-                        break; // downloaded successfully, break download loop
-                    }
-                    catch (Exception ex) when (ex is not OperationCanceledException && Attempts < MaxRetries)
-                    {
-                        // reset common properties
-                        Size = 0;
-                        TotalSize = 0;
-
-                        // 異議あり！ ...
-                        const int baseDelayMs = 500;
-                        int delay = baseDelayMs * (1 << Attempts++);
-                        // TODO: remove this testing log
-                        Console.WriteLine(
-                            $"[{SourceUrl}] Attempt {Attempts} failed: {ex.Message}. Retry after {delay} ms...");
-                        await Task.Delay(delay, token);
-                    }
-                    finally
-                    {
-                        maxThreadsThrottle?.Release();
-                    }
+                    IsCompleted = true;
+                    break; // downloaded successfully, break download loop
                 }
+                catch (Exception ex) when (ex is not OperationCanceledException && Attempts < MaxRetries)
+                {
+                    // reset common properties
+                    Size = 0;
+                    TotalSize = 0;
+
+                    // 異議あり！ ...
+                    const int baseDelayMs = 500;
+                    int delay = baseDelayMs * (1 << Attempts++);
+                    // TODO: remove this testing log
+                    Console.WriteLine(
+                        $"[{SourceUrl}] Attempt {Attempts} failed: {ex.Message}. Retry after {delay} ms...");
+                    await Task.Delay(delay, token);
+                }
+                finally
+                {
+                    maxThreadsThrottle?.Release();
+                }
+            }
 
             if (IsCompleted)
+            {
                 File.Move(DestinationPath + ".tmp", DestinationPath);
+                OnSuccess?.Invoke(this);
+            }
         }
-        catch (TaskCanceledException) { }
+        catch (OperationCanceledException)
+        {
+
+        }
         catch (Exception ex)
         {
             // 寄
+            Error = ex;
             OnError?.Invoke(this, ex);
+            if (throwException)
+                throw;
         }
         finally
         {

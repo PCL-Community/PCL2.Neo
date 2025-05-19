@@ -49,8 +49,9 @@ public class DownloadTest
     public long ConnectionCount;
     public const long NumberOfTestCases = 8 * 1024;
     public const long SizeOfSingleTestCase = 64 * 1024;
-    public const int MaxThreads = 16;
+    public const int MaxThreads = 64;
     public const bool IsLie = false;
+    public const string CachePath = "/tmp";
 
     public ConcurrentBag<string> Output = [];
 
@@ -123,17 +124,22 @@ public class DownloadTest
     [Test]
     public async Task SingleDownloadTest()
     {
-        if (File.Exists("/tmp/downloadtest.bin"))
-            File.Delete("/tmp/downloadtest.bin");
+        if (File.Exists(Path.Combine(CachePath, "downloadtest.bin")))
+            File.Delete(Path.Combine(CachePath, "downloadtest.bin"));
         var expectedHash = TestCases.FirstOrDefault().Key;
-        await new DownloadReceipt
+        var receipt = new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{expectedHash}",
-            DestinationPath = "/tmp/downloadtest.bin",
+            DestinationPath = Path.Combine(CachePath, "downloadtest.bin"),
             Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = expectedHash }
-        }.DownloadAsync();
+        };
+        await receipt.DownloadAsync();
+        if (receipt.IsCompleted)
+            TestContext.Progress.WriteLine("Downloaded successfully!");
+        else
+            TestContext.Progress.WriteLine("Download failed?");
         Assert.That(
-            (await File.ReadAllBytesAsync("/tmp/downloadtest.bin"))
+            (await File.ReadAllBytesAsync(Path.Combine(CachePath, "downloadtest.bin")))
             .SequenceEqual(TestCases.FirstOrDefault().Value),
             Is.True);
     }
@@ -141,14 +147,14 @@ public class DownloadTest
     [Test]
     public async Task MultithreadedDownloadTest()
     {
-        if (Directory.Exists("/tmp/downloadtest"))
-            Directory.Delete("/tmp/downloadtest", true);
-        Directory.CreateDirectory("/tmp/downloadtest");
+        if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
+            Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
+        Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
         var downloader = new Downloader(MaxThreads);
         await downloader.Download(TestCases.Select(x => new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
-            DestinationPath = $"/tmp/downloadtest/{x.Key}",
+            DestinationPath = Path.Combine(CachePath, $"downloadtest/{x.Key}"),
             Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = x.Key }
         }));
         foreach (string x in Output)
@@ -159,16 +165,16 @@ public class DownloadTest
         Assert.That(Output.All(x => !x.Contains("OVERLOADED!")), Is.True);
         foreach (var (hash, data) in TestCases)
         {
-            Assert.That((await File.ReadAllBytesAsync($"/tmp/downloadtest/{hash}")).SequenceEqual(data), Is.True);
+            Assert.That((await File.ReadAllBytesAsync(Path.Combine(CachePath, $"downloadtest/{hash}"))).SequenceEqual(data), Is.True);
         }
     }
 
     [Test]
     public async Task MultithreadedProgressReportTest()
     {
-        if (Directory.Exists("/tmp/downloadtest"))
-            Directory.Delete("/tmp/downloadtest", true);
-        Directory.CreateDirectory("/tmp/downloadtest");
+        if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
+            Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
+        Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
         var downloader = new Downloader(MaxThreads);
         var lastProgress = 0.0;
         var progress = new Progress<double>(_ =>
@@ -186,7 +192,7 @@ public class DownloadTest
         await downloader.Download(TestCases.Select(x => new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
-            DestinationPath = $"/tmp/downloadtest/{x.Key}",
+            DestinationPath = Path.Combine(CachePath, $"downloadtest/{x.Key}"),
             Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = x.Key },
             DownloadProgress = progress
         }));
@@ -196,17 +202,112 @@ public class DownloadTest
         TestContext.WriteLine($"Estimated transfer rate: {(double)NumberOfTestCases * SizeOfSingleTestCase / timeTaken / 1024 / 1024:0.##}MB/s");
         foreach (var (hash, data) in TestCases)
         {
-            Assert.That((await File.ReadAllBytesAsync($"/tmp/downloadtest/{hash}")).SequenceEqual(data), Is.True);
+            Assert.That((await File.ReadAllBytesAsync(Path.Combine(CachePath, $"downloadtest/{hash}"))).SequenceEqual(data), Is.True);
         }
+    }
+
+    [Test]
+    public async Task SingleDownloadErrorHandlingTest()
+    {
+        if (File.Exists(Path.Combine(CachePath, "downloadtest.bin")))
+            File.Delete(Path.Combine(CachePath, "downloadtest.bin"));
+        var receipt = new DownloadReceipt
+        {
+            SourceUrl = "http://127.0.0.1:8000/rick_roll",
+            DestinationPath = Path.Combine(CachePath, "downloadtest.bin")
+        };
+        receipt.OnBegin += r =>
+        {
+            TestContext.Progress.WriteLine($"[{r.SourceUrl}] Started!");
+        };
+        receipt.OnError += (r, ex) =>
+        {
+            TestContext.Progress.WriteLine($"[{r.SourceUrl}] Error: {ex}");
+        };
+        receipt.OnSuccess += r =>
+        {
+            TestContext.Progress.WriteLine($"[{r.SourceUrl}] Success!");
+        };
+        try
+        {
+            // await receipt.DownloadAsync(throwException: true);
+            await receipt.DownloadAsync(throwException: false);
+        }
+        catch (Exception ex)
+        {
+            TestContext.WriteLine($"Caught exception: {ex}");
+        }
+        if (!receipt.IsCompleted)
+            TestContext.WriteLine($"Download failed as expected!, ex: {receipt.Error}");
+        else
+            TestContext.WriteLine("Downloaded successfully?");
+    }
+
+    [Test]
+    public async Task MultithreadedCancellingTest()
+    {
+        if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
+            Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
+        Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
+        var downloader = new Downloader(MaxThreads);
+        var lastProgress = 0.0;
+        var progress = new Progress<double>(_ =>
+        {
+            var p = downloader.Progress;
+            if (1.0 - p > 0.00000001 && p - lastProgress < 0.01)
+                return;
+            if (1.0 - p <= 0.00000001 && 1.0 - lastProgress <= 0.00000001)
+                return;
+            lastProgress = p;
+            TestContext.Progress.WriteLine($"{p * 100:0.##}% {(double)downloader.TransferRate / 1024 / 1024:0.##}MB/s");
+        });
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+        Task task = downloader.Download(TestCases.Select(x => new DownloadReceipt
+        {
+            SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
+            DestinationPath = Path.Combine(CachePath, $"downloadtest/{x.Key}"),
+            Integrity = new FileIntegrity { ExpectedSize = SizeOfSingleTestCase, Hash = x.Key },
+            DownloadProgress = progress
+        }));
+        await Task.Delay(500);
+        TestContext.Progress.WriteLine("Cancelling..");
+        await downloader.CancelAsync();
+        await task;
+        stopwatch.Stop();
+        var timeTaken = stopwatch.Elapsed.TotalSeconds;
+        TestContext.WriteLine($"Total time taken: {timeTaken}s");
+        TestContext.WriteLine($"Estimated transfer rate: {(double)NumberOfTestCases * SizeOfSingleTestCase / timeTaken / 1024 / 1024:0.##}MB/s");
+    }
+
+    [Test]
+    public async Task SingleCancellingTest()
+    {
+        if (File.Exists(Path.Combine(CachePath, "downloadtest.bin")))
+            File.Delete(Path.Combine(CachePath, "downloadtest.bin"));
+        var cts = new CancellationTokenSource();
+        var receipt = new DownloadReceipt
+        {
+            SourceUrl = "http://127.0.0.1:8000/rick_roll",
+            DestinationPath = Path.Combine(CachePath, "downloadtest.bin")
+        };
+        var rt = receipt.DownloadAsync(token: cts.Token);
+        await Task.Delay(1000);
+        TestContext.Progress.WriteLine("Cancelling...");
+        await cts.CancelAsync();
+        if (receipt.IsCompleted)
+            TestContext.Progress.WriteLine("Downloaded successfully?");
+        else
+            TestContext.Progress.WriteLine("Download failed as expected!");
     }
 
     [TearDown]
     public async Task Cleanup()
     {
-        if (File.Exists("/tmp/downloadtest.bin"))
-            File.Delete("/tmp/downloadtest.bin");
-        if (Directory.Exists("/tmp/downloadtest"))
-            Directory.Delete("/tmp/downloadtest", true);
+        if (File.Exists(Path.Combine(CachePath, "downloadtest.bin")))
+            File.Delete(Path.Combine(CachePath, "downloadtest.bin"));
+        if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
+            Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
         await ApiServer.StopAsync();
     }
 }

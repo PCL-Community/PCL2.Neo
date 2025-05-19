@@ -32,17 +32,6 @@ public class Downloader(int degreeOfParallelism = 8)
         .Where(x => DateTime.Now - x.Item1 <= TimeSpan.FromSeconds(1))
         .Sum(x => x.Item2);
 
-    private void CheckTransferRate(long numberOfBytes)
-    {
-        // _transferRateRecords.Enqueue((DateTime.Now, numberOfBytes));
-        // while (_transferRateRecords.Count > MaxTransferRateRecordSize)
-        // {
-        //     _transferRateRecords.TryDequeue(out _);
-        // }
-        _transferRateRecordChannel.Writer.WriteAsync((DateTime.Now, numberOfBytes))
-            .AsTask().GetAwaiter().GetResult();
-    }
-
     public async Task Download<T>(T receipts) where T : IEnumerable<DownloadReceipt>
     {
         var immutableReceipts = receipts.ToImmutableArray();
@@ -52,10 +41,10 @@ public class Downloader(int degreeOfParallelism = 8)
             var origProgress = r.DeltaSizeProgress;
             r.DeltaSizeProgress = new SynchronousProgress<long>(x =>
             {
-                CheckTransferRate(x);
+                _transferRateRecordChannel.Writer.TryWrite((DateTime.Now, x));
                 origProgress?.Report(x);
             });
-            _downloadTasks.Add(r.DownloadInNewTask(_client, _maxThreadsThrottle, _cancellationTokenSource.Token));
+            _downloadTasks.Add(r.DownloadAsync(_client, _maxThreadsThrottle, false, _cancellationTokenSource.Token));
         }
 
         var daemonCts = new CancellationTokenSource();
@@ -91,4 +80,5 @@ public class Downloader(int degreeOfParallelism = 8)
     }
 
     public void Cancel() => _cancellationTokenSource.Cancel();
+    public async Task CancelAsync() => await _cancellationTokenSource.CancelAsync();
 }
