@@ -150,7 +150,7 @@ public class DownloadTest
         if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
             Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
         Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
-        var downloader = new Downloader(MaxThreads);
+        using var downloader = new Downloader(MaxThreads);
         await downloader.Download(TestCases.Select(x => new DownloadReceipt
         {
             SourceUrl = $"http://127.0.0.1:8000/download/hash/{x.Key}",
@@ -175,7 +175,7 @@ public class DownloadTest
         if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
             Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
         Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
-        var downloader = new Downloader(MaxThreads);
+        using var downloader = new Downloader(MaxThreads);
         var lastProgress = 0.0;
         var progress = new Progress<double>(_ =>
         {
@@ -249,7 +249,7 @@ public class DownloadTest
         if (Directory.Exists(Path.Combine(CachePath, "downloadtest")))
             Directory.Delete(Path.Combine(CachePath, "downloadtest"), true);
         Directory.CreateDirectory(Path.Combine(CachePath, "downloadtest"));
-        var downloader = new Downloader(MaxThreads);
+        using var downloader = new Downloader(MaxThreads);
         var lastProgress = 0.0;
         var progress = new Progress<double>(_ =>
         {

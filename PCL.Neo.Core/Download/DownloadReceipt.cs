@@ -1,4 +1,6 @@
 using PCL.Neo.Core.Utils;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Security.Cryptography;
 
 namespace PCL.Neo.Core.Download;
@@ -8,6 +10,7 @@ public class DownloadReceipt
     public event Action<DownloadReceipt>? OnBegin;
     public event Action<DownloadReceipt>? OnSuccess;
     public event Action<DownloadReceipt, Exception>? OnError;
+    public event Action<DownloadReceipt, long>? OnDeltaSizeChanged;
 
     public string SourceUrl { get; init; } = string.Empty;
     public string DestinationPath { get; init; } = string.Empty;
@@ -21,8 +24,6 @@ public class DownloadReceipt
 
     public bool IsCompleted { get; private set; }
     public Exception? Error { get; private set; }
-
-    public IProgress<long>? DeltaSizeProgress { get; set; }
     public IProgress<double>? DownloadProgress { get; set; }
 
     public Task DownloadInNewTask(HttpClient? client = null, CancellationToken token = default)
@@ -76,7 +77,7 @@ public class DownloadReceipt
                         {
                             var origSize = Size;
                             Size = x;
-                            DeltaSizeProgress?.Report(x - origSize);
+                            OnDeltaSizeChanged?.Invoke(this, x - origSize);
                             DownloadProgress?.Report((double)Size / TotalSize);
                         }),
                         token);
