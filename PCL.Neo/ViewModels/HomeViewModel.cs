@@ -5,6 +5,10 @@ using PCL.Neo.Services;
 using PCL.Neo.ViewModels.Home;
 using System;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using SkiaSharp;
+using System.IO;
 
 namespace PCL.Neo.ViewModels;
 
@@ -33,7 +37,9 @@ public partial class HomeViewModel : ViewModelBase
     
     [ObservableProperty]
     private ViewModelBase? _currentSubViewModel;
-    
+
+    [ObservableProperty] private Bitmap? _showImageBitmap;
+
     public HomeViewModel(INavigationService navigationService, UserService userService)
     {
         _navigationService = navigationService;
@@ -62,8 +68,8 @@ public partial class HomeViewModel : ViewModelBase
     
     private void UpdateCurrentUserInfo(UserInfo user)
     {
-        CurrentUserName = user.Username;
-        CurrentUserType = user.GetUserTypeText();
+        CurrentUserName    = user.Account.UserName;
+        CurrentUserType    = user.GetUserTypeText();
         CurrentUserInitial = user.GetInitial();
     }
     
@@ -133,7 +139,7 @@ public partial class HomeViewModel : ViewModelBase
     private async Task ManageVersions()
     {
         // 实现版本管理逻辑
-        await _navigationService.GotoAsync<PCL.Neo.ViewModels.Home.VersionManagerViewModel>();
+        await _navigationService.GotoAsync<VersionManagerViewModel>();
     }
     
     [RelayCommand]
@@ -165,5 +171,32 @@ public partial class HomeViewModel : ViewModelBase
     private async Task GameSettings()
     {
         // 实现游戏设置逻辑
+    }
+
+    [RelayCommand]
+    private async Task LoadUserHeadImg()
+    {
+        try
+        {
+            const string    filePath    = @"\res\test_skin.png"; // TODO: replace with actual path
+            await using var inputStream = File.OpenRead(filePath);
+            using var       skiaStream  = new SKManagedStream(inputStream);
+            using var       bitMap      = SKBitmap.Decode(skiaStream);
+
+            var       cropRect = new SKRectI(8, 8, 16, 16);
+            using var cropped  = new SKBitmap(cropRect.Width, cropRect.Height);
+            bitMap.ExtractSubset(cropped, cropRect);
+
+            using var image = SKImage.FromBitmap(cropped);
+            using var data  = image.Encode(SKEncodedImageFormat.Png, 100);
+            using var ms    = new MemoryStream(data.ToArray());
+            ShowImageBitmap = new Bitmap(ms);
+        }
+        catch (Exception e)
+        {
+            // TODO: log this error and tell developter
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }

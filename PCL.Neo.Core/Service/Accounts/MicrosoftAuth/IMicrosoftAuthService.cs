@@ -16,7 +16,7 @@ public interface IMicrosoftAuthService
     /// 获取设备码
     /// </summary>
     /// <returns>获取到的设备码信息，会在失败的时候返回异常</returns>
-    Task<Result<DeviceCodeMode.DeviceCodeInfo, HttpError>> RequestDeviceCodeAsync();
+    Task<Result<DeviceCodeData.DeviceCodeInfo, HttpError>> RequestDeviceCodeAsync();
 
     /// <summary>
     /// 开始轮询服务器
@@ -24,7 +24,7 @@ public interface IMicrosoftAuthService
     /// <param name="deviceCode">设备码</param>
     /// <param name="interval">轮询间隔</param>
     /// <returns>轮询结果</returns>
-    Task<Result<DeviceCodeMode.DeviceCodeAccessToken, DeviceFlowError>> PollForTokenAsync(string deviceCode,
+    Task<Result<DeviceCodeData.DeviceCodeAccessToken, DeviceFlowError>> PollForTokenAsync(string deviceCode,
         int interval);
 
     /// <summary>
@@ -39,7 +39,7 @@ public interface IMicrosoftAuthService
     /// </summary>
     /// <param name="accessToken">需要的Token</param>
     /// <returns>账户信息</returns>
-    Task<Result<DeviceCodeMode.McAccountInfo, Exception>> GetUserAccountInfo(string accessToken);
+    Task<Result<DeviceCodeData.McAccountInfo, Exception>> GetUserAccountInfoAsync(string accessToken);
 
     /// <summary>
     /// 刷新玩家的OAuth2 Token

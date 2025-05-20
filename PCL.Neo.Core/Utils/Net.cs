@@ -1,13 +1,12 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 
 namespace PCL.Neo.Core.Utils;
 
 #pragma warning disable IL2026 // will fixed by dynamic dependency
 public static class Net
 {
-    public static HttpClient SharedHttpClient = new();
+    public static readonly HttpClient SharedHttpClient = new();
 
     public static async Task<TResponse> SendHttpRequestAsync<TResponse>(
         HttpMethod method,
@@ -37,11 +36,11 @@ public static class Net
         }
 
         // 发送请求
-        using var response = await SharedHttpClient.SendAsync(request);
+        using var response = await SharedHttpClient.SendAsync(request).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
         // 解析响应
-        var result = await response.Content.ReadFromJsonAsync<TResponse>();
+        var result = await response.Content.ReadFromJsonAsync<TResponse>().ConfigureAwait(false);
         ArgumentNullException.ThrowIfNull(result);
 
         return result;

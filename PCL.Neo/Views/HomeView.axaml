@@ -249,6 +249,33 @@
                                     </Grid>
                                 </Grid>
                             </Border>
+                            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                                    CornerRadius="6"
+                                    Padding="15">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    
+                                    <Button Grid.Column="0"
+                                            Content="图片"
+                                            Command="{Binding LoadUserHeadImgCommand}"
+                                            HorizontalAlignment="Left"
+                                            Margin="0, 2"
+                                            Height="40" Width="80"/>
+                                    <Image Grid.Row="0" Grid.Column="1"
+                                           x:Name="ShowImage" Stretch="Uniform"
+                                           HorizontalAlignment="Stretch"
+                                           Height="20" Width="20"
+                                           Source="{Binding ShowImageBitmap}"/>
+                                </Grid>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>

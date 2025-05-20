@@ -15,7 +15,7 @@ namespace PCL.Neo.Tests
         public async Task SaveUsers()
         {
             const string savePath = "testPath.json";
-            
+
             // 创建测试账户
             var msaAccount = new MsaAccount
             {
@@ -32,13 +32,13 @@ namespace PCL.Neo.Tests
                 Capes = [],
                 UserProperties = "{ \"property\": \"value\" }"
             };
-            
+
             var yggdrasilAccount = new YggdrasilAccount()
             {
                 Uuid = Guid.NewGuid().ToString(),
                 UserName = "YggdrasilUser789",
                 McAccessToken = "yggdrasil_access_token",
-                ClientToken = "yggdrasil_client_token", 
+                ClientToken = "yggdrasil_client_token",
                 ServerUrl = "https://authserver.example.com",
                 Skins = [],
                 Capes =
@@ -49,7 +49,7 @@ namespace PCL.Neo.Tests
                         "MyYggCape")
                 ]
             };
-            
+
             // 正确创建UserInfo对象
             List<UserInfo> users =
             [

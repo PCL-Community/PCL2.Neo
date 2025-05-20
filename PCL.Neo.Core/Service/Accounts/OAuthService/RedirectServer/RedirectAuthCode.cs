@@ -1,3 +1,3 @@
 namespace PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
 
-public record RedirectAuthCode(string Code);
+public sealed record RedirectAuthCode(string Code);
