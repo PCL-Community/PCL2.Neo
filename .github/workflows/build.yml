@@ -98,9 +98,9 @@ jobs:
               run: |
                   cd ./PCL.Neo
                   sudo su
-                  dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
-                  dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
-                  dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=link
+                  dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
+                  dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
+                  dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
                   mv ./bin/Release/net9.0/win-x86/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL.Neo.win.x86.exe
                   mv ./bin/Release/net9.0/win-x64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL.Neo.win.x64.exe
                   mv ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.win.arm64.exe
