@@ -25,11 +25,11 @@ namespace PCL.Neo.Core.Service.Accounts
         
         // TODO: 配置默认的Yggdrasil API超时时间（毫秒）
         private readonly int _yggdrasilApiTimeoutMs = 10000;
-        
-        private List<BaseAccount> _cachedAccounts = new();
-        private string? _selectedAccountUuid;
-        private bool _isLoaded = false;
-        
+
+        private List<BaseAccount> _cachedAccounts = [];
+        private string?           _selectedAccountUuid;
+        private bool              _isLoaded = false;
+
         public AccountService(IMicrosoftAuthService microsoftAuthService)
         {
             _microsoftAuthService = microsoftAuthService;
@@ -142,10 +142,10 @@ namespace PCL.Neo.Core.Service.Accounts
             try
             {
                 _selectedAccountUuid = await File.ReadAllTextAsync(_selectedAccountFilePath);
-                
+
                 // 如果UUID为空或不存在对应账户，则清空选择
-                if (string.IsNullOrEmpty(_selectedAccountUuid) || 
-                    !_cachedAccounts.Any(a => a.Uuid == _selectedAccountUuid))
+                if (string.IsNullOrEmpty(_selectedAccountUuid) ||
+                    _cachedAccounts.All(a => a.Uuid != _selectedAccountUuid))
                 {
                     this.LogAccountWarning($"所选账户UUID不存在于账户列表中: {_selectedAccountUuid}");
                     _selectedAccountUuid = null;
@@ -170,11 +170,13 @@ namespace PCL.Neo.Core.Service.Accounts
             {
                 if (_selectedAccountUuid == null)
                 {
-                    if (File.Exists(_selectedAccountFilePath))
+                    if (!File.Exists(_selectedAccountFilePath))
                     {
-                        File.Delete(_selectedAccountFilePath);
-                        this.LogAccountDebug("已清除选中账户记录");
+                        return;
                     }
+
+                    File.Delete(_selectedAccountFilePath);
+                    this.LogAccountDebug("已清除选中账户记录");
                     return;
                 }
                 
@@ -222,16 +224,11 @@ namespace PCL.Neo.Core.Service.Accounts
             {
                 await EnsureLoadedAsync();
                 var account = _cachedAccounts.FirstOrDefault(a => a.Uuid == uuid);
-                
-                if (account == null)
-                {
-                    this.LogAccountDebug($"未找到UUID为 {uuid} 的账户");
-                }
-                else
-                {
-                    this.LogAccountDebug($"获取账户: {account.UserName} (UUID: {uuid})");
-                }
-                
+
+                this.LogAccountDebug(account == null
+                    ? $"未找到UUID为 {uuid} 的账户"
+                    : $"获取账户: {account.UserName} (UUID: {uuid})");
+
                 return account;
             }
             catch (Exception ex)
@@ -357,11 +354,11 @@ namespace PCL.Neo.Core.Service.Accounts
                 this.LogAccountError("尝试设置选中账户时提供了空UUID");
                 throw new ArgumentException("账户UUID不能为空", nameof(uuid));
             }
-            
+
             try
             {
                 await EnsureLoadedAsync();
-                
+
                 // 确认账户存在
                 var account = _cachedAccounts.FirstOrDefault(a => a.Uuid == uuid);
                 if (account == null)
@@ -369,17 +366,17 @@ namespace PCL.Neo.Core.Service.Accounts
                     this.LogAccountError($"尝试选择不存在的账户: UUID {uuid}");
                     throw new ArgumentException($"账户不存在: {uuid}");
                 }
-                
+
                 // 设置选中账户并更新最后使用时间
                 _selectedAccountUuid = uuid;
-                account.LastUsed = DateTime.Now;
-                
+                account.LastUsed     = DateTime.Now;
+
                 this.LogAccountInfo($"已选中账户: {account.UserName} (UUID: {uuid})");
-                
+
                 await SaveSelectedAccountAsync();
                 await SaveAccountsAsync();
             }
-            catch (Exception ex) when (!(ex is ArgumentException))
+            catch (Exception ex) when (ex is not ArgumentException)
             {
                 this.LogAccountError($"设置选中账户失败: UUID {uuid}", ex);
                 throw;
@@ -463,9 +460,9 @@ namespace PCL.Neo.Core.Service.Accounts
                 }
                 
                 this.LogAccountDebug("获取到新的Minecraft令牌");
-                
+
                 // 获取用户信息
-                var accountInfoResult = await _microsoftAuthService.GetUserAccountInfo(mcTokenResult.Value);
+                var accountInfoResult = await _microsoftAuthService.GetUserAccountInfoAsync(mcTokenResult.Value);
                 if (accountInfoResult.IsFailure)
                 {
                     this.LogAccountError($"获取账户信息失败: {account.UserName}", accountInfoResult.Error);
@@ -691,14 +688,14 @@ namespace PCL.Neo.Core.Service.Accounts
                 if (string.IsNullOrEmpty(uuid))
                 {
                     this.LogAccountWarning("尝试获取档案IDs时提供了空的账户UUID");
-                    return new List<string>();
+                    return [];
                 }
                 
                 var account = await GetAccountByUuidAsync(uuid);
                 if (account == null)
                 {
                     this.LogAccountWarning($"尝试获取不存在账户的档案IDs: UUID {uuid}");
-                    return new List<string>();
+                    return [];
                 }
                 
                 this.LogProfileDebug($"获取账户关联的档案IDs: {account.UserName}, 共 {account.ProfileIds.Count} 个档案");

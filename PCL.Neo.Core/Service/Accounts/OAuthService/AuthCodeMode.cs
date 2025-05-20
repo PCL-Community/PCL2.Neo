@@ -1,11 +1,6 @@
-using PCL.Neo.Core.Service.Accounts;
 using PCL.Neo.Core.Service.Accounts.OAuthService.RedirectServer;
 using PCL.Neo.Core.Service.Accounts.Storage;
-using PCL.Neo.Core.Utils;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Service.Accounts.OAuthService;
 
@@ -19,11 +14,11 @@ public class AuthCodeMode
     {
         try
         {
-            var authCode = GetAuthCode();
-            var authToken = await GetAuthToken(authCode);
-            var minecraftAccessToken = await OAuth.GetMinecraftToken(authToken.AccessToken);
+            var authCode             = GetAuthCode();
+            var authToken            = await GetAuthTokenAsync(authCode).ConfigureAwait(false);
+            var minecraftAccessToken = await OAuth.GetMinecraftTokenAsync(authToken.AccessToken).ConfigureAwait(false);
 
-            var playerUuidAndName = await MinecraftInfo.GetPlayerUuid(minecraftAccessToken);
+            var playerUuidAndName = await MinecraftInfo.GetPlayerUuidAsync(minecraftAccessToken).ConfigureAwait(false);
 
             return new MsaAccount()
             {
@@ -68,7 +63,7 @@ public class AuthCodeMode
         }
     }
 
-    private static async Task<UserTokens> GetAuthToken(string code)
+    private static async Task<UserTokens> GetAuthTokenAsync(string code)
     {
         var data = new Dictionary<string, string>(OAuthData.FormUrlReqData.AuthTokenData)
         {
