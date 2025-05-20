@@ -1,8 +1,9 @@
+using PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data;
 using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth
 {
-    internal class YggdrasilAuthResponse
+    internal sealed record YggdrasilAuthResponse
     {
         [JsonPropertyName("accessToken")]
         public string AccessToken { get; set; } = string.Empty;

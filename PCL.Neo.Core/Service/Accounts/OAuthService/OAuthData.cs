@@ -3,8 +3,6 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.OAuthService;
 
-#nullable disable
-
 public static class OAuthData
 {
     public static class RequestUrls
@@ -124,7 +122,7 @@ public static class OAuthData
 
     public static class RequireData
     {
-        public record XboxLiveAuthRequire
+        public sealed record XboxLiveAuthRequire
         {
             [property: JsonPropertyName("PropertiesData")]
             public PropertiesData Properties { get; set; }
@@ -132,7 +130,7 @@ public static class OAuthData
             public const  string TokenType = "JWT";
             public static string RelyingParty => "http://auth.xboxlive.com";
 
-            public record PropertiesData(
+            public sealed record PropertiesData(
                 [property: JsonPropertyName("RpsTicket")]
                 string RpsTicket)
             {
@@ -141,13 +139,13 @@ public static class OAuthData
             }
         }
 
-        public record XstsRequire(
+        public sealed record XstsRequire(
             XstsRequire.PropertiesData Properties)
         {
             public const string RelyingParty = "rp://api.minecraftservices.com/";
             public const string TokenType    = "JWT";
 
-            public record PropertiesData(
+            public sealed record PropertiesData(
                 [property: JsonPropertyName("UserTokens")]
                 List<string> UserTokens)
             {
@@ -155,7 +153,7 @@ public static class OAuthData
             }
         }
 
-        public record MinecraftAccessTokenRequire
+        public sealed record MinecraftAccessTokenRequire
         {
             [JsonPropertyName("identityToken")] public string IdentityToken { get; set; }
         }
@@ -163,113 +161,156 @@ public static class OAuthData
 
     public static class ResponseData
     {
-        public record AccessTokenResponse
+        public sealed record AccessTokenResponse
         {
-            [JsonPropertyName("expires_in")]     public int    ExpiresIn    { get; set; }
-            [JsonPropertyName("ext_expires_in")] public int    ExtExpiresIn { get; set; }
-            [JsonPropertyName("access_token")]   public string AccessToken  { get; set; }
-            [JsonPropertyName("refresh_token")]  public string RefreshToken { get; set; }
+            [JsonPropertyName("expires_in")]
+            public required int ExpiresIn { get; set; }
+
+            [JsonPropertyName("ext_expires_in")]
+            public required int ExtExpiresIn { get; set; }
+
+            [JsonPropertyName("access_token")]
+            public required string AccessToken { get; set; }
+
+            [JsonPropertyName("refresh_token")]
+            public required string RefreshToken { get; set; }
         }
 
-        public record UserAuthStateResponse
+        public sealed record UserAuthStateResponse
         {
             [property: JsonPropertyName("expires_in")]
-            public int ExpiresIn { get; set; }
+            public int? ExpiresIn { get; set; }
 
             [property: JsonPropertyName("access_token")]
-            public string AccessToken { get; set; }
+            public string? AccessToken { get; set; }
 
             [property: JsonPropertyName("refresh_token")]
-            public string RefreshToken { get; set; }
+            public string? RefreshToken { get; set; }
 
             [property: JsonPropertyName("error")]
-            public string Error { get; set; }
+            public string? Error { get; set; }
 
             [property: JsonPropertyName("error_description")]
-            public string ErrorDescription { get; set; }
+            public string? ErrorDescription { get; set; }
 
             [property: JsonPropertyName("correlation_id")]
-            public string CorrelationId { get; set; }
+            public string? CorrelationId { get; set; }
         }
 
-        public record XboxResponse
+        public sealed record XboxResponse
         {
-/*
-            [JsonPropertyName("IssueInstant")] public DateTime IssueInstant { get; set; }
-*/
-/*
-            [JsonPropertyName("NotAfter")] public DateTime NotAfter { get; set; }
-*/
-            [JsonPropertyName("Token")] public string Token { get; set; }
-            [JsonPropertyName("DisplayClaims")] public DisplayClaimsData DisplayClaims { get; set; }
+            /*
+                        [JsonPropertyName("IssueInstant")] public DateTime IssueInstant { get; set; }
+            */
+            /*
+                        [JsonPropertyName("NotAfter")] public DateTime NotAfter { get; set; }
+            */
+            [JsonPropertyName("Token")]
+            public required string Token { get; set; }
+
+            [JsonPropertyName("DisplayClaims")]
+            public required DisplayClaimsData DisplayClaims { get; set; }
 
             public record DisplayClaimsData
             {
-                [JsonPropertyName("xui")] public List<XuiData> Xui { get; set; }
+                [JsonPropertyName("xui")]
+                public required List<XuiData> Xui { get; set; }
 
                 public record XuiData
                 {
-                    [JsonPropertyName("uhs")] public string Uhs { get; set; }
+                    [JsonPropertyName("uhs")]
+                    public required string Uhs { get; set; }
                 }
             }
         }
 
-        public record MinecraftAccessTokenResponse
+        public sealed record MinecraftAccessTokenResponse
         {
-            [JsonPropertyName("username")] public string Username { get; set; }
-            [JsonPropertyName("roles")] public List<object> Roles { get; set; }
-            [JsonPropertyName("access_token")] public string AccessToken { get; set; }
-            [JsonPropertyName("token_type")] public string TokenType { get; set; }
-            [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
+            [JsonPropertyName("username")]
+            public required string Username { get; set; }
+
+            [JsonPropertyName("roles")]
+            public required List<object> Roles { get; set; }
+
+            [JsonPropertyName("access_token")]
+            public required string AccessToken { get; set; }
+
+            [JsonPropertyName("token_type")]
+            public required string TokenType { get; set; }
+
+            [JsonPropertyName("expires_in")]
+            public required int ExpiresIn { get; set; }
         }
 
-        public record CheckHaveGameResponse
+        public sealed record CheckHaveGameResponse
         {
-            [JsonPropertyName("items")] public List<Item> Items { get; set; }
-/*
-            [JsonPropertyName("signature")] public string Signature { get; set; }
-*/
-/*
-            [JsonPropertyName("keyId")] public string KeyId { get; set; }
-*/
+            [JsonPropertyName("items")]
+            public required List<Item> Items { get; set; }
+            /*
+                        [JsonPropertyName("signature")] public string Signature { get; set; }
+            */
+            /*
+                        [JsonPropertyName("keyId")] public string KeyId { get; set; }
+            */
 
-            public record Item
+            public sealed record Item
             {
-                [JsonPropertyName("name")] public string Name { get; set; }
-                [JsonPropertyName("signature")] public string Signature { get; set; }
+                [JsonPropertyName("name")]
+                public required string Name { get; set; }
+
+                [JsonPropertyName("signature")]
+                public string? Signature { get; set; }
             }
         }
 
-        public record MinecraftPlayerUuidResponse
+        public sealed record MinecraftPlayerUuidResponse
         {
-            [JsonPropertyName("id")] public string Uuid { get; set; }
-            [JsonPropertyName("name")] public string Name { get; set; }
-            [JsonPropertyName("skins")] public List<Skin> Skins { get; set; }
-            [JsonPropertyName("capes")] public List<Cape> Capes { get; set; }
+            [JsonPropertyName("id")]
+            public required string Uuid { get; set; }
 
-            public record Skin
-            {
-                [JsonPropertyName("id")] public string Id { get; set; }
-                [JsonPropertyName("state")] public string State { get; set; }
-                [JsonPropertyName("url")] public string Url { get; set; }
-                [JsonPropertyName("variant")] public string Variant { get; set; }
-                [JsonPropertyName("textureKey")] public string TextureKey { get; set; }
-                [JsonPropertyName("alias")] public string Alias { get; set; }
-            }
+            [JsonPropertyName("name")]
+            public required string Name { get; set; }
 
-            public record Cape
+            [JsonPropertyName("skins")]
+            public List<Skin>? Skins { get; set; }
+
+            [JsonPropertyName("capes")]
+            public List<Cape>? Capes { get; set; }
+
+            public sealed record Skin
             {
                 [JsonPropertyName("id")]
-                public string Id { get; init; }
+                public required string Id { get; set; }
 
                 [JsonPropertyName("state")]
-                public string State { get; init; }
+                public required string State { get; set; }
 
                 [JsonPropertyName("url")]
-                public string Url { get; init; }
+                public required string Url { get; set; }
+
+                [JsonPropertyName("variant")]
+                public required string Variant { get; set; }
+
+                [JsonPropertyName("textureKey")]
+                public required string TextureKey { get; set; }
 
                 [JsonPropertyName("alias")]
-                public string Alias { get; init; }
+                public string? Alias { get; set; }
+            }
+
+            public sealed record Cape
+            {
+                [JsonPropertyName("id")]
+                public required string Id { get; set; }
+
+                [JsonPropertyName("state")]
+                public required string State { get; set; }
+
+                [JsonPropertyName("url")]
+                public required string Url { get; set; }
+
+                [JsonPropertyName("alias")]
+                public string? Alias { get; set; }
             }
         }
     }

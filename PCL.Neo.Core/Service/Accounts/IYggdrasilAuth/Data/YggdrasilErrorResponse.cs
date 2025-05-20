@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data
 {
-    internal class YggdrasilErrorResponse
+    internal sealed record YggdrasilErrorResponse
     {
         [JsonPropertyName("error")]
         public string Error { get; set; } = string.Empty;

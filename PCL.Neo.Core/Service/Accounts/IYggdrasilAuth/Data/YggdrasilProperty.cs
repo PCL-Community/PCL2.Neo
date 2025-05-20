@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth
+namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data
 {
-    internal class YggdrasilProperty
+    internal sealed record YggdrasilProperty
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = string.Empty;

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data
 {
-    internal class YggdrasilAgent
+    internal sealed record YggdrasilAgent
     {
         [JsonPropertyName("name")]
         public string Name { get; set; } = "Minecraft";

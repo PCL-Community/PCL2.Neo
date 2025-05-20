@@ -63,8 +63,8 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response        = await Net.SharedHttpClient.PostAsync(authEndpoint, content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var response        = await Net.SharedHttpClient.PostAsync(authEndpoint, content).ConfigureAwait(false);
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -209,8 +209,8 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response        = await Net.SharedHttpClient.PostAsync(refreshEndpoint, content);
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var response        = await Net.SharedHttpClient.PostAsync(refreshEndpoint, content).ConfigureAwait(false);
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -324,7 +324,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response = await Net.SharedHttpClient.PostAsync(validateEndpoint, content);
+            var response = await Net.SharedHttpClient.PostAsync(validateEndpoint, content).ConfigureAwait(false);
 
             // 204 No Content表示验证成功
             if (response.StatusCode == HttpStatusCode.NoContent)
@@ -334,7 +334,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             }
 
             // 其他状态表示验证失败
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             this.LogYggdrasilWarning($"外置登录令牌无效: {response.StatusCode} - {responseContent}");
             return false;
         }
@@ -409,7 +409,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response = await Net.SharedHttpClient.PostAsync(invalidateEndpoint, content);
+            var response = await Net.SharedHttpClient.PostAsync(invalidateEndpoint, content).ConfigureAwait(false);
 
             // 204 No Content表示操作成功
             if (response.StatusCode == HttpStatusCode.NoContent)
@@ -419,7 +419,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             }
 
             // 其他状态表示操作失败
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             this.LogYggdrasilWarning($"使外置登录令牌失效失败: {response.StatusCode} - {responseContent}");
         }
         catch (Exception ex)

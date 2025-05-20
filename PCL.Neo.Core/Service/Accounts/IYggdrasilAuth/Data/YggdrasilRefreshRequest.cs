@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data
 {
-    internal class YggdrasilRefreshRequest
+    internal sealed record YggdrasilRefreshRequest
     {
         [JsonPropertyName("accessToken")]
         public string AccessToken { get; set; } = string.Empty;

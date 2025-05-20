@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth.Data
 {
-    internal class YggdrasilAuthRequest
+    internal sealed record YggdrasilAuthRequest
     {
         [JsonPropertyName("agent")]
-        public YggdrasilAgent Agent { get; set; } = new YggdrasilAgent();
+        public YggdrasilAgent Agent { get; set; } = new();
 
         [JsonPropertyName("username")]
         public string Username { get; set; } = string.Empty;

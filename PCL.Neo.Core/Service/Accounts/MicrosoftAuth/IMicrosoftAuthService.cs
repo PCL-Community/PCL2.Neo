@@ -39,7 +39,7 @@ public interface IMicrosoftAuthService
     /// </summary>
     /// <param name="accessToken">需要的Token</param>
     /// <returns>账户信息</returns>
-    Task<Result<DeviceCodeData.McAccountInfo, Exception>> GetUserAccountInfo(string accessToken);
+    Task<Result<DeviceCodeData.McAccountInfo, Exception>> GetUserAccountInfoAsync(string accessToken);
 
     /// <summary>
     /// 刷新玩家的OAuth2 Token

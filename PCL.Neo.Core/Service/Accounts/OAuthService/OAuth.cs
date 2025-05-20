@@ -7,7 +7,7 @@ namespace PCL.Neo.Core.Service.Accounts.OAuthService;
 
 public static class OAuth
 {
-    public static async Task<OAuthData.ResponseData.AccessTokenResponse> RefreshToken(string refreshToken)
+    public static async Task<OAuthData.ResponseData.AccessTokenResponse> RefreshTokenAsync(string refreshToken)
     {
         var authTokenData = new Dictionary<string, string>(OAuthData.FormUrlReqData.RefreshTokenData)
         {
@@ -21,7 +21,7 @@ public static class OAuth
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.RequireData))]
-    public static async Task<OAuthData.ResponseData.XboxResponse> GetXboxToken(string accessToken)
+    public static async Task<OAuthData.ResponseData.XboxResponse> GetXboxTokenAsync(string accessToken)
     {
         var jsonContent =
             new OAuthData.RequireData.XboxLiveAuthRequire
@@ -36,7 +36,7 @@ public static class OAuth
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.RequireData))]
-    public static async Task<string> GetXstsToken(string xblToken)
+    public static async Task<string> GetXstsTokenAsync(string xblToken)
     {
         var jsonContent =
             new OAuthData.RequireData.XstsRequire(new OAuthData.RequireData.XstsRequire.PropertiesData([xblToken]));
@@ -49,14 +49,14 @@ public static class OAuth
         return response.Token;
     }
 
-    public static async Task<string> GetMinecraftToken(string accessToken)
+    public static async Task<string> GetMinecraftTokenAsync(string accessToken)
     {
-        var xboxToken = await GetXboxToken(accessToken);
-        var xstsToken = await GetXstsToken(xboxToken.Token);
+        var xboxToken = await GetXboxTokenAsync(accessToken);
+        var xstsToken = await GetXstsTokenAsync(xboxToken.Token);
         var minecraftAccessToken =
-            await MinecraftInfo.GetMinecraftAccessToken(xboxToken.DisplayClaims.Xui.First().Uhs, xstsToken);
+            await MinecraftInfo.GetMinecraftAccessTokenAsync(xboxToken.DisplayClaims.Xui.First().Uhs, xstsToken);
 
-        if (!await MinecraftInfo.HaveGame(minecraftAccessToken))
+        if (!await MinecraftInfo.IsHaveGameAsync(minecraftAccessToken))
         {
             throw new MinecraftInfo.NotHaveGameException("Logged-in user does not own any game!");
         }
