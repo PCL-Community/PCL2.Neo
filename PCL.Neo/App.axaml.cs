@@ -15,9 +15,10 @@ using PCL.Neo.Views;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.ViewModels.Job;
+using PCL.Neo.Core.Service.Accounts;
+using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using System;
 using System.Threading.Tasks;
-using System.Net.Http;
 using PCL.Neo.ViewModels.Setup;
 
 namespace PCL.Neo
@@ -50,11 +51,12 @@ namespace PCL.Neo
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager, JavaManager>()
-            .AddSingleton<DownloadService>()
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
             .AddSingleton<JobService>()
+            .AddSingleton<IAccountService, AccountService>()
+            .AddSingleton<IMicrosoftAuthService, MicrosoftAuthService>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()

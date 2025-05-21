@@ -1,6 +1,6 @@
 namespace PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 
-public static class DeviceCodeMode
+public static class DeviceCodeData
 {
     public record DeviceCodeInfo(string DeviceCode, string UserCode, string VerificationUri, int Interval);
 
