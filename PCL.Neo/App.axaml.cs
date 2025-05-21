@@ -18,7 +18,6 @@ using PCL.Neo.Core.Service.Accounts;
 using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using System;
 using System.Threading.Tasks;
-using System.Net.Http;
 using PCL.Neo.ViewModels.Setup;
 
 namespace PCL.Neo
@@ -49,7 +48,6 @@ namespace PCL.Neo
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
             .AddSingleton<IJavaManager, JavaManager>()
-            .AddSingleton<DownloadService>()
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()

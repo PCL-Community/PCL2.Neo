@@ -55,7 +55,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
         try
         {
             // 配置超时时间
-            Net.SharedHttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
+            Shared.HttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
 
 
             // 序列化请求体
@@ -63,7 +63,7 @@ public class YggdrasilAuthService : IYggdrasilAuthService
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response        = await Net.SharedHttpClient.PostAsync(authEndpoint, content).ConfigureAwait(false);
+            var response        = await Shared.HttpClient.PostAsync(authEndpoint, content).ConfigureAwait(false);
             var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -202,14 +202,14 @@ public class YggdrasilAuthService : IYggdrasilAuthService
         try
         {
             // 配置超时时间
-            Net.SharedHttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
+            Shared.HttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
 
             // 序列化请求体
             var requestJson = JsonSerializer.Serialize(refreshRequest, _jsonOptions);
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response        = await Net.SharedHttpClient.PostAsync(refreshEndpoint, content).ConfigureAwait(false);
+            var response        = await Shared.HttpClient.PostAsync(refreshEndpoint, content).ConfigureAwait(false);
             var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
@@ -317,14 +317,14 @@ public class YggdrasilAuthService : IYggdrasilAuthService
         try
         {
             // 配置超时时间
-            Net.SharedHttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
+            Shared.HttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
 
             // 序列化请求体
             var requestJson = JsonSerializer.Serialize(validateRequest, _jsonOptions);
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response = await Net.SharedHttpClient.PostAsync(validateEndpoint, content).ConfigureAwait(false);
+            var response = await Shared.HttpClient.PostAsync(validateEndpoint, content).ConfigureAwait(false);
 
             // 204 No Content表示验证成功
             if (response.StatusCode == HttpStatusCode.NoContent)
@@ -402,14 +402,14 @@ public class YggdrasilAuthService : IYggdrasilAuthService
         try
         {
             // 配置超时时间
-            Net.SharedHttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
+            Shared.HttpClient.Timeout = TimeSpan.FromMilliseconds(timeoutMs);
 
             // 序列化请求体
             var requestJson = JsonSerializer.Serialize(invalidateRequest, _jsonOptions);
             var content     = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // 发送请求
-            var response = await Net.SharedHttpClient.PostAsync(invalidateEndpoint, content).ConfigureAwait(false);
+            var response = await Shared.HttpClient.PostAsync(invalidateEndpoint, content).ConfigureAwait(false);
 
             // 204 No Content表示操作成功
             if (response.StatusCode == HttpStatusCode.NoContent)

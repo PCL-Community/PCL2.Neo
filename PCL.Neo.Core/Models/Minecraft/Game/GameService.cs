@@ -1,3 +1,4 @@
+using PCL.Neo.Core.Download;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Core.Utils;
@@ -9,17 +10,15 @@ using DefaultJavaRuntimeCombine = (JavaRuntime? Java8, JavaRuntime? Java17, Java
 public class GameService
 {
     private IJavaManager JavaManager { get; }
-    private DownloadService DownloadService { get; }
 
     public static string DefaultGameDirectory =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".minecraft");
 
     public DefaultJavaRuntimeCombine DefaultJavaRuntimes => JavaManager.DefaultJavaRuntimes;
 
-    public GameService(IJavaManager javaManager, DownloadService downloadService)
+    public GameService(IJavaManager javaManager)
     {
         JavaManager = javaManager;
-        DownloadService = downloadService;
     }
 
     /// <summary>
@@ -90,7 +89,7 @@ public class GameService
         // 下载Minecraft主JAR文件
         var jarUrl = versionInfo.Downloads.Client.Url;
         var jarPath = Path.Combine(versionDir, $"{versionId}.jar");
-        await DownloadService.DownloadFileAsync(new Uri(jarUrl), jarPath);
+        await DownloadReceipt.FastDownloadAsync(jarUrl, jarPath);
 
         return true;
     }
@@ -111,7 +110,7 @@ public class GameService
         var assetsIndexUrl = versionInfo.AssetIndex.Url;
         var assetsIndexPath = Path.Combine(indexesDir, $"{versionInfo.AssetIndex.Id}.json");
 
-        await DownloadService.DownloadFileAsync(new Uri(assetsIndexUrl), assetsIndexPath);
+        await DownloadReceipt.FastDownloadAsync(assetsIndexUrl, assetsIndexPath);
 
         // 解析assets索引文件
         var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
@@ -137,7 +136,7 @@ public class GameService
             {
                 Directory.CreateDirectory(assetObjectDir);
                 var assetUrl = $"https://resources.download.minecraft.net/{prefix}/{hash}";
-                await DownloadService.DownloadFileAsync(new Uri(assetUrl), assetObjectPath);
+                await DownloadReceipt.FastDownloadAsync(assetUrl, assetObjectPath);
             }
 
             downloadedAssets++;
@@ -183,7 +182,7 @@ public class GameService
 
                 if (!string.IsNullOrEmpty(libraryUri))
                 {
-                    await DownloadService.DownloadFileAsync(new Uri(libraryUri), libraryPath);
+                    await DownloadReceipt.FastDownloadAsync(libraryUri, libraryPath);
                 }
             }
 
@@ -198,7 +197,7 @@ public class GameService
                     if (!File.Exists(nativePath))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(nativePath)!);
-                        await DownloadService.DownloadFileAsync(new Uri(nativeDownload.Url), nativePath);
+                        await DownloadReceipt.FastDownloadAsync(nativeDownload.Url, nativePath);
                     }
                 }
             }
