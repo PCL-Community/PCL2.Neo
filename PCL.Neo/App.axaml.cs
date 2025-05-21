@@ -13,6 +13,9 @@ using PCL.Neo.ViewModels.Download;
 using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
 using PCL.Neo.Core.Models.Minecraft.Game;
+using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.Core.Service.Accounts;
+using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using System;
 using System.Threading.Tasks;
 using PCL.Neo.ViewModels.Setup;
@@ -48,6 +51,8 @@ namespace PCL.Neo
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
+            .AddSingleton<IAccountService, AccountService>()
+            .AddSingleton<IMicrosoftAuthService, MicrosoftAuthService>()
             .BuildServiceProvider();
 
         public override void OnFrameworkInitializationCompleted()
