@@ -14,6 +14,7 @@ using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.ViewModels.Job;
 using PCL.Neo.Core.Service.Accounts;
 using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using System;
@@ -44,6 +45,8 @@ namespace PCL.Neo
             .AddTransient<LogViewModel>()
             .AddTransient<SetupViewModel>()
             .AddTransient<SetupLaunchViewModel>()
+            .AddTransient<JobViewModel>()
+            .AddTransient<JobSubViewModel>()
 
             .AddSingleton<INavigationService, NavigationService>()
             .AddSingleton<StorageService>()
@@ -51,6 +54,7 @@ namespace PCL.Neo
             .AddSingleton<GameService>()
             .AddSingleton<GameLauncher>()
             .AddSingleton<UserService>()
+            .AddSingleton<JobService>()
             .AddSingleton<IAccountService, AccountService>()
             .AddSingleton<IMicrosoftAuthService, MicrosoftAuthService>()
             .BuildServiceProvider();

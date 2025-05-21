@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Models.Minecraft.Game;
 using PCL.Neo.Models.Minecraft.Game.Data;
@@ -18,6 +19,7 @@ using System.Runtime.InteropServices;
 using PCL.Neo.Core.Models.Minecraft.Game;
 using PCL.Neo.Core.Models.Minecraft.Java;
 using PCL.Neo.Core.Service.Accounts.Storage;
+using PCL.Neo.Jobs;
 using System.Diagnostics;
 
 namespace PCL.Neo.ViewModels.Home;
@@ -169,6 +171,17 @@ public partial class HomeSubViewModel : ViewModelBase
     private async Task NavigateToDownloadMod()
     {
         await _navigationService.GotoAsync<DownloadModViewModel>();
+    }
+
+    [RelayCommand]
+    private async Task NavigateToJob()
+    {
+        // TODO: remove this testing command
+        var js = Ioc.Default.GetRequiredService<JobService>();
+        js.Clear();
+        _ = js.Submit(new TestJob1()).RunInNewTask();
+        _ = js.Submit(new TestJob1 {IntervalFactor = 2.0}).RunInNewTask();
+        await this._navigationService.GotoAsync<JobViewModel>();
     }
 
     [RelayCommand]
