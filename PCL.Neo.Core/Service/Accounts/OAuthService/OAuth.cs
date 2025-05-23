@@ -1,3 +1,4 @@
+using PCL.Neo.Core.Service.Accounts.OAuthService.Exceptions;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics.CodeAnalysis;
 
@@ -58,7 +59,7 @@ public static class OAuth
 
         if (!await MinecraftInfo.IsHaveGameAsync(minecraftAccessToken))
         {
-            throw new MinecraftInfo.NotHaveGameException("Logged-in user does not own any game!");
+            throw new NotHaveGameException("Logged-in user does not own any game!");
         }
 
         return minecraftAccessToken;

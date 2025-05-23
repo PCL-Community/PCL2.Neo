@@ -1,12 +1,6 @@
 using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using PCL.Neo.Core.Service.Accounts.Storage;
-using PCL.Neo.Core.Utils;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Service.Accounts
 {
@@ -19,8 +13,10 @@ namespace PCL.Neo.Core.Service.Accounts
         private readonly string _accountsFilePath;
         private readonly string _selectedAccountFilePath;
         private readonly JsonSerializerOptions _jsonOptions;
-        
+
         // TODO: 配置Yggdrasil服务API密钥
+        // fix: yggdrasil doesn't have any access key ( from: whitecat346)
+        // /cc @BL077
         private readonly string _yggdrasilApiKey = "";
         
         // TODO: 配置默认的Yggdrasil API超时时间（毫秒）
@@ -37,6 +33,8 @@ namespace PCL.Neo.Core.Service.Accounts
             // 配置路径
             var appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo");
             Directory.CreateDirectory(appDataPath);
+
+            // init file path
             _accountsFilePath = Path.Combine(appDataPath, "accounts.json");
             _selectedAccountFilePath = Path.Combine(appDataPath, "selected_account.txt");
             
@@ -57,9 +55,9 @@ namespace PCL.Neo.Core.Service.Accounts
             
             try
             {
-                await LoadAccountsAsync();
-                await LoadSelectedAccountAsync();
-                
+                await LoadAccountsAsync().ConfigureAwait(false);
+                await LoadSelectedAccountAsync().ConfigureAwait(false);
+
                 _isLoaded = true;
                 this.LogAccountDebug("账户数据已加载完成");
             }
@@ -76,23 +74,23 @@ namespace PCL.Neo.Core.Service.Accounts
             if (!File.Exists(_accountsFilePath))
             {
                 this.LogAccountInfo($"账户文件不存在，将创建新的账户列表: {_accountsFilePath}");
-                _cachedAccounts = new List<BaseAccount>();
+                _cachedAccounts = [];
                 return;
             }
             
             try
             {
                 var json = await File.ReadAllTextAsync(_accountsFilePath);
-                _cachedAccounts = JsonSerializer.Deserialize<List<BaseAccount>>(json, _jsonOptions) ?? new List<BaseAccount>();
+                _cachedAccounts = JsonSerializer.Deserialize<List<BaseAccount>>(json, _jsonOptions) ?? [];
                 this.LogAccountDebug($"已加载 {_cachedAccounts.Count} 个账户");
             }
             catch (JsonException ex)
             {
                 // 处理文件损坏的情况
                 this.LogAccountError($"账户文件解析失败，可能格式损坏: {_accountsFilePath}", ex);
-                
+
                 // 备份损坏的文件
-                var backupPath = $"{_accountsFilePath}.bak.{DateTime.Now:yyyyMMddHHmmss}";
+                var backupPath = $"{_accountsFilePath}.{DateTime.Now:yyyyMMddHHmmss}.bak";
                 try
                 {
                     File.Copy(_accountsFilePath, backupPath);
@@ -102,13 +100,13 @@ namespace PCL.Neo.Core.Service.Accounts
                 {
                     this.LogAccountWarning($"无法创建账户文件备份: {backupEx.Message}");
                 }
-                
-                _cachedAccounts = new List<BaseAccount>();
+
+                _cachedAccounts = [];
             }
             catch (Exception ex)
             {
                 this.LogAccountError($"加载账户文件失败: {_accountsFilePath}", ex);
-                _cachedAccounts = new List<BaseAccount>();
+                _cachedAccounts = [];
                 throw;
             }
         }

@@ -43,8 +43,8 @@ public sealed partial class JavaManager(DownloadService downloadService)
         IProgress<ValueTuple<int, int>>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
-        Uri metaUrl = new(MetaUrl);
-        var allJson = await DownloadService.HttpClient.GetStringAsync(metaUrl, cancellationToken);
+        Uri    metaUrl      = new(MetaUrl);
+        var    allJson      = await Net.SharedHttpClient.GetStringAsync(metaUrl, cancellationToken);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -58,7 +58,7 @@ public sealed partial class JavaManager(DownloadService downloadService)
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await DownloadService.HttpClient.GetStringAsync(manifestUri, cancellationToken);
+                    manifestJson = await Net.SharedHttpClient.GetStringAsync(manifestUri, cancellationToken);
                 }
             }
 
