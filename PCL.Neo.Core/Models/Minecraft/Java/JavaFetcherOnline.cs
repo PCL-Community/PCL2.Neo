@@ -1,4 +1,3 @@
-using PCL.Neo.Core.Download;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.Json;
@@ -6,8 +5,9 @@ using System.Text.Json.Nodes;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
-public sealed partial class JavaManager
+public sealed partial class JavaManager(DownloadService downloadService)
 {
+    private DownloadService DownloadService => downloadService;
     // TODO)) 应该设置多个下载源，从配置文件中获取
     private static string MetaUrl
     {
@@ -43,8 +43,8 @@ public sealed partial class JavaManager
         IProgress<ValueTuple<int, int>>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
-        Uri metaUrl = new(MetaUrl);
-        var allJson = await Shared.HttpClient.GetStringAsync(metaUrl, cancellationToken);
+        Uri    metaUrl      = new(MetaUrl);
+        var    allJson      = await Net.SharedHttpClient.GetStringAsync(metaUrl, cancellationToken);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -58,7 +58,7 @@ public sealed partial class JavaManager
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await Shared.HttpClient.GetStringAsync(manifestUri, cancellationToken);
+                    manifestJson = await Net.SharedHttpClient.GetStringAsync(manifestUri, cancellationToken);
                 }
             }
 
@@ -114,40 +114,11 @@ public sealed partial class JavaManager
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
             // 要分类讨论，sb MOJANG
             if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
-            {
-                tasks.Add(Task.Run(async () =>
-                {
-                    try
-                    {
-                        await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
-                            localFilePath + ".lzma", sha1Lzma, cancellationToken);
-                        await using var fs = lzmaFs.DecompressLZMA(localFilePath);
-                        if (fs is null)
-                        {
-                            Console.WriteLine("outStream 为空");
-                            return;
-                        }
-
-                        if (!await new FileIntegrity { Hash = sha1Raw }.VerifyAsync(fs, cancellationToken))
-                        {
-                            Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
-                            return;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e);
-                        throw;
-                    }
-                    finally
-                    {
-                        if (File.Exists(localFilePath + ".lzma"))
-                            File.Delete(localFilePath + ".lzma");
-                    }
-                }, cancellationToken));
-            }
+                tasks.Add(DownloadService.DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
+                    cancellationToken));
             else
-                tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
+                tasks.Add(DownloadService.DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
+                    cancellationToken: cancellationToken));
         }
 
         if (progress != null)

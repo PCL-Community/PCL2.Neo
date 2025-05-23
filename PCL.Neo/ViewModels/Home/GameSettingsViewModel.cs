@@ -313,7 +313,7 @@ public partial class GameSettingsViewModel : ViewModelBase
             }
 
             // 加载系统信息
-            MaxMemoryMB = SystemUtils.SystemMaxMemoryMB;
+            MaxMemoryMB = SystemUtils.SystemMaxMemoryMb;
 
             // 确保内存分配合理
             if (MemoryAllocation > MaxMemoryMB)
@@ -871,7 +871,7 @@ read -n 1 -s";
         try
         {
             // 获取系统总内存 (以MB为单位)
-            MaxMemoryMB = SystemUtils.SystemMaxMemoryMB;
+            MaxMemoryMB = SystemUtils.SystemMaxMemoryMb;
 
             // 默认分配最大内存的1/4，但至少1GB，最多4GB
             MemoryAllocation = Math.Min(4096, Math.Max(1024, MaxMemoryMB / 4));

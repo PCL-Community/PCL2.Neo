@@ -1,5 +1,6 @@
 using PCL.Neo.Core.Service.Accounts.Exceptions;
 using PCL.Neo.Core.Service.Accounts.OAuthService;
+using PCL.Neo.Core.Service.Accounts.OAuthService.Exceptions;
 using PCL.Neo.Core.Service.Accounts.Storage;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
@@ -184,18 +185,18 @@ public class MicrosoftAuthService : IMicrosoftAuthService
     }
 
     /// <inheritdoc />
-    public async Task<Result<string, MinecraftInfo.NotHaveGameException>> GetUserMinecraftAccessTokenAsync(
+    public async Task<Result<string, NotHaveGameException>> GetUserMinecraftAccessTokenAsync(
         string accessToken)
     {
         try
         {
             var minecraftToken = await OAuth.GetMinecraftTokenAsync(accessToken).ConfigureAwait(false);
-            return Result<string, MinecraftInfo.NotHaveGameException>.Ok(minecraftToken);
+            return Result<string, NotHaveGameException>.Ok(minecraftToken);
         }
-        catch (MinecraftInfo.NotHaveGameException e)
+        catch (NotHaveGameException e)
         {
-            return Result<string, MinecraftInfo.NotHaveGameException>.Fail(
-                new MinecraftInfo.NotHaveGameException(e.Message));
+            return Result<string, NotHaveGameException>.Fail(
+                new NotHaveGameException(e.Message));
         }
     }
 

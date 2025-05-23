@@ -9,8 +9,8 @@ public class AuthCodeMode
 {
     // 定义UserTokens类型 - 当这个类型在其他地方定义时，可以删除这个定义
     public record UserTokens(string AccessToken, string RefreshToken, int ExpiresIn);
-    
-    public static async Task<MsaAccount> LogIn()
+
+    public static async Task<MsaAccount> LogInAsync()
     {
         try
         {
