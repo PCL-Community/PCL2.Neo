@@ -1,5 +1,5 @@
 <Application
-    RequestedThemeVariant="Light"
+    RequestedThemeVariant="Default"
     x:Class="PCL.Neo.App"
     xmlns="https://github.com/avaloniaui"
     xmlns:local="using:PCL.Neo"
@@ -11,7 +11,7 @@
 
     <Application.Resources>
         <ResourceDictionary>
-            <utils:BoolToOnlineStatusConverter x:Key="BoolToOnlineStatusConverter"/>
+            <utils:BoolToOnlineStatusConverter x:Key="BoolToOnlineStatusConverter" />
 
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://PCL.Neo/Assets/Language/zh-CN.axaml" />
@@ -28,8 +28,8 @@
 
         <StyleInclude Source="avares://PCL.Neo/Styles/MyControlStyles.axaml" />
         <StyleInclude Source="avares://PCL.Neo/Styles/CustomStyles.axaml" />
-        <StyleInclude Source="avares://PCL.Neo/Styles/Icons.axaml"/>
-        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+        <StyleInclude Source="avares://PCL.Neo/Styles/Icons.axaml" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
 
     </Application.Styles>
 </Application>
