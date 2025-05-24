@@ -43,7 +43,7 @@ public class DownloadService
             try
             {
                 using var response =
-                    await Net.SharedHttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead,
+                    await Shared.HttpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead,
                         cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
 
