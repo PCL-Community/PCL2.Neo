@@ -4,9 +4,9 @@ using DefaultJavaRuntimeCombine = (JavaRuntime? Java8, JavaRuntime? Java17, Java
 
 public interface IJavaManager
 {
-    List<JavaRuntime> JavaList { get; }
+    List<JavaRuntime>         JavaList            { get; }
     DefaultJavaRuntimeCombine DefaultJavaRuntimes { get; }
-    Task JavaListInit();
+    Task                      JavaListInitAsync();
     Task<(JavaRuntime?, bool UpdateCurrent)> ManualAdd(string javaDir);
     Task Refresh();
 }

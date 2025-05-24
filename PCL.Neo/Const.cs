@@ -36,7 +36,7 @@ public static class Const
         Windows,
         Linux,
         MacOs,
-        Unkonw
+        Unknown
     }
 
     private static RunningOs? _os;
@@ -64,7 +64,7 @@ public static class Const
             }
             else
             {
-                _os = RunningOs.Unkonw;
+                _os = RunningOs.Unknown;
             }
 
             return _os.Value;

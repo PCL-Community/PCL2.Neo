@@ -1,8 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
-using PCL.Neo.Core.Models.Minecraft.Game;
-using PCL.Neo.Services;
 
 namespace PCL.Neo
 {
@@ -14,10 +12,9 @@ namespace PCL.Neo
         [STAThread]
         public static void Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            // Othre Initialize
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
