@@ -23,4 +23,4 @@
 - **无付费功能**：PCL.Neo 的任何功能都不需要**付费**！
 
 ## 协议声明
-PCL.Neo.Core 使用 **MIT License**，而主项目使用与主线相同的协议。因此你可以放心使用 PCL.Neo.Core 用于你的项目。
+PCL.Neo.Core 使用 **MIT license**，而主项目使用与主线相同的协议。因此你可以放心使用 PCL.Neo.Core 用于你的项目。
