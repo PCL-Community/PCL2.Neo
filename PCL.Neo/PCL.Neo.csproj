@@ -16,13 +16,8 @@
     <CFBundleExecutable>PCL.Neo</CFBundleExecutable>
     <CFBundleIconFile>Assets/Icon.ico</CFBundleIconFile>
     <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishAot>true</PublishAot>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
-
-  <ItemGroup>
-    <TrimmerRootAssembly Include="PCL.Neo" />
-  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
