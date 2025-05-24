@@ -1,8 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
-using PCL.Neo.Core.Models.Minecraft.Game;
-using PCL.Neo.Services;
 
 namespace PCL.Neo
 {
@@ -16,8 +14,12 @@ namespace PCL.Neo
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+            try
+            {
+                BuildAvaloniaApp()
+                    .StartWithClassicDesktopLifetime(args);
+            }
+            catch (OperationCanceledException) { } // 不知道为啥会扔 TaskCanceledException, 不如全抓了
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

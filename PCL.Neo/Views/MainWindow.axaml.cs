@@ -86,7 +86,7 @@ public partial class MainWindow : Window
             {
                 if (DataContext is MainWindowViewModel viewModel)
                 {
-                    viewModel.NavigationService.Navigating += OnNavigating;
+                    viewModel.NavigationService.Navigated += OnNavigated;
                 }
             };
 
@@ -94,7 +94,7 @@ public partial class MainWindow : Window
             {
                 if (DataContext is MainWindowViewModel viewModel)
                 {
-                    viewModel.NavigationService.Navigating -= OnNavigating;
+                    viewModel.NavigationService.Navigated -= OnNavigated;
                 }
             };
         }
@@ -103,7 +103,7 @@ public partial class MainWindow : Window
         this.Loaded += (_, _) => AnimationIn();
     }
 
-    private void OnNavigating(NavigationEventArgs e)
+    private void OnNavigated(NavigationEventArgs e)
     {
         if (_compositor == null || _leftNavigationControlVisual == null || _rightNavigationControlVisual == null)
             return;

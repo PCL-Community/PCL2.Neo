@@ -11,6 +11,28 @@ using PCL.Neo.Animations;
 
 namespace PCL.Neo.Services;
 
+public interface INavigationService
+{
+    public event Action<NavigationEventArgs>? Navigating;
+    public event Action<NavigationEventArgs>? Navigated;
+
+    public ViewModelBase? CurrentMainViewModel { get; }
+
+    public ViewModelBase? CurrentSubViewModel { get; }
+
+    public bool CanGoBack { get; }
+
+    public (ViewModelBase? mainVm, ViewModelBase? subVm) Goto<T>() where T : ViewModelBase;
+    public (TM?, TS?) GoTo<TM, TS>() where TM : ViewModelBase where TS : ViewModelBase;
+
+    public void NavigateTo(ViewModelBase? main, ViewModelBase? sub,
+        NavigationType                    navigationType = NavigationType.Forward);
+
+    public (ViewModelBase? mainVm, ViewModelBase? subVm) GoBack();
+
+    public void ClearHistory();
+}
+
 public enum NavigationType
 {
     Forward,
@@ -18,297 +40,181 @@ public enum NavigationType
 }
 
 public class NavigationEventArgs(
-    ViewModelBase? oldViewModel,
-    ViewModelBase? newViewModel,
+    ViewModelBase? oldMainViewModel,
+    ViewModelBase? newMainViewModel,
+    ViewModelBase? oldSubViewModel,
+    ViewModelBase? newSubViewModel,
     NavigationType navigationType)
-    : EventArgs
 {
-    public ViewModelBase? OldViewModel { get; } = oldViewModel;
-    public ViewModelBase? NewViewModel { get; } = newViewModel;
-    public NavigationType NavigationType { get; } = navigationType;
+    public bool           IsMainViewModelChanged => oldMainViewModel != newMainViewModel;
+    public ViewModelBase? OldMainViewModel       => oldMainViewModel;
+    public ViewModelBase? NewMainViewModel       => newMainViewModel;
+    public bool           IsSubViewModelChanged  => oldSubViewModel != newSubViewModel;
+    public ViewModelBase? OldSubViewModel        => oldSubViewModel;
+    public ViewModelBase? NewSubViewModel        => newSubViewModel;
+    public NavigationType NavigationType         => navigationType;
 }
 
-public class NavigationService : INavigationService
+public class NavigationService(IServiceProvider serviceProvider) : INavigationService
 {
-    public IServiceProvider ServiceProvider { get; init; }
+    public IServiceProvider ServiceProvider { get; } = serviceProvider;
 
-    public event Action<ViewModelBase?>? CurrentViewModelChanged;
-    public event Action<ViewModelBase?>? CurrentSubViewModelChanged;
     public event Action<NavigationEventArgs>? Navigating;
+    public event Action<NavigationEventArgs>? Navigated;
 
     // 导航历史记录
-    private readonly Stack<(Type ViewModelType, Type? SubViewModelType)> _navigationHistory = new();
+    private readonly LinkedList<(ViewModelBase?, ViewModelBase?)> _navigationHistory = [];
+
     // 最大历史记录数量
     private const int MaxHistoryCount = 30;
 
-    private ViewModelBase? _currentViewModel;
-    public ViewModelBase? CurrentViewModel
-    {
-        get => _currentViewModel;
-        protected set
-        {
-            if (value == _currentViewModel)
-                return;
+    public ViewModelBase? CurrentMainViewModel { get; protected set; }
 
-            var oldViewModel = _currentViewModel;
-            _currentViewModel = value;
-            CurrentViewModelChanged?.Invoke(value);
-        }
-    }
-
-    private ViewModelBase? _currentSubViewModel;
-    public ViewModelBase? CurrentSubViewModel
-    {
-        get => _currentSubViewModel;
-        protected set
-        {
-            if (value == _currentSubViewModel)
-                return;
-
-            var oldSubViewModel = _currentSubViewModel;
-            _currentSubViewModel = value;
-            CurrentSubViewModelChanged?.Invoke(value);
-        }
-    }
+    public ViewModelBase? CurrentSubViewModel { get; protected set; }
 
     public bool CanGoBack => _navigationHistory.Count > 0;
 
-    // 页面导航控件引用
-    private UserControl? _navigationControl;
-
-    // 设置页面导航控件
-    public void SetNavigationControl(UserControl control)
+    /// <summary>
+    /// 导航到类型为 T 的 MainViewModel 或 SubViewModel
+    /// </summary>
+    /// <typeparam name="T">要导航到的 ViewModel</typeparam>
+    /// <returns>(MainViewModel, SubViewModel)</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public (ViewModelBase? mainVm, ViewModelBase? subVm) Goto<T>() where T : ViewModelBase
     {
-        _navigationControl = control;
-    }
+        // T 可为 `MainViewModel` 或 `SubViewModel`
+        // 根据 T 上附加的 attribute 判断
+        var mainAttr = typeof(T).GetCustomAttribute<MainViewModelAttribute>();
+        var subAttr  = typeof(T).GetCustomAttribute<SubViewModelAttribute>();
+        if (mainAttr is null && subAttr is null)
+            throw new InvalidOperationException(
+                $"ViewModel {typeof(T).Name} does not have a {nameof(MainViewModelAttribute)} or a {nameof(SubViewModelAttribute)}");
+        if (mainAttr is not null && subAttr is not null)
+            throw new InvalidOperationException(
+                $"ViewModel {typeof(T).Name} has both {nameof(MainViewModelAttribute)} and {nameof(SubViewModelAttribute)}");
 
-    public NavigationService(IServiceProvider serviceProvider)
-    {
-        ServiceProvider = serviceProvider;
-    }
-
-    public async Task<T> GotoAsync<T>() where T : ViewModelBase
-    {
-        Type viewModelType = typeof(T);
-
-        // 创建新的视图模型实例
-        T newViewModel = ServiceProvider.GetRequiredService<T>();
-
-        // 检查是否为子视图模型
-        Type? mainViewModelType = null;
-        SubViewModelOfAttribute? subViewModelOfAttribute = viewModelType.GetCustomAttribute<SubViewModelOfAttribute>();
-
-        if (subViewModelOfAttribute != null)
+        Type? mainVmType;
+        Type? subVmType;
+        if (mainAttr is not null)
         {
-            mainViewModelType = subViewModelOfAttribute.MainViewModelType;
-
-            // 如果是子视图模型，且主视图模型与当前不同，先导航到主视图模型
-            if (CurrentViewModel?.GetType() != mainViewModelType)
-            {
-                var mainViewModelInstance = ServiceProvider.GetRequiredService(mainViewModelType) as ViewModelBase;
-                if (mainViewModelInstance == null)
-                    throw new InvalidOperationException($"无法创建主视图模型实例: {mainViewModelType.Name}");
-
-                if (CurrentViewModel != null)
-                {
-                    _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                    // 限制历史记录数量
-                    TrimHistory();
-                }
-
-                Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, mainViewModelInstance, NavigationType.Forward));
-                CurrentViewModel = mainViewModelInstance;
-            }
-
-            CurrentSubViewModel = newViewModel;
-
-            await ApplyNavigationAnimation(NavigationType.Forward);
-
-            return newViewModel;
+            mainVmType = typeof(T);
+            subVmType  = mainAttr.DefaultSubViewModelType;
         }
-        else
+        else // if (subAttr is not null)
         {
-            // 如果不是子视图模型，直接设置当前视图模型
-            if (CurrentViewModel != null)
-            {
-                _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                // 限制历史记录数量
-                TrimHistory();
-            }
-
-            // 触发导航事件
-            Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, newViewModel, NavigationType.Forward));
-
-            // 设置当前视图模型和子视图模型
-            CurrentViewModel = newViewModel;
-
-            // 自动设置 DefaultSubViewModel
-            var defaultSubAttr = viewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
-            if (defaultSubAttr != null)
-            {
-                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
-                CurrentSubViewModel = subVm;
-            }
-            else
-            {
-                CurrentSubViewModel = null;
-            }
-
-            await ApplyNavigationAnimation(NavigationType.Forward);
-
-            return newViewModel;
+            mainVmType = subAttr!.MainViewModelType;
+            subVmType  = typeof(T);
         }
+
+        var mainVm = CurrentMainViewModel?.GetType() == mainVmType
+            ? CurrentMainViewModel
+            : (ViewModelBase)ServiceProvider.GetRequiredService(mainVmType);
+        var subVm = CurrentSubViewModel?.GetType() == subVmType
+            ? CurrentSubViewModel
+            : (ViewModelBase)ServiceProvider.GetRequiredService(subVmType);
+
+        NavigateTo(mainVm, subVm);
+
+        return (mainVm, subVm);
     }
 
-    public async Task<bool> GoBackAsync()
+    /// <summary>
+    /// 导航到类型为 TM 的 MainViewModel 与 类型为 TS 的 SubViewModel
+    /// </summary>
+    /// <typeparam name="TM">Type of MainViewModel</typeparam>
+    /// <typeparam name="TS">Type of SubViewModel</typeparam>
+    /// <returns>(MainViewModel, SubViewModel)</returns>
+    public (TM?, TS?) GoTo<TM, TS>() where TM : ViewModelBase where TS : ViewModelBase
+    {
+        var mainVm = CurrentMainViewModel?.GetType() == typeof(TM)
+            ? CurrentMainViewModel as TM
+            : ServiceProvider.GetRequiredService<TM>();
+        var subVm = CurrentSubViewModel?.GetType() == typeof(TS)
+            ? CurrentSubViewModel as TS
+            : ServiceProvider.GetRequiredService<TS>();
+
+        NavigateTo(mainVm, subVm);
+
+        return (mainVm, subVm);
+    }
+
+    /// <summary>
+    /// 导航到 ViewModels
+    /// </summary>
+    /// <param name="main">MainViewModel</param>
+    /// <param name="sub">SubViewModel</param>
+    /// <param name="navigationType">导航方向</param>
+    public void NavigateTo(ViewModelBase? main, ViewModelBase? sub,
+        NavigationType                    navigationType = NavigationType.Forward)
+    {
+        var oldMainVm = CurrentMainViewModel;
+        var oldSubVm = CurrentSubViewModel;
+
+        Navigating?.Invoke(new NavigationEventArgs(
+            oldMainVm, main,
+            oldSubVm, sub,
+            navigationType));
+        PushHistory(main, sub);
+
+        CurrentMainViewModel = main;
+        CurrentSubViewModel  = sub;
+
+        Navigated?.Invoke(new NavigationEventArgs(
+            oldMainVm, main,
+            oldSubVm, sub,
+            navigationType));
+    }
+
+    /// <summary>
+    /// 导航至上一级 并返回导航到的 ViewModels,
+    /// 如没有上一级 则返回当前 ViewModels
+    /// </summary>
+    /// <returns>(MainViewModel, SubViewModel)</returns>
+    public (ViewModelBase? mainVm, ViewModelBase? subVm) GoBack()
+    {
+        if (!TryPopHistory(out var main, out var sub))
+            return (CurrentMainViewModel, CurrentSubViewModel);
+
+        NavigateTo(main, sub, NavigationType.Backward);
+        return (main, sub);
+    }
+
+    /// <summary>
+    /// 清除导航历史
+    /// </summary>
+    public void ClearHistory() => _navigationHistory.Clear();
+
+    /// <summary>
+    /// 压入历史 ViewModels
+    /// </summary>
+    /// <param name="main"></param>
+    /// <param name="sub"></param>
+    private void PushHistory(ViewModelBase? main, ViewModelBase? sub)
+    {
+        _navigationHistory.AddFirst((main, sub));
+        if (_navigationHistory.Count > MaxHistoryCount)
+            _navigationHistory.RemoveLast();
+    }
+
+    /// <summary>
+    /// 弹出历史 ViewModels
+    /// </summary>
+    /// <param name="main">MainViewModel</param>
+    /// <param name="sub">SubViewModel</param>
+    /// <returns>成功弹出</returns>
+    private bool TryPopHistory(out ViewModelBase? main, out ViewModelBase? sub)
     {
         if (!CanGoBack)
+        {
+            main = null;
+            sub  = null;
             return false;
-
-        var (previousViewModelType, previousSubViewModelType) = _navigationHistory.Pop();
-
-        // 创建前一个视图模型实例
-        var previousViewModel = ServiceProvider.GetRequiredService(previousViewModelType) as ViewModelBase;
-        if (previousViewModel == null)
-            throw new InvalidOperationException($"无法创建视图模型实例: {previousViewModelType.Name}");
-
-        // 触发导航事件
-        Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, previousViewModel, NavigationType.Backward));
-
-        // 设置当前视图模型
-        CurrentViewModel = previousViewModel;
-
-        // 如果有子视图模型，创建并设置
-        if (previousSubViewModelType != null)
-        {
-            var previousSubViewModel = ServiceProvider.GetRequiredService(previousSubViewModelType) as ViewModelBase;
-            if (previousSubViewModel == null)
-                throw new InvalidOperationException($"无法创建子视图模型实例: {previousSubViewModelType.Name}");
-
-            CurrentSubViewModel = previousSubViewModel;
-        }
-        else
-        {
-            // 自动设置 DefaultSubViewModel
-            var defaultSubAttr = previousViewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
-            if (defaultSubAttr != null)
-            {
-                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
-                CurrentSubViewModel = subVm;
-            }
-            else
-            {
-                CurrentSubViewModel = null;
-            }
         }
 
-        await ApplyNavigationAnimation(NavigationType.Backward);
-
+        var node = _navigationHistory.First!;
+        main = node.Value.Item1;
+        sub  = node.Value.Item2;
+        _navigationHistory.RemoveFirst();
         return true;
-    }
-
-    public async Task<bool> GotoViewModelAsync(ViewModelBase viewModel)
-    {
-        Type viewModelType = viewModel.GetType();
-        SubViewModelOfAttribute? subViewModelOfAttribute = viewModelType.GetCustomAttribute<SubViewModelOfAttribute>();
-
-        if (subViewModelOfAttribute != null)
-        {
-            Type mainViewModelType = subViewModelOfAttribute.MainViewModelType;
-
-            if (CurrentViewModel?.GetType() != mainViewModelType)
-            {
-                var mainViewModelInstance = ServiceProvider.GetRequiredService(mainViewModelType) as ViewModelBase;
-                if (mainViewModelInstance == null)
-                    throw new InvalidOperationException($"无法创建主视图模型实例: {mainViewModelType.Name}");
-
-                if (CurrentViewModel != null)
-                {
-                    _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                    TrimHistory();
-                }
-
-                Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, mainViewModelInstance, NavigationType.Forward));
-                CurrentViewModel = mainViewModelInstance;
-            }
-
-            CurrentSubViewModel = viewModel;
-
-            await ApplyNavigationAnimation(NavigationType.Forward);
-
-            return true;
-        }
-        else
-        {
-            if (CurrentViewModel != null)
-            {
-                _navigationHistory.Push((CurrentViewModel.GetType(), CurrentSubViewModel?.GetType()));
-                TrimHistory();
-            }
-
-            Navigating?.Invoke(new NavigationEventArgs(CurrentViewModel, viewModel, NavigationType.Forward));
-
-            CurrentViewModel = viewModel;
-
-            // 自动设置 DefaultSubViewModel
-            var defaultSubAttr = viewModelType.GetCustomAttribute<DefaultSubViewModelAttribute>();
-            if (defaultSubAttr != null)
-            {
-                var subVm = ServiceProvider.GetRequiredService(defaultSubAttr.SubViewModel) as ViewModelBase;
-                CurrentSubViewModel = subVm;
-            }
-            else
-            {
-                CurrentSubViewModel = null;
-            }
-
-            await ApplyNavigationAnimation(NavigationType.Forward);
-
-            return true;
-        }
-    }
-
-    // 裁剪历史记录到最大数量
-    private void TrimHistory()
-    {
-        if (_navigationHistory.Count > MaxHistoryCount)
-        {
-            var tempStack = new Stack<(Type, Type?)>();
-            var count = 0;
-            while (_navigationHistory.Count > 0 && count < MaxHistoryCount)
-            {
-                tempStack.Push(_navigationHistory.Pop());
-                count++;
-            }
-            _navigationHistory.Clear();
-            while (tempStack.Count > 0)
-            {
-                _navigationHistory.Push(tempStack.Pop());
-            }
-        }
-    }
-
-    // 清除导航历史记录
-    public void ClearHistory()
-    {
-        _navigationHistory.Clear();
-    }
-
-    // 应用导航动画
-    private async Task ApplyNavigationAnimation(NavigationType navigationType)
-    {
-        if (_navigationControl == null)
-            return;
-
-        try
-        {
-            // 导航动画在MainWindow中通过事件处理
-            await Task.CompletedTask;
-        }
-        catch (Exception ex)
-        {
-            // 处理动画过程中的异常
-            Console.WriteLine($"导航动画执行失败: {ex.Message}");
-        }
     }
 }
