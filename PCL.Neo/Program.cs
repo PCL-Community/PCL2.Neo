@@ -1,8 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
-using Microsoft.Extensions.Configuration;
-using PCL.Neo.Core.Models.Configuration;
 
 namespace PCL.Neo
 {
@@ -17,10 +15,6 @@ namespace PCL.Neo
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
             // Othre Initialize
-            var config = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-            Const.ConfigurationManager = new ConfigManager(config);
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.

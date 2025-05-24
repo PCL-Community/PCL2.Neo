@@ -79,7 +79,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
     /// <inheritdoc />
     public async Task<Result<DeviceCodeData.DeviceCodeInfo, HttpError>> RequestDeviceCodeAsync()
     {
-        var content = new FormUrlEncodedContent(OAuthData.FormUrlReqData.DeviceCodeData)
+        var content = new FormUrlEncodedContent(OAuthData.FormUrlReqData.DeviceCodeData.Value)
         {
             Headers = { ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded") }
         };
@@ -87,7 +87,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         try
         {
             var temp = await Net.SendHttpRequestAsync<DeviceCodeData.DeviceCodeInfo>(HttpMethod.Post,
-                OAuthData.RequestUrls.DeviceCode, content).ConfigureAwait(false);
+                OAuthData.RequestUrls.DeviceCode.Value, content).ConfigureAwait(false);
             var result = new DeviceCodeData.DeviceCodeInfo(temp.DeviceCode, temp.UserCode, temp.VerificationUri,
                 temp.Interval);
             return Result<DeviceCodeData.DeviceCodeInfo, HttpError>.Ok(result);
@@ -114,7 +114,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         string deviceCode, int interval)
     {
         var tempInterval = interval;
-        var content = new Dictionary<string, string>(OAuthData.FormUrlReqData.UserAuthStateData)
+        var content = new Dictionary<string, string>(OAuthData.FormUrlReqData.UserAuthStateData.Value)
         {
             ["device_code"] = deviceCode
         };
@@ -132,7 +132,7 @@ public class MicrosoftAuthService : IMicrosoftAuthService
 
                 var tempResult =
                     await Net.SendHttpRequestAsync<OAuthData.ResponseData.UserAuthStateResponse>(HttpMethod.Post,
-                        OAuthData.RequestUrls.TokenUri, msg).ConfigureAwait(false);
+                        OAuthData.RequestUrls.TokenUri.Value, msg).ConfigureAwait(false);
 
                 // handle response
                 if (!string.IsNullOrEmpty(tempResult.Error))

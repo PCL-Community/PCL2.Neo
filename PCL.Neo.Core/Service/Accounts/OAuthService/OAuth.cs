@@ -10,14 +10,14 @@ public static class OAuth
 {
     public static async Task<OAuthData.ResponseData.AccessTokenResponse> RefreshTokenAsync(string refreshToken)
     {
-        var authTokenData = new Dictionary<string, string>(OAuthData.FormUrlReqData.RefreshTokenData)
+        var authTokenData = new Dictionary<string, string>(OAuthData.FormUrlReqData.RefreshTokenData.Value)
         {
             ["refresh_token"] = refreshToken
         };
 
         return await Net.SendHttpRequestAsync<OAuthData.ResponseData.AccessTokenResponse>(
             HttpMethod.Post,
-            OAuthData.RequestUrls.TokenUri,
+            OAuthData.RequestUrls.TokenUri.Value,
             new FormUrlEncodedContent(authTokenData));
     }
 
@@ -32,7 +32,7 @@ public static class OAuth
 
         return await Net.SendHttpRequestAsync<OAuthData.ResponseData.XboxResponse>(
             HttpMethod.Post,
-            OAuthData.RequestUrls.XboxLiveAuth,
+            OAuthData.RequestUrls.XboxLiveAuth.Value,
             jsonContent);
     }
 
@@ -44,7 +44,7 @@ public static class OAuth
 
         var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.XboxResponse>(
             HttpMethod.Post,
-            OAuthData.RequestUrls.XstsAuth,
+            OAuthData.RequestUrls.XstsAuth.Value,
             jsonContent);
 
         return response.Token;
