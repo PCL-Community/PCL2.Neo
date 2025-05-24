@@ -1,7 +1,5 @@
-using PCL.Neo.Core.Models.Configuration;
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace PCL.Neo;
@@ -32,9 +30,6 @@ public static class Const
     /// 系统是否为64位。
     /// </summary>
     public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
-
-    [NotNull]
-    public static ConfigManager? ConfigurationManager { get; set; }
 
     public enum RunningOs
     {

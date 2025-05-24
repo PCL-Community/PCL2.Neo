@@ -428,7 +428,7 @@ namespace PCL.Neo.Core.Service.Accounts
                 this.LogAccountError("尝试刷新空的微软账户");
                 throw new ArgumentNullException(nameof(account));
             }
-            
+
             try
             {
                 if (!account.IsExpired() && !account.NeedsRefresh())
@@ -436,19 +436,19 @@ namespace PCL.Neo.Core.Service.Accounts
                     this.LogAccountDebug($"微软账户不需要刷新: {account.UserName}");
                     return account;
                 }
-                
+
                 this.LogAccountInfo($"开始刷新微软账户令牌: {account.UserName}");
-                
+
                 var refreshResult = await _microsoftAuthService.RefreshTokenAsync(account.OAuthToken.RefreshToken);
                 if (refreshResult.IsFailure)
                 {
                     this.LogAccountError($"刷新微软账户令牌失败: {account.UserName}", refreshResult.Error);
                     throw refreshResult.Error!;
                 }
-                
+
                 var tokenInfo = refreshResult.Value;
                 this.LogAccountDebug("获取到新的OAuth令牌");
-                
+
                 // 获取Minecraft令牌
                 var mcTokenResult = await _microsoftAuthService.GetUserMinecraftAccessTokenAsync(tokenInfo.AccessToken);
                 if (mcTokenResult.IsFailure)
@@ -456,7 +456,7 @@ namespace PCL.Neo.Core.Service.Accounts
                     this.LogAccountError($"获取Minecraft令牌失败: {account.UserName}", mcTokenResult.Error);
                     throw mcTokenResult.Error;
                 }
-                
+
                 this.LogAccountDebug("获取到新的Minecraft令牌");
 
                 // 获取用户信息
@@ -466,9 +466,9 @@ namespace PCL.Neo.Core.Service.Accounts
                     this.LogAccountError($"获取账户信息失败: {account.UserName}", accountInfoResult.Error);
                     throw accountInfoResult.Error!;
                 }
-                
+
                 var accountInfo = accountInfoResult.Value;
-                
+
                 // 创建更新后的账户
                 var updatedAccount = account with
                 {
@@ -478,15 +478,15 @@ namespace PCL.Neo.Core.Service.Accounts
                     Skins = accountInfo.Skins,
                     Capes = accountInfo.Capes
                 };
-                
+
                 this.LogAccountInfo($"微软账户令牌刷新成功: {updatedAccount.UserName}");
-                
+
                 // 保存更新后的账户
                 await SaveAccountAsync(updatedAccount);
-                
+
                 return updatedAccount;
             }
-            catch (Exception ex) when (!(ex is ArgumentNullException))
+            catch (Exception ex) when (ex is not ArgumentNullException)
             {
                 this.LogAccountError($"刷新微软账户失败: {account.UserName}", ex);
                 throw;
