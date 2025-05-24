@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net9.0</TargetFrameworks>
-    
+
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -20,5 +20,5 @@
     <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
     <ProjectReference Include="..\PCL.Neo\PCL.Neo.csproj" />
   </ItemGroup>
-  
+
 </Project>
