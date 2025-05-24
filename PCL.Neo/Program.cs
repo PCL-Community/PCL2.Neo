@@ -14,12 +14,8 @@ namespace PCL.Neo
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            try
-            {
-                BuildAvaloniaApp()
-                    .StartWithClassicDesktopLifetime(args);
-            }
-            catch (OperationCanceledException) { } // 不知道为啥会扔 TaskCanceledException, 不如全抓了
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
