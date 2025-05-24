@@ -28,6 +28,13 @@ namespace PCL.Neo.Tests.Models.Configuration
             var content = JsonSerializer.Serialize(loadedConfig, new JsonSerializerOptions() { WriteIndented = true });
 
             Console.WriteLine(content);
+
+            var changed = loadedConfig.Name = "Hello Wrold!";
+            await manager.UpdateConfiguration(loadedConfig, null);
+
+            content = JsonSerializer.Serialize(loadedConfig, new JsonSerializerOptions() { WriteIndented = true });
+
+            Console.WriteLine(content);
         }
     }
 }
