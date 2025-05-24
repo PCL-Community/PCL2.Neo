@@ -1,5 +1,7 @@
+using PCL.Neo.Core.Models.Configuration;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace PCL.Neo;
@@ -31,12 +33,15 @@ public static class Const
     /// </summary>
     public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
 
+    [NotNull]
+    public static ConfigManager? ConfigurationManager { get; set; }
+
     public enum RunningOs
     {
         Windows,
         Linux,
         MacOs,
-        Unkonw
+        Unknown
     }
 
     private static RunningOs? _os;
@@ -64,7 +69,7 @@ public static class Const
             }
             else
             {
-                _os = RunningOs.Unkonw;
+                _os = RunningOs.Unknown;
             }
 
             return _os.Value;
