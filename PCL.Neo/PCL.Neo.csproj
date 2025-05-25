@@ -16,8 +16,18 @@
     <CFBundleExecutable>PCL.Neo</CFBundleExecutable>
     <CFBundleIconFile>Assets/Icon.ico</CFBundleIconFile>
     <CFBundleShortVersionString>1.0</CFBundleShortVersionString>
-    <PublishTrimmed>false</PublishTrimmed>
+
+    <!-- Aot -->
+    <PublishAot>true</PublishAot>
+    <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <TrimMode>link</TrimMode>
   </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="PCL.Neo" />
+    <TrimmerRootAssembly Include="PCL.Neo.Core" />
+    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
@@ -55,23 +65,6 @@
     <UpToDateCheckInput Remove="Controls\Style\ListBoxStyle.axaml" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Views\HomeView.axaml.cs">
-      <DependentUpon>HomeLeftView.axaml</DependentUpon>
-    </Compile>
-    <Compile Update="Views\Home\HomeSubView.axaml.cs">
-      <DependentUpon>HomeRightView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\Download\DownloadGameView.axaml.cs">
-      <DependentUpon>DownloadRightView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Update="Views\Download\DownloadModView.axaml.cs">
-      <DependentUpon>DownloadModView.axaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
   </ItemGroup>
