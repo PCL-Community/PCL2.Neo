@@ -1,133 +1,124 @@
 name: Build
 
 on:
-    workflow_dispatch:
-    push:
-        branches: ["main"]
-    pull_request:
-        branches: ["main"]
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
-    build-AppImage:
-        runs-on: ubuntu-22.04
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - name: Setup dotnet
-              uses: actions/setup-dotnet@v4
-              with:
-                    dotnet-version: '9.x'
-            - name: Dependency
-              run: |
-                    dotnet tool install -g KuiperZone.PupNet
-                    sudo apt-get update
-                    sudo apt-get install fuse
-            - name: Build-AppImage
-              run: |
-                  cd ./PCL.Neo
-                  sudo su
-                  pupnet --runtime linux-x64 --kind appimage -o PCL.Neo.linux.x64.AppImage -y --app-version 1.0.0
-                  pupnet --runtime linux-arm64 --kind appimage -o PCL.Neo.linux.arm64.AppImage -y --app-version 1.0.0
-            - name: UploadArtifacts linux.arm64
-              uses: actions/upload-artifact@v4
-              with:
-                name: linux.arm64
-                path: |
-                    PCL.Neo/Deploy/OUT/PCL.Neo.linux.arm64.AppImage
-            - name: UploadArtifacts linux.x64
-              uses: actions/upload-artifact@v4
-              with:
-                name: linux.x64
-                path: |
-                    PCL.Neo/Deploy/OUT/PCL.Neo.linux.x64.AppImage
-    build-MacOsApp:
-        runs-on: ubuntu-22.04
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - name: Setup dotnet
-              uses: actions/setup-dotnet@v4
-              with:
-                    dotnet-version: '9.x'
-            - name: Dependency
-              run: |
-                    dotnet tool install -g KuiperZone.PupNet
-                    sudo apt-get update
-                    sudo apt-get install fuse
-            - name: Build-MacOsApp
-              run: |
-                sudo su
-                sh ./mac-publish-assets/package-mac.sh
-                cd ./mac-publish-assets/x64
-                zip -9 -r PCL.Neo.osx.mac.x64.app.zip PCL.Neo.app
-                cd ../arm64
-                zip -9 -r PCL.Neo.osx.mac.arm64.app.zip PCL.Neo.app
-            - name: UploadArtifacts osx.mac.arm64
-              uses: actions/upload-artifact@v4
-              with:
-                    name: osx.mac.arm64
-                    path: |
-                        mac-publish-assets/arm64/PCL.Neo.osx.mac.arm64.app.zip
-            - name: UploadArtifacts osx.mac.x64
-              uses: actions/upload-artifact@v4
-              with:
-                    name: osx.mac.x64
-                    path: |
-                        mac-publish-assets/x64/PCL.Neo.osx.mac.x64.app.zip
-    build-WinExe:
-        runs-on: ubuntu-22.04
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-            - name: Setup dotnet
-              uses: actions/setup-dotnet@v4
-              with:
-                    dotnet-version: '9.x'
-            - name: Dependency
-              run: |
-                    dotnet tool install -g KuiperZone.PupNet
-                    sudo apt-get update
-                    sudo apt-get install fuse
-            - name: Build-WinExe
-              run: |
-                  cd ./PCL.Neo
-                  sudo su
-                  dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
-                  dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
-                  dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true -p:TrimMode=copyused
-                  mv ./bin/Release/net9.0/win-x86/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL.Neo.win.x86.exe
-                  mv ./bin/Release/net9.0/win-x64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL.Neo.win.x64.exe
-                  mv ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.win.arm64.exe
-                  cd ./bin/Release/net9.0/
-                  cd ./win-x86/
-                  zip -9 -r "../PCL.Neo.win.x86.zip" "./publish"
-                  cd ../
-                  cd ./win-x64/
-                  zip -9 -r "../PCL.Neo.win.x64.zip" "./publish"
-                  cd ../
-                  cd ./win-arm64/
-                  zip -9 -r "../PCL.Neo.win.arm64.zip" "./publish"
-            - name: UploadArtifacts win.x64
-              uses: actions/upload-artifact@v4
-              with:
-                name: win.x64
-                path: |
-                    PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x64.zip
-            - name: UploadArtifacts win.x86
-              uses: actions/upload-artifact@v4
-              with:
-                    name: win.x86
-                    path: |
-                        PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x86.zip
-            - name: UploadArtifacts win.arm64
-              uses: actions/upload-artifact@v4
-              with:
-                    name: win.arm64
-                    path: |
-                        PCL.Neo/bin/Release/net9.0/PCL.Neo.win.arm64.zip
+  build-linux:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            artifact-name: linux.x64
+          - os: ubuntu-24.04-arm
+            artifact-name: linux.arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.x"
+      - name: Dependency
+        run: |
+          dotnet tool install -g KuiperZone.PupNet
+          sudo apt-get update
+          sudo apt-get install -y libfuse2t64
+      - name: Build-AppImage
+        run: |
+          cd ./PCL.Neo
+          rm -r Deploy
+          pupnet --kind appimage -y
+      - name: UploadArtifacts ${{ matrix.artifact-name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: |
+            PCL.Neo/Deploy/OUT/*
+  
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+      - name: Build-MacOsApp
+        run: |
+          sh ./mac-publish-assets/package-mac.sh
+          cd ./mac-publish-assets/x64
+          zip -9 -r PCL.Neo.osx.mac.x64.app.zip PCL.Neo.app
+          cd ../arm64
+          zip -9 -r PCL.Neo.osx.mac.arm64.app.zip PCL.Neo.app
+      - name: UploadArtifacts osx.mac.arm64
+        uses: actions/upload-artifact@v4
+        with:
+          name: osx.mac.arm64
+          path: |
+            mac-publish-assets/arm64/PCL.Neo.osx.mac.arm64.app.zip
+      - name: UploadArtifacts osx.mac.x64
+        uses: actions/upload-artifact@v4
+        with:
+          name: osx.mac.x64
+          path: |
+            mac-publish-assets/x64/PCL.Neo.osx.mac.x64.app.zip
+
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+      - name: Build-WinExe
+        run: |
+          cd ./PCL.Neo
+          dotnet publish -r win-x86 --self-contained true -p:PublishSingleFile=true
+          dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true
+          dotnet publish -r win-arm64 --self-contained true -p:PublishSingleFile=true
+          mv ./bin/Release/net9.0/win-x86/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x86/publish/PCL.Neo.win.x86.exe
+          mv ./bin/Release/net9.0/win-x64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-x64/publish/PCL.Neo.win.x64.exe
+          mv ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.exe ./bin/Release/net9.0/win-arm64/publish/PCL.Neo.win.arm64.exe
+          cd ./bin/Release/net9.0/
+          cd ./win-x86/
+          Compress-Archive -Path "./publish" -Destination "../PCL.Neo.win.x86.zip"
+          cd ../
+          cd ./win-x64/
+          Compress-Archive -Path "./publish" -Destination "../PCL.Neo.win.x64.zip"
+          cd ../
+          cd ./win-arm64/
+          Compress-Archive -Path "./publish" -Destination "../PCL.Neo.win.arm64.zip"
+      - name: UploadArtifacts win.x64
+        uses: actions/upload-artifact@v4
+        with:
+          name: win.x64
+          path: |
+            PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x64.zip
+      - name: UploadArtifacts win.x86
+        uses: actions/upload-artifact@v4
+        with:
+          name: win.x86
+          path: |
+            PCL.Neo/bin/Release/net9.0/PCL.Neo.win.x86.zip
+      - name: UploadArtifacts win.arm64
+        uses: actions/upload-artifact@v4
+        with:
+          name: win.arm64
+          path: |
+            PCL.Neo/bin/Release/net9.0/PCL.Neo.win.arm64.zip
+
