@@ -29,11 +29,16 @@
     <EmbeddedResource Remove="Views\SubPage\**" />
     <None Remove="Views\MainPage\**" />
     <None Remove="Views\SubPage\**" />
+      <AvaloniaXaml Remove="Models\Minecraft\**" />
+      <Compile Remove="Models\Minecraft\**" />
+      <EmbeddedResource Remove="Models\Minecraft\**" />
+      <None Remove="Models\Minecraft\**" />
     <None Remove="Resources\Font.ttf" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0" />
@@ -47,6 +52,10 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.5" />
+      <PackageReference Include="System.Reactive" Version="6.0.1" />
+      <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
+      <PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.0.7" />
   </ItemGroup>
 
   <ItemGroup>
@@ -74,10 +83,20 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="Models\Minecraft\Game\Data\" />
     <Folder Include="Models\Minecraft\Java\" />
     <Folder Include="Models\Minecraft\Mod\" />
+    <Folder Include="Views\MainPage\" />
+    <Folder Include="Views\SubPage\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resource\OAuthRedirectHttpPage.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

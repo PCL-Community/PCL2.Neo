@@ -52,11 +52,11 @@ public static class ExeArchitectureUtils
         // Console.WriteLine("PE: " + ReadPeHeader(path));
         // Console.WriteLine("ELF: " + ReadElfHeader(path));
         // Console.WriteLine("Mach-O: " + ReadMachOHeader(path));
-        return Const.Os switch
+        return SystemUtils.Os switch
         {
-            Const.RunningOs.Windows => ReadPeHeader(path),
-            Const.RunningOs.Linux => ReadElfHeader(path),
-            Const.RunningOs.MacOs => ReadMachOHeader(path),
+            SystemUtils.RunningOs.Windows => ReadPeHeader(path),
+            SystemUtils.RunningOs.Linux => ReadElfHeader(path),
+            SystemUtils.RunningOs.MacOs => ReadMachOHeader(path),
             _ => ExeArchitecture.Unknown
         };
     }
@@ -113,7 +113,7 @@ public static class ExeArchitectureUtils
 
     private static ExeArchitecture ReadMachOHeader(string filePath)
     {
-        using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        using var fs     = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         using var reader = new BinaryReader(fs);
 
         uint magic = reader.ReadUInt32();
@@ -157,21 +157,21 @@ public static class ExeArchitectureUtils
 
     public static JavaCompability GetJavaCompability(this ExeArchitecture arch)
     {
-        if (arch.ToString() == Const.Architecture.ToString()) return JavaCompability.Yes;
+        if (arch.ToString() == SystemUtils.Architecture.ToString())
+        {
+            return JavaCompability.Yes;
+        }
         else
-            switch (Const.Os)
+            return SystemUtils.Os switch
             {
-                case Const.RunningOs.Windows when Const.Architecture is Architecture.X64 or Architecture.Arm64:
-                    return JavaCompability.UnderTranslation;
-                case Const.RunningOs.MacOs when Const.Architecture is Architecture.Arm64 && arch is ExeArchitecture.X64:
-                    return JavaCompability.UnderTranslation;
-                case Const.RunningOs.MacOs when arch is ExeArchitecture.FatFile:
-                    return JavaCompability.Yes;
-                case Const.RunningOs.Linux:
-                    return JavaCompability.No;
-                case Const.RunningOs.Unknown:
-                default:
-                    return JavaCompability.Unknown;
-            }
+                SystemUtils.RunningOs.Windows when SystemUtils.Architecture is Architecture.X64 or Architecture.Arm64 =>
+                    JavaCompability.UnderTranslation,
+                SystemUtils.RunningOs.MacOs when SystemUtils.Architecture is Architecture.Arm64 &&
+                                                 arch is ExeArchitecture.X64 => JavaCompability.UnderTranslation,
+                SystemUtils.RunningOs.MacOs when arch is ExeArchitecture.FatFile => JavaCompability.Yes,
+                SystemUtils.RunningOs.Linux => JavaCompability.No,
+                SystemUtils.RunningOs.Unknown => JavaCompability.Unknown,
+                _ => JavaCompability.Unknown
+            };
     }
 }

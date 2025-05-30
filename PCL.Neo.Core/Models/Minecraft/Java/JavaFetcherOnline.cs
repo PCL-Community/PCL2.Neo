@@ -1,4 +1,5 @@
-using PCL.Neo.Core.Helpers;
+using PCL.Neo.Core.Download;
+using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -7,6 +8,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java;
 
 public sealed partial class JavaManager
 {
+    // TODO)) 应该设置多个下载源，从配置文件中获取
     private static string MetaUrl
     {
         get =>
@@ -36,13 +38,13 @@ public sealed partial class JavaManager
     /// <param name="cancellationToken">用于中断下载</param>
     /// <param name="version">要下载的版本，有α、β、γ、δ等</param>
     /// <returns>如果未成功下载为null，成功下载则为java可执行文件所在的目录</returns>
-    public static async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
+    public async Task<string?> FetchJavaOnline(string platform, string destinationFolder,
         MojangJavaVersion version,
         IProgress<ValueTuple<int, int>>? progress, CancellationToken cancellationToken = default)
     {
         // TODO)) 根据配置文件切换下载源
         Uri metaUrl = new(MetaUrl);
-        var allJson = await FileHelper.HttpClient.GetStringAsync(metaUrl, cancellationToken);
+        var allJson = await Shared.HttpClient.GetStringAsync(metaUrl, cancellationToken);
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -56,7 +58,7 @@ public sealed partial class JavaManager
                 var manifestUri = manifestUriElement.GetString();
                 if (!string.IsNullOrEmpty(manifestUri))
                 {
-                    manifestJson = await FileHelper.HttpClient.GetStringAsync(manifestUri, cancellationToken);
+                    manifestJson = await Shared.HttpClient.GetStringAsync(manifestUri, cancellationToken);
                 }
             }
 
@@ -112,11 +114,40 @@ public sealed partial class JavaManager
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
             // 要分类讨论，sb MOJANG
             if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
-                tasks.Add(FileHelper.DownloadAndDeCompressFileAsync(new Uri(urlLzma), localFilePath, sha1Raw, sha1Lzma!,
-                    cancellationToken));
+            {
+                tasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
+                            localFilePath + ".lzma", sha1Lzma, cancellationToken);
+                        await using var fs = lzmaFs.DecompressLzma(localFilePath);
+                        if (fs is null)
+                        {
+                            Console.WriteLine("outStream 为空");
+                            return;
+                        }
+
+                        if (!await new FileIntegrity { Hash = sha1Raw }.VerifyAsync(fs, cancellationToken))
+                        {
+                            Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
+                            return;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        throw;
+                    }
+                    finally
+                    {
+                        if (File.Exists(localFilePath + ".lzma"))
+                            File.Delete(localFilePath + ".lzma");
+                    }
+                }, cancellationToken));
+            }
             else
-                tasks.Add(FileHelper.DownloadFileAsync(new Uri(urlRaw), localFilePath, sha1Raw,
-                    cancellationToken: cancellationToken));
+                tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
         }
 
         if (progress != null)
@@ -135,7 +166,7 @@ public sealed partial class JavaManager
         await Task.WhenAll(tasks);
 
 #pragma warning disable CA1416
-        if (Const.Os is not Const.RunningOs.Windows)
+        if (SystemUtils.Os is not SystemUtils.RunningOs.Windows)
         {
             Parallel.ForEach(executableFiles, executableFile =>
             {
@@ -145,12 +176,11 @@ public sealed partial class JavaManager
             });
         }
 #pragma warning restore CA1416
-        var targetFolder = Const.Os switch
+        var targetFolder = SystemUtils.Os switch
         {
-            Const.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
-            Const.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
-            Const.RunningOs.Unknown => throw new ArgumentOutOfRangeException(),
+            SystemUtils.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
+            SystemUtils.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
+            SystemUtils.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
             _ => throw new ArgumentOutOfRangeException()
         };
         return targetFolder;

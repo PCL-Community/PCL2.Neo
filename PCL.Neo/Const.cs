@@ -25,4 +25,49 @@ public static class Const
     /// 包含程序名的完整路径。
     /// </summary>
     public static readonly string PathWithName = Process.GetCurrentProcess().MainModule!.FileName;
+
+    /// <summary>
+    /// 系统是否为64位。
+    /// </summary>
+    public static readonly bool Is64Os = Environment.Is64BitOperatingSystem;
+
+    public enum RunningOs
+    {
+        Windows,
+        Linux,
+        MacOs,
+        Unknown
+    }
+
+    private static RunningOs? _os;
+
+    public static RunningOs Os
+    {
+        get
+        {
+            if (_os != null)
+            {
+                return _os.Value;
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _os = RunningOs.Windows;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                _os = RunningOs.Linux;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                _os = RunningOs.MacOs;
+            }
+            else
+            {
+                _os = RunningOs.Unknown;
+            }
+
+            return _os.Value;
+        }
+    }
 }

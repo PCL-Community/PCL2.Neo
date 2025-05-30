@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Services;
 using PCL.Neo.ViewModels.Download;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.ViewModels;
 
@@ -13,26 +14,26 @@ public partial class DownloadViewModel(NavigationService navigationService) : Vi
     [ObservableProperty] private string _message = "I am from DownloadViewModel";
 
     [RelayCommand]
-    private void NavigateToDownloadGame()
+    private async Task NavigateToDownloadGame()
     {
-        this.NavigationService.Goto<DownloadGameViewModel>();
+        await _navigationService.GotoAsync<DownloadGameViewModel>();
     }
 
     [RelayCommand]
-    private void NavigateToDownloadMod()
+    private async Task NavigateToDownloadMod()
     {
-        this.NavigationService.Goto<DownloadModViewModel>();
+        await _navigationService.GotoAsync<DownloadModViewModel>();
     }
 
     [RelayCommand]
     private void Btn_Test1()
     {
-        Message = "I am from DownloadViewModel Test1";
+        Message = "I am from DownloadViewModel             ੭ ˙ᗜ˙ )੭";
     }
 
     [RelayCommand]
     private void Btn_Test2()
     {
-        Message = "I am from DownloadViewModel Test2";
+        Message = "I am from DownloadViewModel (⚭-⚭ ) ੭";
     }
 }

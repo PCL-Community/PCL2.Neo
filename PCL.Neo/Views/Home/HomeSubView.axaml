@@ -9,7 +9,6 @@
     xmlns:home="clr-namespace:PCL.Neo.ViewModels.Home"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pc="using:PCL.Neo.Controls"
-    xmlns:vm="using:PCL.Neo.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer>
         <StackPanel Orientation="Vertical">
@@ -52,6 +51,11 @@
                 Height="50"
                 Margin="10"
                 Text="跳转到 Download Mod" />
+            <pc:MyButton
+                Command="{Binding NavigateToJobCommand}"
+                Height="50"
+                Margin="10"
+                Text="跳转到 Job" />
             <pc:MyCard Margin="10" />
         </StackPanel>
     </ScrollViewer>

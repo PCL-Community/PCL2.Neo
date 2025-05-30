@@ -11,7 +11,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
     /// </summary>
     internal static class Unix
     {
-        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(Const.RunningOs platform)
+        public static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync(SystemUtils.RunningOs platform)
         {
             var validPaths = new HashSet<string>();
 
@@ -19,7 +19,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
             toSearchPaths.UnionWith(GetOsDirsToSearch(platform));
             if (CheckJavaHome() is { } javaHome) toSearchPaths.Add(javaHome);
             if (CheckWithWhichJava() is { } whichJava) validPaths.Add(whichJava);
-            // if (platform is Const.RunningOs.MacOs) toSearchPaths.UnionWith(GetJavaHomesFromLibexec());
+            // if (platform is SystemUtils.RunningOs.MacOs) toSearchPaths.UnionWith(GetJavaHomesFromLibexec());
             validPaths.UnionWith(GetKnownDirsWithoutSearch(platform));
 
             var searchTasks = new List<Task<IEnumerable<string>>>();
@@ -39,14 +39,14 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
                 .Where(r => r is { Compability: not JavaCompability.Error })!;
         }
 
-        private static List<string> GetOsDirsToSearch(Const.RunningOs platform)
+        private static List<string> GetOsDirsToSearch(SystemUtils.RunningOs platform)
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
             knowDirs.AddRange([
                 Path.Combine(homeDir, ".sdkman/candidates/java"),
             ]);
-            if (platform is Const.RunningOs.Linux)
+            if (platform is SystemUtils.RunningOs.Linux)
                 knowDirs.AddRange([
                     "/usr/lib/jvm",
                     "/usr/java",
@@ -58,7 +58,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
                     "/usr/local/jre",
                     "/usr/local/opt",
                 ]);
-            if (platform is Const.RunningOs.MacOs)
+            if (platform is SystemUtils.RunningOs.MacOs)
                 knowDirs.AddRange([
                     // "/Library/Java/JavaVirtualMachines",
                     // $"{homeDir}/Library/Java/JavaVirtualMachines",
@@ -68,11 +68,11 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
             return knowDirs.ConvertAll(Path.GetFullPath);
         }
 
-        private static List<string> GetKnownDirsWithoutSearch(Const.RunningOs platform)
+        private static List<string> GetKnownDirsWithoutSearch(SystemUtils.RunningOs platform)
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
-            if (platform is Const.RunningOs.MacOs)
+            if (platform is SystemUtils.RunningOs.MacOs)
             {
                 knowDirs.AddRange([
                     "/usr/bin",
