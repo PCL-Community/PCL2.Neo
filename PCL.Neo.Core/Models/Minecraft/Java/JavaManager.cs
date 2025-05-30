@@ -1,5 +1,4 @@
 using PCL.Neo.Core.Utils;
-using System.Runtime.InteropServices;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
@@ -54,7 +53,7 @@ public sealed partial class JavaManager : IJavaManager
     /// 初始化 Java 列表，但除非没有 Java，否则不进行检查。
     /// <remarks> TODO)) 更换为 Logger.cs 中的 logger </remarks>
     /// </summary>
-    public async Task JavaListInit()
+    public async Task JavaListInitAsync()
     {
         if (IsInitialized || _isBusy) return;
         JavaList = [];
@@ -75,7 +74,7 @@ public sealed partial class JavaManager : IJavaManager
             if (JavaList.Count == 0)
             {
                 Console.WriteLine("[Java] 初始化未找到可用的 Java，将自动触发搜索");
-                JavaList = (await SearchJava()).ToList();
+                JavaList = (await SearchJavaAsync()).ToList();
                 Console.Write($"[Java] 搜索完成 ");
             }
             else
@@ -126,11 +125,11 @@ public sealed partial class JavaManager : IJavaManager
         // 对于用户手动导入的 Java，保留并重新检查可用性
         var oldManualEntities = JavaList.FindAll(entity => entity.IsUserImport);
         JavaList.Clear();
-        var searchedEntities = (await SearchJava()).ToList();
+        var searchedEntities = (await SearchJavaAsync()).ToList();
         newEntities.AddRange(searchedEntities);
         foreach (var oldRuntime in oldManualEntities.Where(entity =>
                      searchedEntities.All(javaEntity => javaEntity.DirectoryPath != entity.DirectoryPath)))
-            if (await oldRuntime.RefreshInfo())
+            if (await oldRuntime.RefreshInfoAsync())
                 newEntities.Add(oldRuntime);
             else
                 Console.WriteLine($"[Java] 用户导入的 Java 已不可用，已自动剔除：{oldRuntime.DirectoryPath}");
@@ -160,7 +159,7 @@ public sealed partial class JavaManager : IJavaManager
         TestOutput();
     }
 
-    private static async Task<IEnumerable<JavaRuntime>> SearchJava()
+    private static async Task<IEnumerable<JavaRuntime>> SearchJavaAsync()
     {
         return SystemUtils.Os switch
         {
