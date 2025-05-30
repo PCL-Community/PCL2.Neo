@@ -68,28 +68,8 @@ public partial class MainWindow : Window
         {
             LeftNavigationControlBorder.Width = LeftNavigationControl!.Bounds.Width;
 
-            LeftNavigationControl!.SizeChanged += (_, args) =>
+            LeftNavigationControl!.SizeChanged += (_compositor, args) =>
             {
-                if (e.Property != ContentPresenter.ChildProperty)
-                    return;
-                var oldValue = e.OldValue as Control;
-                var newValue = e.NewValue as Control;
-                lastAnimation?.CancelAndClear();
-                var previousScaleTransform =
-                    (LeftNavigationControlBorder.RenderTransform as TransformGroup)?.Children
-                    .FirstOrDefault(x => x is ScaleTransform) as ScaleTransform;
-                var previousScaleX = previousScaleTransform?.ScaleX ?? 1d;
-                LeftNavigationControlBorder.Width = LeftNavigationControl.Presenter!.Child?.Width ?? 0d;
-                var scale = oldValue?.Width / newValue?.Width * previousScaleX ?? 1d;
-                lastAnimation = new AnimationHelper(
-                [
-                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder,
-                        duration: TimeSpan.FromMilliseconds(300), before: scale,
-                        after: 1d, easing: new CubicEaseOut())
-                ]);
-                await lastAnimation.RunAsync();
-            };
-        };
                 if (args.WidthChanged)
                     LeftNavigationControlBorder.Width = args.NewSize.Width;
             };

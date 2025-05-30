@@ -1,17 +1,14 @@
-// In PCL.Neo.Helpers/ChainedAnimationHelper.cs
-
 using Avalonia;
 using Avalonia.Animation; // For FillMode
 using Avalonia.Animation.Easings;
-using Avalonia.Media; // For Transform, ScaleTransform, TransformGroup
+using Avalonia.Media;  // For Transform, ScaleTransform, TransformGroup
 using Avalonia.Layout; // For Layoutable
 using PCL.Neo.Animations;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic; // Required for List<IAnimation>
 
-namespace PCL.Neo.Helpers
+namespace PCL.Neo.Helpers // TODO: add more animation codes
 {
     public static class ChainedAnimationHelper
     {
@@ -86,14 +83,14 @@ namespace PCL.Neo.Helpers
         /// </summary>
         public static AnimationChain ScaleTo(
             this AnimationChain chain,
-            double beforeScaleX,
-            double beforeScaleY,
-            double afterScalueX,
-            double afterScaleY,
-            uint durationMs = 250,
-            Easing? easing = null,
-            uint? delayMs = null,
-            bool wait = false)
+            double              beforeScaleX,
+            double              beforeScaleY,
+            double              afterScaleX,
+            double              afterScaleY,
+            uint                durationMs = 250,
+            Easing?             easing     = null,
+            uint?               delayMs    = null,
+            bool                wait       = false)
         {
             var scaleTransform = EnsureTransform<ScaleTransform>(chain.TargetControl);
             if (scaleTransform == null)
@@ -105,7 +102,7 @@ namespace PCL.Neo.Helpers
             var animation = new ScaleTransformScaleAnimation(
                 chain.TargetControl,
                 before: beforeScaleX,
-                after: afterScalueX,
+                after: afterScaleX,
                 duration: TimeSpan.FromMilliseconds(durationMs),
                 easing: easing,
                 delay: delayMs.HasValue ? TimeSpan.FromMilliseconds(delayMs.Value) : null,
@@ -124,7 +121,7 @@ namespace PCL.Neo.Helpers
         /// </summary>
         public static async Task RunAsync(this AnimationChain chain)
         {
-            if (!chain.Animations.Any())
+            if (chain.Animations.Count == 0)
                 return;
 
             var animationHelper = new AnimationHelper(chain.Animations)
@@ -139,7 +136,7 @@ namespace PCL.Neo.Helpers
         /// </summary>
         public static void Cancel(this AnimationChain chain)
         {
-            if (!chain.Animations.Any())
+            if (chain.Animations.Count == 0)
                 return;
 
             // Use a temporary AnimationHelper to leverage its Cancel logic
@@ -159,7 +156,7 @@ namespace PCL.Neo.Helpers
                 return null;
             }
 
-            T? foundTransform = null;
+            T? foundTransform;
 
             switch (layoutable.RenderTransform)
             {
@@ -188,7 +185,7 @@ namespace PCL.Neo.Helpers
                         else // It's a different single transform, create a group
                         {
                             var existingTransform = layoutable.RenderTransform;
-                            var newGroup = new TransformGroup();
+                            var newGroup          = new TransformGroup();
                             newGroup.Children.Add((Transform)existingTransform);
                             newGroup.Children.Add(newTransform);
                             layoutable.RenderTransform = newGroup;

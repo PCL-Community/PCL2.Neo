@@ -15,16 +15,4 @@
         <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Compile Remove="Models\Minecraft\Game\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <EmbeddedResource Remove="Models\Minecraft\Game\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="Models\Minecraft\Game\**" />
-    </ItemGroup>
-
 </Project>

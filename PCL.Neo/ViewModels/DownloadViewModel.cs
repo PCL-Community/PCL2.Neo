@@ -16,13 +16,13 @@ public partial class DownloadViewModel(NavigationService navigationService) : Vi
     [RelayCommand]
     private async Task NavigateToDownloadGame()
     {
-        await _navigationService.GotoAsync<DownloadGameViewModel>();
+        await NavigationService.GotoAsync<DownloadGameViewModel>();
     }
 
     [RelayCommand]
     private async Task NavigateToDownloadMod()
     {
-        await _navigationService.GotoAsync<DownloadModViewModel>();
+        await NavigationService.GotoAsync<DownloadModViewModel>();
     }
 
     [RelayCommand]

@@ -15,6 +15,8 @@ namespace PCL.Neo
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
             // Othre Initialize
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.InputEncoding = System.Text.Encoding.UTF8;
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
