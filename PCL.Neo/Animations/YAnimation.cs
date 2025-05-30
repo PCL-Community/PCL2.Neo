@@ -2,74 +2,37 @@ using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Styling;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PCL.Neo.Animations
 {
-    public class YAnimation : IAnimation
+    public class YAnimation(
+        Animatable control,
+        double value,
+        double? before = null,
+        double? after = null,
+        Easing? easing = null,
+        TimeSpan? duration = null,
+        TimeSpan? delay = null) : BaseAnimation(control, before, after, easing, duration, delay)
     {
-        private CancellationTokenSource _cancellationTokenSource;
-        public Animatable Control { get; set; }
-        public TimeSpan Duration { get; set; }
-        public TimeSpan Delay { get; set; }
-        public double Value { get; set; }
-        public Easing Easing { get; set; }
-        public bool Wait { get; set; } = false;
+        public double Value { get; set; } = value;
 
-        public YAnimation(Animatable control, double value) : this(
-            control, value, new LinearEasing())
-        {
-        }
-        public YAnimation(Animatable control, double value, Easing easing) : this(
-            control, TimeSpan.FromSeconds(1), value, easing)
-        {
-        }
-        public YAnimation(Animatable control, TimeSpan duration, double value) : this(
-            control, duration, value, new LinearEasing())
-        {
-        }
-        public YAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double value) : this(
-            control, duration, delay, value, new LinearEasing())
-        {
-        }
-        public YAnimation(Animatable control, TimeSpan duration, double value, Easing easing) : this(
-            control, duration, TimeSpan.Zero, value, easing)
-        {
-        }
-        public YAnimation(Animatable control, TimeSpan duration, TimeSpan delay, double value, Easing easing)
-        {
-            Control = control;
-            Duration = duration;
-            Delay = delay;
-            Value = value;
-            Easing = easing;
-            _cancellationTokenSource = new CancellationTokenSource();
-        }
-
-        public async Task RunAsync()
+        /// <inheritdoc />
+        public override Animation AnimationBuilder()
         {
             var control = (Layoutable)Control;
-            Thickness marginOriginal = control.Margin;
-            Thickness margin;
-            switch (control.VerticalAlignment)
+            var marginOriginal = control.Margin;
+            var margin = control.VerticalAlignment switch
             {
-                case VerticalAlignment.Top:
-                    margin = new Thickness(control.Margin.Left, control.Margin.Top + Value, control.Margin.Right,
-                        control.Margin.Bottom);
-                    break;
-                case VerticalAlignment.Bottom:
-                    margin = new Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right,
-                        control.Margin.Bottom - Value);
-                    break;
-                default:
-                    margin = control.Margin;
-                    break;
-            }
-            var animation = new Animation
+                VerticalAlignment.Top => new Thickness(control.Margin.Left, control.Margin.Top + Value,
+                    control.Margin.Right, control.Margin.Bottom),
+                VerticalAlignment.Bottom => new Thickness(control.Margin.Left, control.Margin.Top, control.Margin.Right,
+                    control.Margin.Bottom - Value),
+                _ => control.Margin
+            };
+
+            return new Animation
             {
                 Easing = Easing,
                 Duration = Duration,
@@ -79,27 +42,11 @@ namespace PCL.Neo.Animations
                 {
                     new KeyFrame
                     {
-                        Setters =
-                        {
-                            new Setter(Layoutable.MarginProperty, marginOriginal)
-                        },
-                        Cue = new Cue(1d)
+                        Setters = { new Setter(Layoutable.MarginProperty, marginOriginal) }, Cue = new Cue(1d)
                     },
-                    new KeyFrame
-                    {
-                        Setters =
-                        {
-                            new Setter(Layoutable.MarginProperty, margin)
-                        },
-                        Cue = new Cue(1d)
-                    }
+                    new KeyFrame { Setters = { new Setter(Layoutable.MarginProperty, margin) }, Cue = new Cue(1d) }
                 }
             };
-            await animation.RunAsync(Control, _cancellationTokenSource.Token);
-        }
-        public void Cancel()
-        {
-            _cancellationTokenSource.Cancel();
         }
     }
 }

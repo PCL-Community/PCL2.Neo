@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
-using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -14,15 +13,15 @@ using System;
 
 namespace PCL.Neo.Controls;
 
-[PseudoClasses(":normal", ":highlight", ":red")]
+[Avalonia.Controls.Metadata.PseudoClasses(":normal", ":highlight", ":red")]
 public class MyButton : Button
 {
     private Border? _panFore;
-    private AnimationHelper _animation;
+    private readonly AnimationHelper _animation;
 
     public MyButton()
     {
-        _animation = new();
+        _animation = new AnimationHelper();
         Inlines = new InlineCollection();
     }
 
@@ -43,29 +42,37 @@ public class MyButton : Button
     {
         base.OnPointerPressed(e);
 
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange([
-                new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(80), 0.955, new CubicEaseOut()),
-                new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(80), 0.955, new CubicEaseOut())
-            ]);
-            await _animation.RunAsync();
+            return;
         }
+
+        _animation.CancelAndClear();
+        _animation.Animations.AddRange([
+            new ScaleTransformScaleXAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
+                easing: new CubicEaseOut()),
+            new ScaleTransformScaleYAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
+                easing: new CubicEaseOut())
+        ]);
+        await _animation.RunAsync();
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (e.InitialPressMouseButton == MouseButton.Left)
+        if (e.InitialPressMouseButton != MouseButton.Left)
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange([
-                new ScaleTransformScaleXAnimation(this, TimeSpan.FromMilliseconds(300), 0.955, 1, new QuinticEaseOut()),
-                new ScaleTransformScaleYAnimation(this, TimeSpan.FromMilliseconds(300), 0.955, 1, new QuinticEaseOut())
-            ]);
-            await _animation.RunAsync();
+            return;
         }
+
+        _animation.CancelAndClear();
+        _animation.Animations.AddRange([
+            new ScaleTransformScaleXAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d,
+                after: 1, easing: new QuinticEaseOut()),
+            new ScaleTransformScaleYAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d,
+                after: 1, easing: new QuinticEaseOut())
+        ]);
+        await _animation.RunAsync();
     }
 
     public int Uuid = CoreUtils.GetUuid();
@@ -147,18 +154,13 @@ public class MyButton : Button
         if (_panFore is null) return;
         if (IsEnabled)
         {
-            switch (ColorType)
+            _panFore.BorderBrush = ColorType switch
             {
-                case ColorState.Normal:
-                    _panFore.BorderBrush = (IBrush?)Application.Current!.Resources["ColorBrush1"];
-                    break;
-                case ColorState.Highlight:
-                    _panFore.BorderBrush = (IBrush?)Application.Current!.Resources["ColorBrush2"];
-                    break;
-                case ColorState.Red:
-                    _panFore.BorderBrush = (IBrush?)Application.Current!.Resources["ColorBrushRedDark"];
-                    break;
-            }
+                ColorState.Normal => (IBrush?)Application.Current!.Resources["ColorBrush1"],
+                ColorState.Highlight => (IBrush?)Application.Current!.Resources["ColorBrush2"],
+                ColorState.Red => (IBrush?)Application.Current!.Resources["ColorBrushRedDark"],
+                _ => _panFore.BorderBrush
+            };
         }
         else
         {
@@ -180,6 +182,8 @@ public class MyButton : Button
             case ColorState.Red:
                 PseudoClasses.Set(":red", true);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }

@@ -10,7 +10,7 @@ namespace PCL.Neo.Helpers;
 public class AnimationHelper(List<IAnimation> animations)
 {
     public List<IAnimation> Animations { get; set; } = animations;
-    public List<Task> Tasks { get; } = new List<Task>();
+    public List<Task> Tasks { get; } = [];
     public bool Loop { get; set; } = false;
 
     public AnimationHelper() : this([]){}
@@ -43,21 +43,18 @@ public class AnimationHelper(List<IAnimation> animations)
             {
                 if (currentGroup.Count > 0)
                 {
-                    groupedAnimations.Add(new List<IAnimation>(currentGroup));
+                    groupedAnimations.Add([..currentGroup]);
                     currentGroup.Clear();
                     continue;
                 }
-                currentGroup.Add(animation);
             }
-            else
-            {
-                currentGroup.Add(animation);
-            }
+
+            currentGroup.Add(animation);
         }
 
         if (currentGroup.Count > 0)
         {
-            groupedAnimations.Add(new List<IAnimation>(currentGroup));
+            groupedAnimations.Add([..currentGroup]);
         }
 
         currentGroup.Clear();

@@ -21,23 +21,31 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaXaml Remove="Views\MainPage\**" />
+    <AvaloniaXaml Remove="Views\SubPage\**" />
+    <Compile Remove="Views\MainPage\**" />
+    <Compile Remove="Views\SubPage\**" />
+    <EmbeddedResource Remove="Views\MainPage\**" />
+    <EmbeddedResource Remove="Views\SubPage\**" />
+    <None Remove="Views\MainPage\**" />
+    <None Remove="Views\SubPage\**" />
     <None Remove="Resources\Font.ttf" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.2.8" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.8" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.8" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.8" />
+    <PackageReference Include="Avalonia" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Include="Avalonia.Diagnostics" Version="11.2.8">
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.0">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.2.7.1" />
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
     <PackageReference Include="LZMA-SDK" Version="22.1.1" />
   </ItemGroup>
 
@@ -71,7 +79,5 @@
     <Folder Include="Models\Minecraft\Game\Data\" />
     <Folder Include="Models\Minecraft\Java\" />
     <Folder Include="Models\Minecraft\Mod\" />
-    <Folder Include="Views\MainPage\" />
-    <Folder Include="Views\SubPage\" />
   </ItemGroup>
 </Project>

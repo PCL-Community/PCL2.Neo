@@ -1,4 +1,3 @@
-using System;
 using Avalonia;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
@@ -6,13 +5,12 @@ using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using PCL.Neo.Animations;
 using PCL.Neo.Helpers;
 using PCL.Neo.Models;
 using PCL.Neo.Utils;
-using System.Threading.Tasks;
+using System;
 
 namespace PCL.Neo.Controls;
 
@@ -41,34 +39,41 @@ public class MyIconButton : Button
     protected override async void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange(
-            [
-                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d,
-                    new QuarticEaseOut()),
-                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(400), 0.8d, new QuarticEaseOut())
-            ]);
-            await _animation.RunAsync();
+            return;
         }
+
+        _animation.CancelAndClear();
+        _animation.Animations.AddRange(
+        [
+            new ScaleTransformScaleXAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(400), after: 0.8d,
+                easing: new QuarticEaseOut()),
+            new ScaleTransformScaleYAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(400), after: 0.8d,
+                easing: new QuarticEaseOut())
+        ]);
+        await _animation.RunAsync();
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
     {
         base.OnPointerReleased(e);
-        if (e.InitialPressMouseButton == MouseButton.Left)
+        if (e.InitialPressMouseButton != MouseButton.Left)
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange(
-            [
-                new ScaleTransformScaleXAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d,
-                    new BackEaseOut()),
-                new ScaleTransformScaleYAnimation(_panBack!, TimeSpan.FromMilliseconds(250), 0.8d, 1d,
-                    new BackEaseOut())
-            ]);
-            await _animation.RunAsync();
+            return;
         }
+
+        _animation.CancelAndClear();
+        _animation.Animations.AddRange(
+        [
+            new ScaleTransformScaleXAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(250), before: 0.8d,
+                after: 1d,
+                easing: new BackEaseOut()),
+            new ScaleTransformScaleYAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(250), before: 0.8d,
+                after: 1d,
+                easing: new BackEaseOut())
+        ]);
+        await _animation.RunAsync();
     }
 
     public int Uuid = CoreUtils.GetUuid();
@@ -130,7 +135,7 @@ public class MyIconButton : Button
         }
     }
 
-    public new static readonly StyledProperty<IBrush> ForegroundProperty =
+    public static new readonly StyledProperty<IBrush> ForegroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush>(
             nameof(Foreground));
 
@@ -150,7 +155,7 @@ public class MyIconButton : Button
         set => SetValue(ForegroundInnerProperty, value);
     }
 
-    public new static readonly StyledProperty<IBrush> BackgroundProperty =
+    public static new readonly StyledProperty<IBrush> BackgroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush>(
             nameof(Background));
 
@@ -184,24 +189,15 @@ public class MyIconButton : Button
     private void RefreshColor()
     {
         if (_pathIcon is null || _panBack is null) return;
-        switch (IconTheme)
+        _pathIcon.Fill = IconTheme switch
         {
-            case IconThemes.Color:
-                _pathIcon.Fill = (SolidColorBrush?)Application.Current!.Resources["ColorBrush5"];
-                break;
-            case IconThemes.White:
-                _pathIcon.Fill = (SolidColorBrush)new MyColor(234, 242, 254);
-                break;
-            case IconThemes.Red:
-                _pathIcon.Fill = (SolidColorBrush)new MyColor(160, 255, 76, 76);
-                break;
-            case IconThemes.Black:
-                _pathIcon.Fill = (SolidColorBrush)new MyColor(160, 0, 0, 0);
-                break;
-            case IconThemes.Custom:
-                _pathIcon.Fill = (SolidColorBrush)new MyColor(160, (SolidColorBrush)Foreground);
-                break;
-        }
+            IconThemes.Color => (SolidColorBrush?)Application.Current!.Resources["ColorBrush5"],
+            IconThemes.White => (SolidColorBrush)new MyColor(234, 242, 254),
+            IconThemes.Red => (SolidColorBrush)new MyColor(160, 255, 76, 76),
+            IconThemes.Black => (SolidColorBrush)new MyColor(160, 0, 0, 0),
+            IconThemes.Custom => (SolidColorBrush)new MyColor(160, (SolidColorBrush)Foreground),
+            _ => _pathIcon.Fill
+        };
 
         _panBack.Background = (SolidColorBrush)new MyColor(0, 255, 255, 255);
     }
@@ -225,6 +221,8 @@ public class MyIconButton : Button
             case IconThemes.Custom:
                 PseudoClasses.Set(":custom", true);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }

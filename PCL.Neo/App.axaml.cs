@@ -1,20 +1,20 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using PCL.Neo.Services;
-using Avalonia.Platform.Storage;
 using PCL.Neo.Helpers;
+using PCL.Neo.Services;
 using PCL.Neo.Utils;
 using PCL.Neo.ViewModels;
 using PCL.Neo.ViewModels.Download;
 using PCL.Neo.ViewModels.Home;
 using PCL.Neo.Views;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace PCL.Neo

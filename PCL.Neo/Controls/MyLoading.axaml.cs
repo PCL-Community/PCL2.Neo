@@ -4,7 +4,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
-using Avalonia.Media;
 using Avalonia.Threading;
 using PCL.Neo.Animations;
 using PCL.Neo.Animations.Easings;
@@ -17,17 +16,12 @@ namespace PCL.Neo.Controls
     [PseudoClasses(":loading", ":error")]
     public class MyLoading : TemplatedControl
     {
-        private AnimationHelper _animation;
+        private readonly AnimationHelper _animation = new();
         private Path? _pathPickaxe;
         private Path? _pathError;
         private Path? _pathLeft;
         private Path? _pathRight;
         private bool _hasErrorOccurred = false;
-
-        public MyLoading()
-        {
-            _animation = new();
-        }
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -85,9 +79,9 @@ namespace PCL.Neo.Controls
             Error
         }
 
-        public static readonly StyledProperty<LoadingState> StateProperty = AvaloniaProperty.Register<MyLoading, LoadingState>(
-            nameof(State),
-            LoadingState.Loading);
+        public static readonly StyledProperty<LoadingState> StateProperty =
+            AvaloniaProperty.Register<MyLoading, LoadingState>(
+                nameof(State));
 
         public LoadingState State
         {
@@ -139,10 +133,13 @@ namespace PCL.Neo.Controls
             _animation.CancelAndClear();
             _animation.Animations.AddRange(
             [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(350), 55d, -20d, new MyBackEaseIn(EasePower.Weak)),
-                new OpacityAnimation(this._pathError!, TimeSpan.FromMilliseconds(100), 0d),
-                new ScaleTransformScaleXAnimation(this._pathError!, TimeSpan.FromMilliseconds(100), 1d, 0.5d),
-                new ScaleTransformScaleYAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 1d, 0.5d)
+                new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
+                    before: 55d, after: -20d, easing: new MyBackEaseIn(EasePower.Weak)),
+                new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100), before: 0d),
+                new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100),
+                    before: 1d, after: 0.5d),
+                new ScaleTransformScaleYAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
+                    before: 1d, after: 0.5d)
             ]);
             await _animation.RunAsync();
         }
@@ -152,10 +149,14 @@ namespace PCL.Neo.Controls
             _animation.CancelAndClear();
             _animation.Animations.AddRange(
             [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(900), 55d, new CubicEaseOut()),
-                new OpacityAnimation(this._pathError!, TimeSpan.FromMilliseconds(300), 1d),
-                new ScaleTransformScaleXAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 0.5d, 1d, new MyBackEaseOut()),
-                new ScaleTransformScaleYAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 0.5d, 1d, new MyBackEaseOut())
+                new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(900),
+                    after: 55d, easing: new CubicEaseOut()),
+                new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(300), after: 1d),
+                new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
+                    before: 0.5d, after: 1d,
+                    easing: new MyBackEaseOut()),
+                new ScaleTransformScaleYAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
+                    before: 0.5d, after: 1d, easing: new MyBackEaseOut())
             ]);
             await _animation.RunAsync();
         }
@@ -166,15 +167,27 @@ namespace PCL.Neo.Controls
             _animation.CancelAndClear();
             _animation.Animations.AddRange(
             [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(350), 55d, -20d, new MyBackEaseIn(EasePower.Weak)),
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(900), 30d, 55d, new ElasticEaseOut()),
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(180), -20d, 30d),
-                new OpacityAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(50), 1d, 0d),
-                new XAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(180), -5d, new CubicEaseOut()),
-                new YAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(180), -6d, new CubicEaseOut()),
-                new OpacityAnimation(this._pathRight!, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(50), 1d, 0d),
-                new XAnimation(this._pathRight!, TimeSpan.FromMilliseconds(180), 5d, new CubicEaseOut()),
-                new YAnimation(this._pathRight!, TimeSpan.FromMilliseconds(180), -6d, new CubicEaseOut()),
+                new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
+                    before: 55d, after: -20d, easing: new MyBackEaseIn(EasePower.Weak)),
+                new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(900),
+                    before: 30d, after: 55d,
+                    easing: new ElasticEaseOut()),
+                new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(180),
+                    before: -20d, after: 30d),
+                new OpacityAnimation(this._pathLeft!, duration: TimeSpan.FromMilliseconds(100),
+                    delay: TimeSpan.FromMilliseconds(50), before: 1d,
+                    after: 0d),
+                new XAnimation(this._pathLeft!, duration: TimeSpan.FromMilliseconds(180), value: -5d,
+                    easing: new CubicEaseOut()),
+                new YAnimation(this._pathLeft!, duration: TimeSpan.FromMilliseconds(180), value: -6d,
+                    easing: new CubicEaseOut()),
+                new OpacityAnimation(this._pathRight!, duration: TimeSpan.FromMilliseconds(100),
+                    delay: TimeSpan.FromMilliseconds(50),
+                    before: 1d, after: 0d),
+                new XAnimation(this._pathRight!, duration: TimeSpan.FromMilliseconds(180), value: 5d,
+                    easing: new CubicEaseOut()),
+                new YAnimation(this._pathRight!, duration: TimeSpan.FromMilliseconds(180), value: -6d,
+                    easing: new CubicEaseOut())
             ]);
             await _animation.RunAsync();
             this._pathLeft!.Margin = new Thickness(7,41,0,0);
@@ -185,26 +198,12 @@ namespace PCL.Neo.Controls
         {
             PseudoClasses.Remove(":loading");
             PseudoClasses.Remove(":error");
-            if (State == LoadingState.Loading)
-            {
-                PseudoClasses.Set(":loading", true);
-            }
-            else
-            {
-                PseudoClasses.Set(":error", true);
-            }
+            PseudoClasses.Set(State == LoadingState.Loading ? ":loading" : ":error", true);
         }
 
         private void RefreshText()
         {
-            if (State == LoadingState.Loading)
-            {
-                this.Text = TextLoading;
-            }
-            else
-            {
-                this.Text = TextError;
-            }
+            this.Text = State == LoadingState.Loading ? TextLoading : TextError;
         }
     }
 }

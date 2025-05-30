@@ -3,13 +3,11 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition;
 using Avalonia.Rendering.Composition.Animations;
 using PCL.Neo.Animations;
 using PCL.Neo.Animations.Easings;
-using PCL.Neo.Controls;
 using PCL.Neo.Helpers;
 using System;
 using System.Linq;
@@ -25,6 +23,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+#if DEBUG
+        this.AttachDevTools(); // 附加开发者工具
+#endif
 
         NavBackgroundBorder.PointerPressed += (i, e) =>
         {
@@ -75,14 +77,15 @@ public partial class MainWindow : Window
                 var scale = oldValue?.Width / newValue?.Width * previousScaleX ?? 1d;
                 lastAnimation = new AnimationHelper(
                 [
-                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder, TimeSpan.FromMilliseconds(300), scale,
-                        1d, new CubicEaseOut())
+                    new ScaleTransformScaleXAnimation(LeftNavigationControlBorder,
+                        duration: TimeSpan.FromMilliseconds(300), before: scale,
+                        after: 1d, easing: new CubicEaseOut())
                 ]);
                 await lastAnimation.RunAsync();
             };
         };
 
-         GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
+        GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
 
