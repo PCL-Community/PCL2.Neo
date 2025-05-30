@@ -2,6 +2,7 @@ using System.Text.Json;
 using PCL.Neo.Core.Models.Configuration;
 using System;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace PCL.Neo.Tests.Models.Configuration
 {
@@ -10,10 +11,10 @@ namespace PCL.Neo.Tests.Models.Configuration
     public class ConfigurationManagerTest
     {
         [ConfigurationInfo("testConfig.json")]
-        public class TestConfiuration
+        public class TestConfiguration
         {
-            public string Name  { get; set; } = "TestConfig";
-            public int    Value { get; set; } = 42;
+            public string Name { get; set; } = "TestConfig";
+            public int Value { get; set; } = 42;
         }
 
 
@@ -21,20 +22,34 @@ namespace PCL.Neo.Tests.Models.Configuration
         public async Task ConfigurationTest()
         {
             ConfigurationManager manager = new();
-            var                  config  = new TestConfiuration();
+            var config = new TestConfiguration();
 
-            await manager.CreateCOnfiguration(config, null);
-            var loadedConfig = manager.GetConfiguration<TestConfiuration>();
+            // 创建配置
+            bool createResult = await manager.CreateConfiguration(config, null);
+            Assert.That(createResult, Is.True, "Failed to create configuration");
+            
+            // 获取配置
+            var loadedConfig = manager.GetConfiguration<TestConfiguration>();
+            Assert.That(loadedConfig, Is.Not.Null, "Failed to load configuration");
+            
             var content = JsonSerializer.Serialize(loadedConfig, new JsonSerializerOptions() { WriteIndented = true });
-
             Console.WriteLine(content);
 
-            var changed = loadedConfig.Name = "Hello Wrold!";
-            await manager.UpdateConfiguration(loadedConfig, null);
+            // 更新配置
+            loadedConfig.Name = "Hello World!";
+            bool updateResult = await manager.UpdateConfiguration(loadedConfig, null);
+            Assert.That(updateResult, Is.True, "Failed to update configuration");
 
-            content = JsonSerializer.Serialize(loadedConfig, new JsonSerializerOptions() { WriteIndented = true });
-
+            // 重新获取并验证
+            var updatedConfig = manager.GetConfiguration<TestConfiguration>();
+            Assert.That(updatedConfig?.Name, Is.EqualTo("Hello World!"), "Configuration update failed");
+            
+            content = JsonSerializer.Serialize(updatedConfig, new JsonSerializerOptions() { WriteIndented = true });
             Console.WriteLine(content);
+            
+            // 测试GetOrCreateConfiguration
+            var autoConfig = await manager.GetOrCreateConfiguration<TestConfiguration>();
+            Assert.That(autoConfig, Is.Not.Null, "GetOrCreateConfiguration failed");
         }
     }
 }
