@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -6,12 +7,20 @@ using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Models.Configuration;
 
+/// <summary>
+/// 配置管理器，负责管理应用配置项
+/// </summary>
 public class ConfigurationManager : IConfigurationManager
 {
     private static readonly JsonSerializerOptions DefaultOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true
     };
+
+    /// <summary>
+    /// 配置迁移历史记录
+    /// </summary>
+    private readonly Dictionary<Type, List<Action<object>>> _migrationActions = new();
 
     /// <inheritdoc />
     public TResult? GetConfiguration<TResult>() where TResult : class, new()
@@ -42,6 +51,12 @@ public class ConfigurationManager : IConfigurationManager
 
             var jsonContent = File.ReadAllText(configPath);
             var result = JsonSerializer.Deserialize<TResult>(jsonContent);
+
+            // 应用迁移
+            if (result != null)
+            {
+                ApplyMigrations(result);
+            }
 
             return result;
         }
@@ -173,6 +188,13 @@ public class ConfigurationManager : IConfigurationManager
 
             var jsonContent = File.ReadAllText(filePath);
             var result = JsonSerializer.Deserialize<TResult>(jsonContent);
+            
+            // 应用迁移
+            if (result != null)
+            {
+                ApplyMigrations(result);
+            }
+            
             return result;
         }
         catch (Exception)
@@ -209,6 +231,84 @@ public class ConfigurationManager : IConfigurationManager
         {
             return false;
         }
+    }
+
+    /// <summary>
+    /// 注册配置迁移操作
+    /// </summary>
+    /// <typeparam name="T">配置类型</typeparam>
+    /// <param name="migrationAction">迁移操作</param>
+    public void RegisterMigration<T>(Action<T> migrationAction) where T : class
+    {
+        var type = typeof(T);
+        if (!_migrationActions.TryGetValue(type, out var actions))
+        {
+            actions = new List<Action<object>>();
+            _migrationActions[type] = actions;
+        }
+        
+        actions.Add(obj => migrationAction((T)obj));
+    }
+
+    /// <summary>
+    /// 应用配置迁移
+    /// </summary>
+    /// <param name="config">配置对象</param>
+    private void ApplyMigrations(object config)
+    {
+        var type = config.GetType();
+        if (_migrationActions.TryGetValue(type, out var actions))
+        {
+            foreach (var action in actions)
+            {
+                action(config);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 备份配置文件
+    /// </summary>
+    /// <typeparam name="T">配置类型</typeparam>
+    /// <returns>是否成功</returns>
+    public async Task<bool> BackupConfiguration<T>() where T : class, new()
+    {
+        try
+        {
+            var config = GetConfiguration<T>();
+            if (config == null)
+            {
+                return false;
+            }
+            
+            var attribute = typeof(T).GetCustomAttribute<ConfigurationInfoAttribute>();
+            if (attribute == null)
+            {
+                return false;
+            }
+            
+            string configPath = GetConfigPath<T>(attribute.FilePath);
+            string backupPath = $"{configPath}.{DateTime.Now:yyyyMMdd_HHmmss}.bak";
+            
+            var content = File.ReadAllText(configPath);
+            await File.WriteAllTextAsync(backupPath, content);
+            
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 获取配置访问器
+    /// </summary>
+    /// <typeparam name="T">配置类型</typeparam>
+    /// <returns>配置访问器</returns>
+    public ConfigurationAccessor<T> GetAccessor<T>() where T : class, new()
+    {
+        return new ConfigurationAccessor<T>(this);
     }
 
     public static readonly ConfigurationManager Instance = new();
