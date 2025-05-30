@@ -14,7 +14,9 @@ namespace PCL.Neo.Animations
         double? after = null,
         Easing? easing = null,
         TimeSpan? duration = null,
-        TimeSpan? delay = null) : BaseAnimation(control, before, after, easing, duration, delay)
+        TimeSpan? delay = null,
+        bool wait = true)
+        : BaseAnimation(control, before, after, easing, duration, delay, wait)
     {
         public double Value { get; set; } = value;
 

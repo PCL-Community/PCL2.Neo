@@ -12,9 +12,10 @@ namespace PCL.Neo.Animations
         double? after = null,
         Easing? easing = null,
         TimeSpan? duration = null,
-        TimeSpan? delay = null) :
+        TimeSpan? delay = null,
+        bool wait = true) :
         BaseAnimation(control, before ?? control.GetValue(ScaleTransform.ScaleXProperty), after, easing, duration,
-            delay)
+            delay, wait)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>

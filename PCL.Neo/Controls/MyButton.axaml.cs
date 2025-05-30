@@ -49,9 +49,7 @@ public class MyButton : Button
 
         _animation.CancelAndClear();
         _animation.Animations.AddRange([
-            new ScaleTransformScaleXAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
-                easing: new CubicEaseOut()),
-            new ScaleTransformScaleYAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
+            new ScaleTransformScaleAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
                 easing: new CubicEaseOut())
         ]);
         await _animation.RunAsync();
@@ -67,10 +65,8 @@ public class MyButton : Button
 
         _animation.CancelAndClear();
         _animation.Animations.AddRange([
-            new ScaleTransformScaleXAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d,
-                after: 1, easing: new QuinticEaseOut()),
-            new ScaleTransformScaleYAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d,
-                after: 1, easing: new QuinticEaseOut())
+            new ScaleTransformScaleAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d, after: 1d,
+                easing: new QuinticEaseOut(), wait: true)
         ]);
         await _animation.RunAsync();
     }

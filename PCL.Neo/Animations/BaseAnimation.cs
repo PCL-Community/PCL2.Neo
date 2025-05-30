@@ -12,20 +12,21 @@ namespace PCL.Neo.Animations
         double? after = null,
         Easing? easing = null,
         TimeSpan? duration = null,
-        TimeSpan? delay = null)
+        TimeSpan? delay = null,
+        bool wait = true)
         : IAnimation
     {
         /// <inheritdoc />
-        public TimeSpan Delay { get; set; } = delay ?? TimeSpan.Zero;
+        public bool Wait { get; set; } = wait;
 
         /// <inheritdoc />
-        public bool Wait { get; set; }
+        public TimeSpan Delay { get; set; } = delay ?? TimeSpan.Zero;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new();
         public Animatable Control { get; set; } = control;
-        public TimeSpan Duration { get; set; } = duration ?? TimeSpan.FromSeconds(1);
-        public double? Before { get; set; } = before;
-        public double? After { get; set; } = after;
+        public TimeSpan Duration { get; set; } = duration ?? TimeSpan.FromMilliseconds(250);
+        public double? Before { get; set; } = before ?? 0d;
+        public double? After { get; set; } = after ?? 0.953d;
         public Easing Easing { get; set; } = easing ?? new LinearEasing();
 
         /// <summary>

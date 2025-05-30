@@ -24,17 +24,11 @@ public class AnimationHelper(List<IAnimation> animations)
     {
         Tasks.Clear();
 
-        if (Loop)
+        do
         {
-            while (true)
-            {
-                Tasks.Clear();
-                await RunAsyncCore();
-                if (!Loop) return;
-            }
-        }
-
-        await RunAsyncCore();
+            Tasks.Clear();
+            await RunAsyncCore();
+        } while (Loop);
     }
 
     private async Task RunAsyncCore()
@@ -42,6 +36,7 @@ public class AnimationHelper(List<IAnimation> animations)
         // 根据 Wait 进行动画分组
         var groupedAnimations = new List<List<IAnimation>>();
         var currentGroup = new List<IAnimation>();
+
         foreach (IAnimation animation in Animations)
         {
             if (animation.Wait)
