@@ -18,7 +18,7 @@ public static class JavaSelector
         /// <summary>
         /// Java运行时
         /// </summary>
-        public required JavaRuntime Runtime { get; init; }
+        public JavaRuntime Runtime { get; init; }
         
         /// <summary>
         /// 兼容性得分(越高越兼容)
@@ -241,20 +241,19 @@ public static class JavaSelector
             case JavaVerifier.JavaVendor.Oracle:
             case JavaVerifier.JavaVendor.AdoptiumEclipse:
             case JavaVerifier.JavaVendor.AdoptOpenJDK:
-                score += 50; // 更优先考虑这些主流厂商
+                score += 60; // 提高主流厂商的分数
+                break;
+            case JavaVerifier.JavaVendor.Microsoft:
+            case JavaVerifier.JavaVendor.Amazon:
+            case JavaVerifier.JavaVendor.Azul:
+                score += 40; // 其他知名厂商
                 break;
         }
         
-        // 4. JDK优先于JRE
+        // 4. JDK优先于JRE，因为JDK包含工具更加全面
         if (!java.IsJre)
         {
-            score += 25; // JDK包含更多工具，更全面
-        }
-        
-        // 5. 用户导入的Java给予额外分数
-        if (java.IsUserImport)
-        {
-            score += 150;
+            score += 40; 
         }
         
         // 确保设置正确的推荐级别
@@ -288,10 +287,10 @@ public static class JavaSelector
     {
         return level switch
         {
-            RecommendationLevel.Perfect => "完美匹配",
-            RecommendationLevel.Recommended => "高度推荐",
-            RecommendationLevel.Acceptable => "可接受",
-            RecommendationLevel.Marginal => "勉强可用",
+            RecommendationLevel.Perfect => "完美兼容",
+            RecommendationLevel.Recommended => "较好兼容",
+            RecommendationLevel.Acceptable => "可用",
+            RecommendationLevel.Marginal => "基本可用",
             RecommendationLevel.Incompatible => "不兼容",
             _ => "未知"
         };
