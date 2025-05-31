@@ -516,7 +516,7 @@ public class Test {
             JavaVendor.BellSoft => "BellSoft Liberica",
             JavaVendor.SAP => "SAP Machine",
             JavaVendor.RedHat => "RedHat OpenJDK",
-            _ => "未知厂商"
+            _ => "未知供应商"
         };
     }
 } 
