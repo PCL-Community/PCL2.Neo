@@ -12,12 +12,8 @@ namespace PCL.Neo.Controls
     public class MyCard : ContentControl
     {
         private Border? _borderMain;
-        private AnimationHelper _animation;
+        private AnimationHelper _animation = new();
 
-        public MyCard()
-        {
-            _animation = new();
-        }
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);

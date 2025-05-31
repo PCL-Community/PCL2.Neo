@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
-using Avalonia.Input;
 using Avalonia.Media;
 using PCL.Neo.Helpers;
 using PCL.Neo.Models;
@@ -111,14 +110,16 @@ public class MyRadioButton : RadioButton
     [Obsolete]
     private void SetCheck()
     {
-        if (this.Parent is Panel parent)
+        if (this.Parent is not Panel parent)
         {
-            foreach (var child in parent.Children)
+            return;
+        }
+
+        foreach (var child in parent.Children)
+        {
+            if (child is MyRadioButton radioButton && radioButton != this)
             {
-                if (child is MyRadioButton radioButton && radioButton != this)
-                {
-                    radioButton.IsChecked = false;
-                }
+                radioButton.IsChecked = false;
             }
         }
     }
@@ -133,12 +134,18 @@ public class MyRadioButton : RadioButton
             case ColorState.HighLight:
                 PseudoClasses.Set(":highlight", true);
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 
     private void RefreshColor()
     {
-        if (_shapeLogo is null || _labText is null) return;
+        if (_shapeLogo is null || _labText is null)
+        {
+            return;
+        }
+
         switch (ColorType)
         {
             case ColorState.White:
@@ -146,7 +153,7 @@ public class MyRadioButton : RadioButton
                 {
                     _panBack!.Background = (SolidColorBrush)new MyColor(255, 255, 255);
                     _shapeLogo.Fill = (IBrush?)Application.Current!.Resources["ColorBrush3"];
-                    _labText.Foreground = (IBrush?)Application.Current!.Resources["ColorBrush3"];
+                    _labText.Foreground = (IBrush?)Application.Current.Resources["ColorBrush3"];
                 }
                 else
                 {
@@ -154,6 +161,7 @@ public class MyRadioButton : RadioButton
                     _shapeLogo.Fill = (SolidColorBrush)new MyColor(255, 255, 255);
                     _labText.Foreground = (SolidColorBrush)new MyColor(255, 255, 255);
                 }
+
                 break;
             case ColorState.HighLight:
                 if (IsChecked!.Value)
@@ -166,9 +174,12 @@ public class MyRadioButton : RadioButton
                 {
                     _panBack!.Background = (SolidColorBrush)ThemeHelper.ColorSemiTransparent;
                     _shapeLogo.Fill = (IBrush?)Application.Current!.Resources["ColorBrush3"];
-                    _labText.Foreground = (IBrush?)Application.Current!.Resources["ColorBrush3"];
+                    _labText.Foreground = (IBrush?)Application.Current.Resources["ColorBrush3"];
                 }
+
                 break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
     }
 }

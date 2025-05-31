@@ -3,14 +3,9 @@ using System;
 
 namespace PCL.Neo.Animations.Easings
 {
-    public class MyBackEaseIn : Easing
+    public class MyBackEaseIn(EasePower power = EasePower.Middle) : Easing
     {
-        private readonly double p;
-
-        public MyBackEaseIn(EasePower power = EasePower.Middle)
-        {
-            p = 3 - (int)power * 0.5;
-        }
+        private readonly double p = 3 - (int)power * 0.5;
 
         public override double Ease(double progress)
         {

@@ -1,9 +1,9 @@
-using System;
 using Avalonia;
 using Avalonia.Media;
 using Avalonia.Styling;
 using PCL.Neo.Models;
 using PCL.Neo.Views;
+using System;
 
 namespace PCL.Neo.Helpers;
 
@@ -11,25 +11,25 @@ public class ThemeHelper
 {
     private readonly MainWindow _mainWindow;
 
-    public static MyColor Color1 { get; } = new MyColor(52, 61, 74);
-    public static MyColor Color2 { get; } = new MyColor(11, 91, 203);
-    public static MyColor Color3 { get; } = new MyColor(19, 112, 243);
-    public static MyColor Color4 { get; } = new MyColor(72, 144, 245);
-    public static MyColor Color5 { get; } = new MyColor(150, 192, 249);
-    public static MyColor Color6 { get; } = new MyColor(213, 230, 253);
-    public static MyColor Color7 { get; } = new MyColor(222, 236, 253);
-    public static MyColor Color8 { get; } = new MyColor(234, 242, 254);
-    public static MyColor ColorBg0 { get; } = new MyColor(150, 192, 249);
-    public static MyColor ColorBg1 { get; } = new MyColor(190, Color7);
-    public static MyColor ColorGray1 { get; } = new MyColor(64, 64, 64);
-    public static MyColor ColorGray2 { get; } = new MyColor(115, 115, 115);
-    public static MyColor ColorGray3 { get; } = new MyColor(140, 140, 140);
-    public static MyColor ColorGray4 { get; } = new MyColor(166, 166, 166);
-    public static MyColor ColorGray5 { get; } = new MyColor(204, 204, 204);
-    public static MyColor ColorGray6 { get; } = new MyColor(235, 235, 235);
-    public static MyColor ColorGray7 { get; } = new MyColor(240, 240, 240);
-    public static MyColor ColorGray8 { get; } = new MyColor(245, 245, 245);
-    public static MyColor ColorSemiTransparent { get; } = new MyColor(1, Color8);
+    public static MyColor Color1 { get; } = new(52, 61, 74);
+    public static MyColor Color2 { get; } = new(11, 91, 203);
+    public static MyColor Color3 { get; } = new(19, 112, 243);
+    public static MyColor Color4 { get; } = new(72, 144, 245);
+    public static MyColor Color5 { get; } = new(150, 192, 249);
+    public static MyColor Color6 { get; } = new(213, 230, 253);
+    public static MyColor Color7 { get; } = new(222, 236, 253);
+    public static MyColor Color8 { get; } = new(234, 242, 254);
+    public static MyColor ColorBg0 { get; } = new(150, 192, 249);
+    public static MyColor ColorBg1 { get; } = new(190, Color7);
+    public static MyColor ColorGray1 { get; } = new(64, 64, 64);
+    public static MyColor ColorGray2 { get; } = new(115, 115, 115);
+    public static MyColor ColorGray3 { get; } = new(140, 140, 140);
+    public static MyColor ColorGray4 { get; } = new(166, 166, 166);
+    public static MyColor ColorGray5 { get; } = new(204, 204, 204);
+    public static MyColor ColorGray6 { get; } = new(235, 235, 235);
+    public static MyColor ColorGray7 { get; } = new(240, 240, 240);
+    public static MyColor ColorGray8 { get; } = new(245, 245, 245);
+    public static MyColor ColorSemiTransparent { get; } = new(1, Color8);
 
     private int _colorHue = 210, _colorSat = 85, _colorLightAdjust = 0, _colorHueTopbarDelta = 0;
 

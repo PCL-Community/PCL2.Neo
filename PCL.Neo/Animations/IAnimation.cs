@@ -1,7 +1,5 @@
-using System.Threading.Tasks;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
 using System;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Animations;
 
