@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace PCL.Neo.ViewModels;
 
-[DefaultSubViewModel(typeof(DownloadGameViewModel))]
+[MainViewModel(typeof(DownloadGameViewModel))]
 public partial class DownloadViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
@@ -25,13 +25,13 @@ public partial class DownloadViewModel : ViewModelBase
     [RelayCommand]
     private async Task NavigateToDownloadGame()
     {
-        await _navigationService.GotoAsync<DownloadGameViewModel>();
+        _navigationService.Goto<DownloadGameViewModel>();
     }
 
     [RelayCommand]
     private async Task NavigateToDownloadMod()
     {
-        await _navigationService.GotoAsync<DownloadModViewModel>();
+        _navigationService.Goto<DownloadModViewModel>();
     }
 
     [RelayCommand]

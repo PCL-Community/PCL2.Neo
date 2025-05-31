@@ -33,7 +33,7 @@ public enum HomeLayoutType
     Simple
 }
 
-[SubViewModelOf(typeof(HomeViewModel))]
+[SubViewModel(typeof(HomeViewModel))]
 public partial class HomeSubViewModel : ViewModelBase
 {
     private readonly INavigationService _navigationService;
@@ -170,7 +170,7 @@ public partial class HomeSubViewModel : ViewModelBase
     [RelayCommand]
     private async Task NavigateToDownloadMod()
     {
-        await _navigationService.GotoAsync<DownloadModViewModel>();
+        _navigationService.Goto<DownloadModViewModel>();
     }
 
     [RelayCommand]
@@ -181,7 +181,7 @@ public partial class HomeSubViewModel : ViewModelBase
         js.Clear();
         _ = js.Submit(new TestJob1()).RunInNewTask();
         _ = js.Submit(new TestJob1 {IntervalFactor = 2.0}).RunInNewTask();
-        await this._navigationService.GotoAsync<JobViewModel>();
+        this._navigationService.Goto<JobViewModel>();
     }
 
     [RelayCommand]
@@ -195,7 +195,7 @@ public partial class HomeSubViewModel : ViewModelBase
     private async Task OpenGameSettings()
     {
         // 导航到游戏设置视图
-        await _navigationService.GotoViewModelAsync(_gameSettingsViewModel);
+        _navigationService.NavigateTo(Ioc.Default.GetRequiredService<HomeViewModelBackup>(), _gameSettingsViewModel);
 
         // 如果版本ID不为空，初始化为当前选中的版本
         if (SelectedGameVersion != null)
@@ -356,7 +356,7 @@ public partial class HomeSubViewModel : ViewModelBase
     private async Task ViewGameLogs()
     {
         // 导航到日志查看界面
-        await _navigationService.GotoAsync<LogViewModel>();
+        _navigationService.Goto<LogViewModel>();
     }
 
     [RelayCommand]

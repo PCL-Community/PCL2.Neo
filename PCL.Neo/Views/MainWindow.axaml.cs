@@ -24,9 +24,9 @@ namespace PCL.Neo.Views;
 
 public partial class MainWindow : Window
 {
-    private readonly CompositionVisual? _leftNavigationControlVisual;
-    private readonly CompositionVisual? _rightNavigationControlVisual;
-    private readonly Compositor? _compositor;
+    private CompositionVisual? _leftNavigationControlVisual;
+    private CompositionVisual? _rightNavigationControlVisual;
+    private Compositor? _compositor;
 
     public MainWindow()
     {
@@ -71,50 +71,50 @@ public partial class MainWindow : Window
                 if (args.WidthChanged)
                     LeftNavigationControlBorder.Width = args.NewSize.Width;
             };
+
+            // 获取导航控件的CompositionVisual，用于动画
+            _leftNavigationControlVisual  = ElementComposition.GetElementVisual(LeftNavigationControl);
+            _rightNavigationControlVisual = ElementComposition.GetElementVisual(RightNavigationControl);
+
+            if (_leftNavigationControlVisual != null)
+            {
+                _compositor = _leftNavigationControlVisual.Compositor;
+
+                // 订阅导航事件
+                this.Loaded += (_, _) =>
+                {
+                    if (DataContext is MainWindowViewModel viewModel)
+                    {
+                        viewModel.NavigationService.Navigated += OnNavigated;
+                    }
+                };
+
+                this.Unloaded += (_, _) =>
+                {
+                    if (DataContext is MainWindowViewModel viewModel)
+                    {
+                        viewModel.NavigationService.Navigated -= OnNavigated;
+                    }
+                };
+            }
         };
-
-        // 获取导航控件的CompositionVisual，用于动画
-        _leftNavigationControlVisual = ElementComposition.GetElementVisual(LeftNavigationControl);
-        _rightNavigationControlVisual = ElementComposition.GetElementVisual(RightNavigationControl);
-
-        if (_leftNavigationControlVisual != null)
-        {
-            _compositor = _leftNavigationControlVisual.Compositor;
-
-            // 订阅导航事件
-            this.Loaded += (_, _) =>
-            {
-                if (DataContext is MainWindowViewModel viewModel)
-                {
-                    viewModel.NavigationService.Navigating += OnNavigating;
-                }
-            };
-
-            this.Unloaded += (_, _) =>
-            {
-                if (DataContext is MainWindowViewModel viewModel)
-                {
-                    viewModel.NavigationService.Navigating -= OnNavigating;
-                }
-            };
-        }
 
         GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
 
-    private void OnNavigating(NavigationEventArgs e)
+    private void OnNavigated(NavigationEventArgs e)
     {
         if (_compositor == null || _leftNavigationControlVisual == null || _rightNavigationControlVisual == null)
             return;
 
         // 导航动画效果
-        if (e.NavigationType == NavigationType.Forward)
+        if (e is { NavigationType: NavigationType.Forward, IsMainViewModelChanged: true })
         {
             // 前进动画
             PlayForwardNavigationAnimation();
         }
-        else
+        if (e is { NavigationType: NavigationType.Backward, IsMainViewModelChanged: true })
         {
             // 后退动画
             PlayBackwardNavigationAnimation();
