@@ -62,6 +62,14 @@ public class WindowsAudioService : AudioService
     /// </summary>
     /// <param name="filePath">音频文件路径</param>
     /// <param name="cancellationToken">取消令牌</param>
+    /// <remarks>
+    /// 此实现使用Windows MCI命令播放音频文件，提供更好的控制和状态监控。
+    /// 具体实现步骤：
+    /// 1. 首先尝试使用MPEGVideo类型打开文件（支持更多格式）
+    /// 2. 如果失败，尝试不指定类型打开（系统自动选择处理程序）
+    /// 3. 如果再次失败，回退到基类的Windows Media Player实现
+    /// 4. 创建状态监控线程，定期检查播放状态并触发完成事件
+    /// </remarks>
     protected override async Task<bool> StartPlaybackAsync(string filePath, CancellationToken cancellationToken)
     {
         try
@@ -127,7 +135,7 @@ public class WindowsAudioService : AudioService
                     }
                     catch (Exception ex)
                     {
-                        LogError($"监视播放状态出错: {ex.Message}");
+                        LogError("监视播放状态出错", ex);
                     }
                 }, cancellationToken);
                 
@@ -140,7 +148,7 @@ public class WindowsAudioService : AudioService
         }
         catch (Exception ex)
         {
-            LogError($"Windows音频播放出错: {ex.Message}");
+            LogError("Windows音频播放出错", ex);
             return false;
         }
     }
@@ -148,12 +156,17 @@ public class WindowsAudioService : AudioService
     /// <summary>
     /// 暂停播放（Windows特定实现）
     /// </summary>
+    /// <remarks>
+    /// 使用MCI命令实现Windows平台的暂停功能，解决了基类中标记的"不能简单实现"的问题。
+    /// 通过发送"pause"命令给MCI设备来实现暂停功能。
+    /// </remarks>
     protected override Task<bool> PausePlaybackAsync()
     {
         return Task.Run(() =>
         {
             if (!_deviceOpen) return false;
             
+            LogInfo("Windows MCI暂停播放");
             long result = ExecuteMciCommand($"pause {MciDeviceAlias}");
             return result == 0;
         });
@@ -162,12 +175,17 @@ public class WindowsAudioService : AudioService
     /// <summary>
     /// 继续播放（Windows特定实现）
     /// </summary>
+    /// <remarks>
+    /// 使用MCI命令实现Windows平台的继续播放功能，解决了基类中标记的"不能简单实现"的问题。
+    /// 通过发送"resume"命令给MCI设备来继续播放。
+    /// </remarks>
     protected override Task<bool> ResumePlaybackAsync()
     {
         return Task.Run(() =>
         {
             if (!_deviceOpen) return false;
             
+            LogInfo("Windows MCI继续播放");
             long result = ExecuteMciCommand($"resume {MciDeviceAlias}");
             return result == 0;
         });
@@ -176,10 +194,15 @@ public class WindowsAudioService : AudioService
     /// <summary>
     /// 停止播放（Windows特定实现）
     /// </summary>
+    /// <remarks>
+    /// 通过关闭MCI设备来停止播放，
+    /// 比基类实现更加优雅，不需要强制终止进程。
+    /// </remarks>
     protected override Task<bool> StopPlaybackAsync()
     {
         return Task.Run(() =>
         {
+            LogInfo("Windows MCI停止播放");
             CloseAllMciDevices();
             return true;
         });
@@ -189,6 +212,11 @@ public class WindowsAudioService : AudioService
     /// 设置音量（Windows特定实现）
     /// </summary>
     /// <param name="volume">音量值（0.0 - 1.0）</param>
+    /// <remarks>
+    /// 使用Windows API waveOutSetVolume实现音量控制功能，
+    /// 解决了基类中未实现的音量控制问题。
+    /// 音量值范围从0.0（静音）到1.0（最大音量）。
+    /// </remarks>
     protected override Task<bool> SetVolumeInternalAsync(float volume)
     {
         return Task.Run(() =>
@@ -199,13 +227,15 @@ public class WindowsAudioService : AudioService
                 uint volumeValue = (uint)(volume * 65535);
                 uint stereoVolume = (volumeValue & 0xFFFF) | (volumeValue << 16);
                 
+                LogInfo($"设置Windows音量: {volume:P0}");
+                
                 // 设置系统音量
                 int result = waveOutSetVolume(IntPtr.Zero, stereoVolume);
                 return result == 0;
             }
             catch (Exception ex)
             {
-                LogError($"设置Windows音量时出错: {ex.Message}");
+                LogError("设置Windows音量时出错", ex);
                 return false;
             }
         });

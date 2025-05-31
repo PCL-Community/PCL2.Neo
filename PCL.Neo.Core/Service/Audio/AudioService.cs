@@ -13,7 +13,7 @@ namespace PCL.Neo.Core.Service.Audio;
 public class AudioService : IAudioService
 {
     private readonly AudioOptions _options;
-    private Process? _currentProcess;
+    protected Process? _currentProcess;
     private string? _tempFilePath;
     private bool _isPlaying;
     private bool _isPaused;
@@ -76,7 +76,7 @@ public class AudioService : IAudioService
             
             if (!File.Exists(filePath))
             {
-                LogError($"音频文件不存在: {filePath}");
+                LogError("音频文件不存在: " + filePath);
                 return false;
             }
             
@@ -90,12 +90,12 @@ public class AudioService : IAudioService
                 return true;
             }
             
-            LogError($"无法播放音频文件: {filePath}");
+            LogError("无法播放音频文件: " + filePath);
             return false;
         }
         catch (Exception ex)
         {
-            LogError($"播放音频时出错: {ex.Message}");
+            LogError("播放音频时出错", ex);
             return false;
         }
     }
@@ -139,7 +139,7 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            LogError($"从流播放音频时出错: {ex.Message}");
+            LogError("从流播放音频时出错", ex);
             return false;
         }
     }
@@ -208,7 +208,7 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            LogError($"停止播放时出错: {ex.Message}");
+            LogError("停止播放时出错", ex);
             return false;
         }
     }
@@ -235,7 +235,7 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            LogError($"设置音量时出错: {ex.Message}");
+            LogError("设置音量时出错", ex);
             return false;
         }
     }
@@ -246,8 +246,20 @@ public class AudioService : IAudioService
     /// <param name="filePath">音频文件路径</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>操作是否成功</returns>
+    /// <remarks>
+    /// 在Windows平台，此实现使用WMPlayer播放音频。
+    /// 对于Windows平台，推荐使用WindowsAudioService中的MCI实现，提供更好的控制和事件支持。
+    /// 参见: <see cref="WindowsAudioService.StartPlaybackAsync"/>
+    /// </remarks>
     protected virtual async Task<bool> StartPlaybackAsync(string filePath, CancellationToken cancellationToken)
     {
+        // 检查当前平台是否为Windows
+        if (SystemUtils.Os == SystemUtils.RunningOs.Windows)
+        {
+            // 在Windows平台，推荐使用专门的WindowsAudioService
+            LogInfo("基类不推荐在Windows平台使用，应使用WindowsAudioService");
+        }
+        
         try
         {
             return await Task.Run(async () =>
@@ -341,7 +353,7 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            LogError($"启动播放时出错: {ex.Message}");
+            LogError("启动播放时出错", ex);
             return false;
         }
     }
@@ -350,6 +362,11 @@ public class AudioService : IAudioService
     /// 暂停播放（平台相关实现）
     /// </summary>
     /// <returns>操作是否成功</returns>
+    /// <remarks>
+    /// 此基类实现仅支持Unix系统上的暂停功能。
+    /// Windows平台的暂停功能通过WindowsAudioService的MCI命令实现，请参见：
+    /// <see cref="WindowsAudioService.PausePlaybackAsync"/>
+    /// </remarks>
     protected virtual Task<bool> PausePlaybackAsync()
     {
         return Task.Run<bool>(() =>
@@ -362,8 +379,11 @@ public class AudioService : IAudioService
                 switch (SystemUtils.Os)
                 {
                     case SystemUtils.RunningOs.Windows:
-                        // Windows暂停需要单独实现，简单的命令行工具不容易实现
-                        return false;
+                        // 基类不支持Windows暂停，请使用WindowsAudioService的MCI实现
+                        LogInfo("基类不支持Windows平台暂停，请使用WindowsAudioService");
+                        return SystemUtils.Os == SystemUtils.RunningOs.Windows 
+                            ? CreateWindowsServiceAndExecute(service => service.PauseAsync().Result)
+                            : false;
                         
                     case SystemUtils.RunningOs.MacOs:
                     case SystemUtils.RunningOs.Linux:
@@ -384,7 +404,7 @@ public class AudioService : IAudioService
             }
             catch (Exception ex)
             {
-                LogError($"暂停播放时出错: {ex.Message}");
+                LogError("暂停播放时出错", ex);
                 return false;
             }
         });
@@ -394,6 +414,11 @@ public class AudioService : IAudioService
     /// 继续播放（平台相关实现）
     /// </summary>
     /// <returns>操作是否成功</returns>
+    /// <remarks>
+    /// 此基类实现仅支持Unix系统上的继续播放功能。
+    /// Windows平台的继续播放功能通过WindowsAudioService的MCI命令实现，请参见：
+    /// <see cref="WindowsAudioService.ResumePlaybackAsync"/>
+    /// </remarks>
     protected virtual Task<bool> ResumePlaybackAsync()
     {
         return Task.Run<bool>(() =>
@@ -406,8 +431,11 @@ public class AudioService : IAudioService
                 switch (SystemUtils.Os)
                 {
                     case SystemUtils.RunningOs.Windows:
-                        // Windows继续播放需要单独实现，简单的命令行工具不容易实现
-                        return false;
+                        // 基类不支持Windows继续播放，请使用WindowsAudioService的MCI实现
+                        LogInfo("基类不支持Windows平台继续播放，请使用WindowsAudioService");
+                        return SystemUtils.Os == SystemUtils.RunningOs.Windows 
+                            ? CreateWindowsServiceAndExecute(service => service.ResumeAsync().Result)
+                            : false;
                         
                     case SystemUtils.RunningOs.MacOs:
                     case SystemUtils.RunningOs.Linux:
@@ -428,7 +456,7 @@ public class AudioService : IAudioService
             }
             catch (Exception ex)
             {
-                LogError($"继续播放时出错: {ex.Message}");
+                LogError("继续播放时出错", ex);
                 return false;
             }
         });
@@ -447,6 +475,14 @@ public class AudioService : IAudioService
                 if (_currentProcess == null)
                     return true;
                 
+                // 对于Windows平台，可以使用WindowsAudioService的优雅关闭方式
+                if (SystemUtils.Os == SystemUtils.RunningOs.Windows)
+                {
+                    // 尝试使用WindowsAudioService的方法
+                    bool result = CreateWindowsServiceAndExecute(service => service.StopAsync().Result);
+                    if (result) return true;
+                }
+                
                 try
                 {
                     if (!_currentProcess.HasExited)
@@ -460,7 +496,7 @@ public class AudioService : IAudioService
                 }
                 catch (Exception ex)
                 {
-                    LogError($"停止播放时出错: {ex.Message}");
+                    LogError("停止播放时出错", ex);
                     return false;
                 }
             }
@@ -472,9 +508,49 @@ public class AudioService : IAudioService
     /// </summary>
     /// <param name="volume">音量值（0.0 - 1.0）</param>
     /// <returns>操作是否成功</returns>
+    /// <remarks>
+    /// 基类仅提供Windows平台委托到WindowsAudioService的实现。
+    /// 其他平台暂不支持音量控制。
+    /// Windows平台的音量控制通过WindowsAudioService实现，请参见：
+    /// <see cref="WindowsAudioService.SetVolumeInternalAsync"/>
+    /// </remarks>
     protected virtual Task<bool> SetVolumeInternalAsync(float volume)
     {
-        return Task.FromResult(true); // 基类实现暂不支持音量控制
+        if (SystemUtils.Os == SystemUtils.RunningOs.Windows)
+        {
+            // 在Windows平台使用WindowsAudioService的音量控制
+            return Task.Run(() => CreateWindowsServiceAndExecute(service => service.SetVolumeAsync(volume).Result));
+        }
+        
+        LogInfo("当前平台不支持音量控制");
+        return Task.FromResult(true); // 其他平台暂不支持音量控制
+    }
+    
+    /// <summary>
+    /// 创建WindowsAudioService实例并执行操作
+    /// </summary>
+    /// <param name="action">要执行的操作</param>
+    /// <returns>操作结果</returns>
+    private bool CreateWindowsServiceAndExecute(Func<WindowsAudioService, bool> action)
+    {
+        try
+        {
+            // 创建Windows音频服务的临时实例
+            var windowsService = new WindowsAudioService(_options);
+            try
+            {
+                return action(windowsService);
+            }
+            finally
+            {
+                windowsService.Dispose();
+            }
+        }
+        catch (Exception ex)
+        {
+            LogError("调用Windows音频服务时出错", ex);
+            return false;
+        }
     }
 
     /// <summary>
@@ -492,7 +568,7 @@ public class AudioService : IAudioService
         }
         catch (Exception ex)
         {
-            LogError($"清理临时文件时出错: {ex.Message}");
+            LogError("清理临时文件时出错", ex);
         }
     }
 
@@ -500,12 +576,20 @@ public class AudioService : IAudioService
     /// 记录错误信息
     /// </summary>
     /// <param name="message">错误消息</param>
-    protected void LogError(string message)
+    /// <param name="exception">异常对象（可选）</param>
+    protected void LogError(string message, Exception? exception = null)
     {
         if (_options.EnableLogging)
         {
-            // TODO: 使用正式的日志系统
-            Console.WriteLine($"[AudioService] ERROR: {message}");
+            if (exception != null)
+            {
+                Console.WriteLine($"[音频服务] ERROR: {message}: {exception.Message}");
+                Console.WriteLine(exception.StackTrace);
+            }
+            else
+            {
+                Console.WriteLine($"[音频服务] ERROR: {message}");
+            }
         }
     }
 
@@ -517,8 +601,19 @@ public class AudioService : IAudioService
     {
         if (_options.EnableLogging)
         {
-            // TODO: 使用正式的日志系统
-            Console.WriteLine($"[AudioService] INFO: {message}");
+            Console.WriteLine($"[音频服务] INFO: {message}");
+        }
+    }
+
+    /// <summary>
+    /// 记录调试信息
+    /// </summary>
+    /// <param name="message">调试消息</param>
+    protected void LogDebug(string message)
+    {
+        if (_options.EnableLogging)
+        {
+            Console.WriteLine($"[音频服务] DEBUG: {message}");
         }
     }
 
@@ -543,6 +638,10 @@ public class AudioService : IAudioService
     /// 触发播放完成事件的受保护方法
     /// </summary>
     /// <param name="sender">事件发送者</param>
+    /// <remarks>
+    /// 此方法提供了一种安全的方式来触发PlaybackFinished事件，
+    /// 派生类应使用此方法而不是直接调用事件，以确保正确的事件处理
+    /// </remarks>
     protected virtual void OnPlaybackFinished(object sender)
     {
         PlaybackFinished?.Invoke(sender, EventArgs.Empty);

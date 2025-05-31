@@ -20,9 +20,9 @@ public static class AudioServiceFactory
         return SystemUtils.Os switch
         {
             SystemUtils.RunningOs.Windows => new WindowsAudioService(options),
-            // 对于macOS和Linux平台，目前使用基本实现
-            // 未来可以添加特定平台的实现类
-            _ => new AudioService(options)
+            SystemUtils.RunningOs.MacOs => new MacOsAudioService(options),
+            SystemUtils.RunningOs.Linux => new LinuxAudioService(options),
+            _ => new AudioService(options) // 默认情况下使用基本实现
         };
     }
     
