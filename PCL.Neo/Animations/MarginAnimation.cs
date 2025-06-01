@@ -18,8 +18,9 @@ namespace PCL.Neo.Animations
         double end,
         Easing easing,
         TimeSpan duration,
-        TimeSpan delay)
-        : BaseAnimation(control, begin, end, easing, duration, delay)
+        TimeSpan delay,
+        bool wait)
+        : BaseAnimation(control, begin, end, easing, duration, delay, wait)
     {
         private static Thickness? GetCurrentMargin(Animatable control)
         {

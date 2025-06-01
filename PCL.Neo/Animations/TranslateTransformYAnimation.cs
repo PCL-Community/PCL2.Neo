@@ -12,10 +12,9 @@ namespace PCL.Neo.Animations
         double end,
         Easing easing,
         TimeSpan duration,
-        TimeSpan delay)
-        : BaseAnimation(control,
-            begin, end, easing, duration,
-            delay)
+        TimeSpan delay,
+        bool wait)
+        : BaseAnimation(control, begin, end, easing, duration, delay, wait)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>

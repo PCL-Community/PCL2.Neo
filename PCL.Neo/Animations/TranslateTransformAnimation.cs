@@ -14,8 +14,9 @@ namespace PCL.Neo.Animations
         Pos end,
         Easing easing,
         TimeSpan duration,
-        TimeSpan delay)
-        : BaseAnimation(control, 0d, 0d, easing, duration, delay)
+        TimeSpan delay,
+        bool wait)
+        : BaseAnimation(control, 0d, 0d, easing, duration, delay, wait)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>

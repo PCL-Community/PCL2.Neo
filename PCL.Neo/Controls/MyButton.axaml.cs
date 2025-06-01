@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Metadata;
 using PCL.Neo.Helpers;
+using PCL.Neo.Helpers.Animation;
 using PCL.Neo.Utils;
 using System;
 
@@ -44,7 +45,7 @@ public class MyButton : Button
             return;
         }
 
-        this.ScaleTo(0.955d, 80, easing: new CubicEaseOut());
+        this.Animate().ScaleTo(0.955d, 80, easing: new CubicEaseOut());
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
@@ -55,7 +56,7 @@ public class MyButton : Button
             return;
         }
 
-        this.ScaleTo(1d, 300, easing: new CubicEaseOut());
+        this.Animate().ScaleTo(1d, 300, easing: new CubicEaseOut());
     }
 
     public int Uuid = CoreUtils.GetUuid();

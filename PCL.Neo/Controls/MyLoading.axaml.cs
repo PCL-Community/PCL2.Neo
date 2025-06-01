@@ -6,7 +6,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Threading;
 using PCL.Neo.Animations.Easings;
-using PCL.Neo.Helpers;
+using PCL.Neo.Helpers.Animation;
 using System.Threading.Tasks;
 
 namespace PCL.Neo.Controls
@@ -181,17 +181,16 @@ namespace PCL.Neo.Controls
             //    .RotateTo(55d, durationMs: 900, easing: new ElasticEaseOut())
             //    .RotateTo(30d, durationMs: 180)
             //    .RunAsync();
+            // TODO: implement loop animation
 
-            // TODO: remake animation system
-
-            _pathPickaxe.RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
+            _pathPickaxe!.LoopAnimate().RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
                 .RotateFromTo(-20d, 30d, duration: 180);
-            _pathLeft.FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+            _pathLeft!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(-5d, 180, easing: new CubicEaseOut())
                 .MarginYTo(-6d, 180, easing: new CubicEaseOut());
 
-            _pathRight.FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+            _pathRight!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(5d, 180, easing: new CubicEaseOut())
                 .MarginYTo(-6d, 180, easing: new CubicEaseOut());
 
