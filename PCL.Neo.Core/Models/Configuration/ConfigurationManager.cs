@@ -26,11 +26,11 @@ public class ConfigurationManager : IConfigurationManager
     public TResult? GetConfiguration<TResult>() where TResult : class, new()
     {
         try
-        {
-            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+    {
+        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
 
-            if (attribute == null)
-            {
+        if (attribute == null)
+        {
                 return null;
             }
 
@@ -71,10 +71,10 @@ public class ConfigurationManager : IConfigurationManager
         where TResult : class, new()
     {
         try
+    {
+        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+        if (attribute == null)
         {
-            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
-            if (attribute == null)
-            {
                 return false;
             }
 
@@ -86,9 +86,9 @@ public class ConfigurationManager : IConfigurationManager
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-            }
+        }
 
-            var jsonContent = JsonSerializer.Serialize(config, options ?? DefaultOptions);
+        var jsonContent = JsonSerializer.Serialize(config, options ?? DefaultOptions);
             await File.WriteAllTextAsync(configPath, jsonContent);
             return true;
         }
@@ -103,11 +103,11 @@ public class ConfigurationManager : IConfigurationManager
         where TResult : class, new()
     {
         try
-        {
-            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+    {
+        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
 
-            if (attribute == null)
-            {
+        if (attribute == null)
+        {
                 return false;
             }
 
@@ -221,9 +221,9 @@ public class ConfigurationManager : IConfigurationManager
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-            }
+        }
 
-            var content = JsonSerializer.Serialize(config, options ?? DefaultOptions);
+        var content = JsonSerializer.Serialize(config, options ?? DefaultOptions);
             await File.WriteAllTextAsync(filePath, content);
             return true;
         }
