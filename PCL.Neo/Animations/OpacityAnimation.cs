@@ -7,15 +7,13 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class OpacityAnimation(
-        Animatable control,
-        double? before = null,
-        double? after = null,
-        Easing? easing = null,
-        TimeSpan? duration = null,
-        TimeSpan? delay = null,
-        bool wait = true)
-        : BaseAnimation(control, before ?? control.GetValue(Visual.OpacityProperty), after, easing, duration,
-            delay, wait)
+        WeakReference<Animatable> control,
+        double begin,
+        double end,
+        Easing easing,
+        TimeSpan duration,
+        TimeSpan delay)
+        : BaseAnimation(control, begin, end, easing, duration, delay)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>
@@ -27,8 +25,8 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Both,
                 Children =
                 {
-                    new KeyFrame { Setters = { new Setter(Visual.OpacityProperty, Before) }, Cue = new Cue(0d) },
-                    new KeyFrame { Setters = { new Setter(Visual.OpacityProperty, After) }, Cue = new Cue(1d) }
+                    new KeyFrame { Setters = { new Setter(Visual.OpacityProperty, Begin) }, Cue = new Cue(0d) },
+                    new KeyFrame { Setters = { new Setter(Visual.OpacityProperty, End) }, Cue = new Cue(1d) }
                 }
             };
     }

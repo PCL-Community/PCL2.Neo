@@ -1,12 +1,10 @@
 using Avalonia;
-using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
-using PCL.Neo.Animations;
 using PCL.Neo.Helpers;
 using PCL.Neo.Models;
 using PCL.Neo.Utils;
@@ -19,7 +17,6 @@ public class MyIconButton : Button
 {
     private Path? _pathIcon;
     private Border? _panBack;
-    private readonly AnimationHelper _animation = new AnimationHelper();
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
@@ -43,16 +40,8 @@ public class MyIconButton : Button
         {
             return;
         }
-
-        _animation.CancelAndClear();
-        _animation.Animations.AddRange(
-        [
-            new ScaleTransformScaleXAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(400), after: 0.8d,
-                easing: new QuarticEaseOut()),
-            new ScaleTransformScaleYAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(400), after: 0.8d,
-                easing: new QuarticEaseOut())
-        ]);
-        await _animation.RunAsync();
+        // TODO: remake animation system
+        //await this.Animate().ScaleTo(0.8, durationMs: 400, easing: new QuadraticEaseOut()).RunAsync();
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
@@ -62,18 +51,8 @@ public class MyIconButton : Button
         {
             return;
         }
-
-        _animation.CancelAndClear();
-        _animation.Animations.AddRange(
-        [
-            new ScaleTransformScaleXAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(250), before: 0.8d,
-                after: 1d,
-                easing: new BackEaseOut()),
-            new ScaleTransformScaleYAnimation(_panBack!, duration: TimeSpan.FromMilliseconds(250), before: 0.8d,
-                after: 1d,
-                easing: new BackEaseOut())
-        ]);
-        await _animation.RunAsync();
+        // TODO: remake animation system
+        //await this.Animate().ScaleTo(1d, durationMs: 250, easing: new MyBackEaseOut()).RunAsync();
     }
 
     public int Uuid = CoreUtils.GetUuid();
@@ -135,7 +114,7 @@ public class MyIconButton : Button
         }
     }
 
-    public static new readonly StyledProperty<IBrush> ForegroundProperty =
+    public new static readonly StyledProperty<IBrush> ForegroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush>(
             nameof(Foreground));
 
@@ -155,7 +134,7 @@ public class MyIconButton : Button
         set => SetValue(ForegroundInnerProperty, value);
     }
 
-    public static new readonly StyledProperty<IBrush> BackgroundProperty =
+    public new static readonly StyledProperty<IBrush> BackgroundProperty =
         AvaloniaProperty.Register<MyIconButton, IBrush>(
             nameof(Background));
 
@@ -209,18 +188,23 @@ public class MyIconButton : Button
             case IconThemes.Color:
                 PseudoClasses.Set(":color", true);
                 break;
+
             case IconThemes.White:
                 PseudoClasses.Set(":white", true);
                 break;
+
             case IconThemes.Black:
                 PseudoClasses.Set(":black", true);
                 break;
+
             case IconThemes.Red:
                 PseudoClasses.Set(":red", true);
                 break;
+
             case IconThemes.Custom:
                 PseudoClasses.Set(":custom", true);
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }

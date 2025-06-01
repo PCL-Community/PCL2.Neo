@@ -6,7 +6,6 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Metadata;
-using PCL.Neo.Animations;
 using PCL.Neo.Helpers;
 using PCL.Neo.Utils;
 using System;
@@ -17,11 +16,9 @@ namespace PCL.Neo.Controls;
 public class MyButton : Button
 {
     private Border? _panFore;
-    private readonly AnimationHelper _animation;
 
     public MyButton()
     {
-        _animation = new AnimationHelper();
         Inlines = new InlineCollection();
     }
 
@@ -47,12 +44,7 @@ public class MyButton : Button
             return;
         }
 
-        _animation.CancelAndClear();
-        _animation.Animations.AddRange([
-            new ScaleTransformScaleAnimation(this, duration: TimeSpan.FromMilliseconds(80), after: 0.955d,
-                easing: new CubicEaseOut())
-        ]);
-        await _animation.RunAsync();
+        this.ScaleTo(0.955d, 80, easing: new CubicEaseOut());
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
@@ -63,12 +55,7 @@ public class MyButton : Button
             return;
         }
 
-        _animation.CancelAndClear();
-        _animation.Animations.AddRange([
-            new ScaleTransformScaleAnimation(this, duration: TimeSpan.FromMilliseconds(300), before: 0.955d, after: 1d,
-                easing: new QuinticEaseOut(), wait: true)
-        ]);
-        await _animation.RunAsync();
+        this.ScaleTo(1d, 300, easing: new CubicEaseOut());
     }
 
     public int Uuid = CoreUtils.GetUuid();
@@ -172,12 +159,15 @@ public class MyButton : Button
             case ColorState.Normal:
                 PseudoClasses.Set(":normal", true);
                 break;
+
             case ColorState.Highlight:
                 PseudoClasses.Set(":highlight", true);
                 break;
+
             case ColorState.Red:
                 PseudoClasses.Set(":red", true);
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }

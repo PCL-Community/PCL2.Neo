@@ -6,7 +6,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using PCL.Neo.Animations.Easings;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PCL.Neo.Animations
@@ -28,7 +27,7 @@ namespace PCL.Neo.Animations
                 EasingType.CubicEaseOut => new CubicEaseOut(),
                 EasingType.CubicEaseInOut => new CubicEaseInOut(),
                 EasingType.QuarticEaseIn => new QuarticEaseIn(),
-                EasingType.QuarticEaseOut => new QuarticEaseOut(), 
+                EasingType.QuarticEaseOut => new QuarticEaseOut(),
                 EasingType.QuarticEaseInOut => new QuarticEaseInOut(),
                 EasingType.QuinticEaseIn => new QuinticEaseIn(),
                 EasingType.QuinticEaseOut => new QuinticEaseOut(),
@@ -65,14 +64,14 @@ namespace PCL.Neo.Animations
             // 保存原始状态
             var originalOpacity = control.Opacity;
             var originalTransform = control.RenderTransform;
-            
+
             // 设置初始状态
             control.Opacity = 0;
             control.RenderTransform = new TranslateTransform(100, 0);
-            
+
             // 等待UI更新
             await Task.Delay(10);
-            
+
             // 创建不透明度动画
             var opacityAnimation = new Animation
             {
@@ -80,18 +79,16 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
+
             // 使用正确的Setter语法
-            var opacityFrame1 = new KeyFrame();
-            opacityFrame1.Cue = new Cue(0d);
+            var opacityFrame1 = new KeyFrame { Cue = new Cue(0d) };
             opacityFrame1.Setters.Add(new Setter(Visual.OpacityProperty, 0d));
             opacityAnimation.Children.Add(opacityFrame1);
-            
-            var opacityFrame2 = new KeyFrame();
-            opacityFrame2.Cue = new Cue(1d);
+
+            var opacityFrame2 = new KeyFrame { Cue = new Cue(1d) };
             opacityFrame2.Setters.Add(new Setter(Visual.OpacityProperty, originalOpacity));
             opacityAnimation.Children.Add(opacityFrame2);
-            
+
             // 创建位移动画
             var translateAnimation = new Animation
             {
@@ -99,22 +96,20 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
-            var translateFrame1 = new KeyFrame();
-            translateFrame1.Cue = new Cue(0d);
+
+            var translateFrame1 = new KeyFrame { Cue = new Cue(0d) };
             translateFrame1.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(100, 0)));
             translateAnimation.Children.Add(translateFrame1);
-            
-            var translateFrame2 = new KeyFrame();
-            translateFrame2.Cue = new Cue(1d);
+
+            var translateFrame2 = new KeyFrame { Cue = new Cue(1d) };
             translateFrame2.Setters.Add(new Setter(Visual.RenderTransformProperty, originalTransform ?? new TranslateTransform(0, 0)));
             translateAnimation.Children.Add(translateFrame2);
-            
+
             // 执行动画
             await opacityAnimation.RunAsync(control);
             await translateAnimation.RunAsync(control);
         }
-        
+
         /// <summary>
         /// 从左侧滑入动画
         /// </summary>
@@ -125,14 +120,14 @@ namespace PCL.Neo.Animations
             // 保存原始状态
             var originalOpacity = control.Opacity;
             var originalTransform = control.RenderTransform;
-            
+
             // 设置初始状态
             control.Opacity = 0;
             control.RenderTransform = new TranslateTransform(-100, 0);
-            
+
             // 等待UI更新
             await Task.Delay(10);
-            
+
             // 创建不透明度动画
             var opacityAnimation = new Animation
             {
@@ -140,17 +135,15 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
-            var opacityFrame1 = new KeyFrame();
-            opacityFrame1.Cue = new Cue(0d);
+
+            var opacityFrame1 = new KeyFrame { Cue = new Cue(0d) };
             opacityFrame1.Setters.Add(new Setter(Visual.OpacityProperty, 0d));
             opacityAnimation.Children.Add(opacityFrame1);
-            
-            var opacityFrame2 = new KeyFrame();
-            opacityFrame2.Cue = new Cue(1d);
+
+            var opacityFrame2 = new KeyFrame { Cue = new Cue(1d) };
             opacityFrame2.Setters.Add(new Setter(Visual.OpacityProperty, originalOpacity));
             opacityAnimation.Children.Add(opacityFrame2);
-            
+
             // 创建位移动画
             var translateAnimation = new Animation
             {
@@ -158,22 +151,20 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
-            var translateFrame1 = new KeyFrame();
-            translateFrame1.Cue = new Cue(0d);
+
+            var translateFrame1 = new KeyFrame { Cue = new Cue(0d) };
             translateFrame1.Setters.Add(new Setter(Visual.RenderTransformProperty, new TranslateTransform(-100, 0)));
             translateAnimation.Children.Add(translateFrame1);
-            
-            var translateFrame2 = new KeyFrame();
-            translateFrame2.Cue = new Cue(1d);
+
+            var translateFrame2 = new KeyFrame { Cue = new Cue(1d) };
             translateFrame2.Setters.Add(new Setter(Visual.RenderTransformProperty, originalTransform ?? new TranslateTransform(0, 0)));
             translateAnimation.Children.Add(translateFrame2);
-            
+
             // 执行动画
             await opacityAnimation.RunAsync(control);
             await translateAnimation.RunAsync(control);
         }
-        
+
         /// <summary>
         /// 淡入动画
         /// </summary>
@@ -183,13 +174,13 @@ namespace PCL.Neo.Animations
 
             // 保存原始状态
             var originalOpacity = control.Opacity;
-            
+
             // 设置初始状态
             control.Opacity = 0;
-            
+
             // 等待UI更新
             await Task.Delay(10);
-            
+
             // 创建不透明度动画
             var opacityAnimation = new Animation
             {
@@ -197,21 +188,19 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
-            var opacityFrame1 = new KeyFrame();
-            opacityFrame1.Cue = new Cue(0d);
+
+            var opacityFrame1 = new KeyFrame { Cue = new Cue(0d) };
             opacityFrame1.Setters.Add(new Setter(Visual.OpacityProperty, 0d));
             opacityAnimation.Children.Add(opacityFrame1);
-            
-            var opacityFrame2 = new KeyFrame();
-            opacityFrame2.Cue = new Cue(1d);
+
+            var opacityFrame2 = new KeyFrame { Cue = new Cue(1d) };
             opacityFrame2.Setters.Add(new Setter(Visual.OpacityProperty, originalOpacity));
             opacityAnimation.Children.Add(opacityFrame2);
-            
+
             // 执行动画
             await opacityAnimation.RunAsync(control);
         }
-        
+
         /// <summary>
         /// 淡出动画
         /// </summary>
@@ -221,10 +210,10 @@ namespace PCL.Neo.Animations
 
             // 保存原始状态
             var originalOpacity = control.Opacity;
-            
+
             // 等待UI更新
             await Task.Delay(10);
-            
+
             // 创建不透明度动画
             var opacityAnimation = new Animation
             {
@@ -232,22 +221,20 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Forward,
                 Easing = easingType.GetEasing()
             };
-            
-            var opacityFrame1 = new KeyFrame();
-            opacityFrame1.Cue = new Cue(0d);
+
+            var opacityFrame1 = new KeyFrame { Cue = new Cue(0d) };
             opacityFrame1.Setters.Add(new Setter(Visual.OpacityProperty, originalOpacity));
             opacityAnimation.Children.Add(opacityFrame1);
-            
-            var opacityFrame2 = new KeyFrame();
-            opacityFrame2.Cue = new Cue(1d);
+
+            var opacityFrame2 = new KeyFrame { Cue = new Cue(1d) };
             opacityFrame2.Setters.Add(new Setter(Visual.OpacityProperty, 0d));
             opacityAnimation.Children.Add(opacityFrame2);
-            
+
             // 执行动画
             await opacityAnimation.RunAsync(control);
-            
+
             // 设置最终状态
             control.Opacity = 0;
         }
     }
-} 
+}

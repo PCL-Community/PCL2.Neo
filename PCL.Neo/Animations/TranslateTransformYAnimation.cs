@@ -7,15 +7,15 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class TranslateTransformYAnimation(
-        Animatable control,
-        double? before = null,
-        double? after = null,
-        Easing? easing = null,
-        TimeSpan? duration = null,
-        TimeSpan? delay = null,
-        bool wait = true)
-        : BaseAnimation(control, before ?? control.GetValue(TranslateTransform.YProperty), after, easing, duration,
-            delay, wait)
+        WeakReference<Animatable> control,
+        double begin,
+        double end,
+        Easing easing,
+        TimeSpan duration,
+        TimeSpan delay)
+        : BaseAnimation(control,
+            begin, end, easing, duration,
+            delay)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>
@@ -27,8 +27,8 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Both,
                 Children =
                 {
-                    new KeyFrame { Setters = { new Setter(TranslateTransform.YProperty, Before) }, Cue = new Cue(0d) },
-                    new KeyFrame { Setters = { new Setter(TranslateTransform.YProperty, After) }, Cue = new Cue(1d) }
+                    new KeyFrame { Setters = { new Setter(TranslateTransform.YProperty, Begin) }, Cue = new Cue(0d) },
+                    new KeyFrame { Setters = { new Setter(TranslateTransform.YProperty, End) }, Cue = new Cue(1d) }
                 }
             };
     }

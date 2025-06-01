@@ -6,21 +6,20 @@ using System;
 
 namespace PCL.Neo.Animations
 {
-    public record ScaleRate(double X, double Y);
+    public record Pos(double X, double Y);
 
-    public class ScaleTransformScaleAnimation(
+    public class TranslateTransformAnimation(
         WeakReference<Animatable> control,
-        ScaleRate begin,
-        ScaleRate end,
+        Pos begin,
+        Pos end,
         Easing easing,
         TimeSpan duration,
         TimeSpan delay)
         : BaseAnimation(control, 0d, 0d, easing, duration, delay)
     {
         /// <inheritdoc />
-        public override Animation AnimationBuilder()
-        {
-            return new Animation
+        public override Animation AnimationBuilder() =>
+            new()
             {
                 Easing = Easing,
                 Duration = Duration,
@@ -32,8 +31,8 @@ namespace PCL.Neo.Animations
                     {
                         Setters =
                         {
-                            new Setter(ScaleTransform.ScaleXProperty, begin.X),
-                            new Setter(ScaleTransform.ScaleYProperty, begin.Y)
+                            new Setter(TranslateTransform.XProperty, begin.X),
+                            new Setter(TranslateTransform.YProperty, begin.Y)
                         },
                         Cue = new Cue(0d)
                     },
@@ -41,13 +40,12 @@ namespace PCL.Neo.Animations
                     {
                         Setters =
                         {
-                            new Setter(ScaleTransform.ScaleXProperty, end.X),
-                            new Setter(ScaleTransform.ScaleYProperty, end.Y)
+                            new Setter(TranslateTransform.XProperty, end.X),
+                            new Setter(TranslateTransform.YProperty, end.Y)
                         },
                         Cue = new Cue(1d)
                     }
                 }
             };
-        }
     }
 }

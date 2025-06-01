@@ -7,15 +7,13 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class RotateTransformAngleAnimation(
-        Animatable control,
-        double? before = null,
-        double? after = null,
-        Easing? easing = null,
-        TimeSpan? duration = null,
-        TimeSpan? delay = null,
-        bool wait = true)
-        : BaseAnimation(control, before ?? control.GetValue(RotateTransform.AngleProperty), after, easing, duration,
-            delay, wait)
+        WeakReference<Animatable> control,
+        double begin,
+        double end,
+        Easing easing,
+        TimeSpan duration,
+        TimeSpan delay)
+        : BaseAnimation(control, begin, end, easing, duration, delay)
     {
         /// <inheritdoc />
         public override Animation AnimationBuilder() =>
@@ -27,8 +25,8 @@ namespace PCL.Neo.Animations
                 FillMode = FillMode.Both,
                 Children =
                 {
-                    new KeyFrame { Setters = { new Setter(RotateTransform.AngleProperty, Before) }, Cue = new Cue(0d) },
-                    new KeyFrame { Setters = { new Setter(RotateTransform.AngleProperty, After) }, Cue = new Cue(1d) }
+                    new KeyFrame { Setters = { new Setter(RotateTransform.AngleProperty, Begin) }, Cue = new Cue(0d) },
+                    new KeyFrame { Setters = { new Setter(RotateTransform.AngleProperty, End) }, Cue = new Cue(1d) }
                 }
             };
     }

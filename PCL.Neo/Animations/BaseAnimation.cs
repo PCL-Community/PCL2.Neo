@@ -7,36 +7,33 @@ using System.Threading.Tasks;
 namespace PCL.Neo.Animations
 {
     public abstract class BaseAnimation(
-        Animatable control,
-        double? before = null,
-        double? after = null,
-        Easing? easing = null,
-        TimeSpan? duration = null,
-        TimeSpan? delay = null,
-        bool wait = true)
+        WeakReference<Animatable> control,
+        double begin,
+        double end,
+        Easing easing,
+        TimeSpan duration,
+        TimeSpan delay)
         : IAnimation
     {
         /// <inheritdoc />
-        public bool Wait { get; set; } = wait;
-
-        /// <inheritdoc />
-        public TimeSpan Delay { get; set; } = delay ?? TimeSpan.Zero;
+        public TimeSpan Delay { get; set; } = delay;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new();
-        public Animatable Control { get; set; } = control;
-        public TimeSpan Duration { get; set; } = duration ?? TimeSpan.FromMilliseconds(250);
-        public double? Before { get; set; } = before ?? 0d;
-        public double? After { get; set; } = after ?? 0.953d;
-        public Easing Easing { get; set; } = easing ?? new LinearEasing();
+        private WeakReference<Animatable> Control { get; } = control;
+        protected TimeSpan Duration { get; } = duration;
+        protected double? Begin { get; } = begin;
+        protected double? End { get; } = end;
+        protected Easing Easing { get; } = easing;
 
-        /// <summary>
-        /// Build the animation
-        /// </summary>
-        /// <returns><see cref="Animation"/> The animation</returns>
+        /// <inheritdoc />
         public abstract Animation AnimationBuilder();
 
         /// <inheritdoc />
-        public async Task RunAsync() => await AnimationBuilder().RunAsync(Control, _cancellationTokenSource.Token);
+        public async Task RunAsync()
+        {
+            Control.TryGetTarget(out var target);
+            await AnimationBuilder().RunAsync(target, _cancellationTokenSource.Token);
+        }
 
         /// <inheritdoc />
         public void Cancel()

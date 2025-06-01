@@ -131,9 +131,11 @@ public class MyRadioButton : RadioButton
             case ColorState.White:
                 PseudoClasses.Set(":white", true);
                 break;
+
             case ColorState.HighLight:
                 PseudoClasses.Set(":highlight", true);
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -163,6 +165,7 @@ public class MyRadioButton : RadioButton
                 }
 
                 break;
+
             case ColorState.HighLight:
                 if (IsChecked!.Value)
                 {
@@ -178,6 +181,7 @@ public class MyRadioButton : RadioButton
                 }
 
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
