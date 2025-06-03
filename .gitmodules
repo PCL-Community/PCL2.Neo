@@ -1,0 +1,3 @@
+[submodule "PCL.Neo.WebApi/wwwroot"]
+	path = PCL.Neo.WebApi/wwwroot
+	url = https://github.com/AMagicPear/PCL.Proto.git
