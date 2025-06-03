@@ -114,10 +114,11 @@ public class MicrosoftAuthService : IMicrosoftAuthService
         string deviceCode, int interval)
     {
         var tempInterval = interval;
-        var content = new Dictionary<string, string>(OAuthData.FormUrlReqData.UserAuthStateData.Value)
-        {
-            ["device_code"] = deviceCode
-        };
+        var content = OAuthData.FormUrlReqData.UserAuthStateData.Value.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value
+        );
+        content["device_code"] = deviceCode;
 
         var msg = new FormUrlEncodedContent(content)
         {

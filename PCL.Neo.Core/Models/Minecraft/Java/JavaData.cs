@@ -1,3 +1,4 @@
+using PCL.Neo.Core.Polyfill;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -176,7 +177,7 @@ public class JavaRuntime
         // --version     将产品版本输出到输出流并退出
         // 但是格式不一样
         javaProcess.Start();
-        await javaProcess.WaitForExitAsync().ConfigureAwait(false);
+        await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(javaProcess).ConfigureAwait(false);
         var output = await javaProcess.StandardError.ReadToEndAsync();
         return output;
     }

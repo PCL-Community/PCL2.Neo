@@ -174,7 +174,7 @@ public partial class LogViewModel : ViewModelBase
         }
         
         // 如果设置了过滤文本并且条目消息不包含过滤文本
-        if (!string.IsNullOrEmpty(FilterText) && !entry.Message.Contains(FilterText, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(FilterText) && entry.Message.IndexOf(FilterText, StringComparison.OrdinalIgnoreCase) < 0)
         {
             return false;
         }

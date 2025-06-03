@@ -1,4 +1,5 @@
 using PCL.Neo.Core.Download;
+using PCL.Neo.Core.Polyfill;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text.Json;
@@ -44,7 +45,13 @@ public sealed partial class JavaManager
     {
         // TODO)) 根据配置文件切换下载源
         Uri metaUrl = new(MetaUrl);
-        var allJson = await Shared.HttpClient.GetStringAsync(metaUrl, cancellationToken);
+        string? allJson = await Shared.HttpClient.GetStringAsync(metaUrl.ToString(), cancellationToken);
+        if (string.IsNullOrEmpty(allJson))
+        {
+            Console.WriteLine("下载Java元数据失败");
+            return null;
+        }
+
         string manifestJson = string.Empty;
         using (var document = JsonDocument.Parse(allJson))
         {
@@ -77,8 +84,8 @@ public sealed partial class JavaManager
         }
 
         var files = filesNode!.AsObject();
-        var tasks = new List<Task>(files.Count);
-        var executableFiles = new List<string>(files.Count);
+        var tasks = new List<Task>();
+        var executableFiles = new List<string>();
         foreach ((string filePath, JsonNode? value) in files)
         {
             var fileInfo = value!.AsObject();
@@ -113,25 +120,30 @@ public sealed partial class JavaManager
             Directory.CreateDirectory(Path.GetDirectoryName(localFilePath)!);
             // 有的文件有LZMA压缩但是有的 tm 没有，尼玛搞了个解压缩发现文件少了几个
             // 要分类讨论，sb MOJANG
-            if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma))
+            if (lzmaNode != null && !string.IsNullOrEmpty(urlLzma) && !string.IsNullOrEmpty(sha1Lzma))
             {
                 tasks.Add(Task.Run(async () =>
                 {
                     try
                     {
-                        await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
-                            localFilePath + ".lzma", sha1Lzma, cancellationToken);
-                        await using var fs = lzmaFs.DecompressLzma(localFilePath);
-                        if (fs is null)
+                        using (var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(
+                            urlLzma!,
+                            localFilePath + ".lzma", 
+                            sha1Lzma, 
+                            cancellationToken))
+                        using (var fs = lzmaFs.DecompressLzma(localFilePath))
                         {
-                            Console.WriteLine("outStream 为空");
-                            return;
-                        }
+                            if (fs is null)
+                            {
+                                Console.WriteLine("outStream 为空");
+                                return;
+                            }
 
-                        if (!await new FileIntegrity { Hash = sha1Raw }.VerifyAsync(fs, cancellationToken))
-                        {
-                            Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
-                            return;
+                            if (!await new FileIntegrity { Hash = sha1Raw! }.VerifyAsync(fs, cancellationToken))
+                            {
+                                Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
+                                return;
+                            }
                         }
                     }
                     catch (Exception e)
@@ -146,29 +158,41 @@ public sealed partial class JavaManager
                     }
                 }, cancellationToken));
             }
-            else
-                tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
+            else if (!string.IsNullOrEmpty(urlRaw) && !string.IsNullOrEmpty(sha1Raw))
+            {
+                tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw!, localFilePath, sha1Raw!, cancellationToken));
+            }
         }
 
         if (progress != null)
         {
             int completed = 0;
             int total = tasks.Count;
+            Task[] taskArray = tasks.ToArray();
             while (total - completed > 0)
             {
-                var finishedTask = await Task.WhenAny(tasks);
+                var finishedTask = await Task.WhenAny(taskArray);
                 progress.Report((++completed, total));
                 try { await finishedTask; }
                 catch (Exception ex) { Console.WriteLine(ex); }
+                
+                // 从数组中移除已完成的任务
+                List<Task> remainingTasks = new List<Task>(taskArray);
+                remainingTasks.Remove(finishedTask);
+                taskArray = remainingTasks.ToArray();
             }
         }
-
-        await Task.WhenAll(tasks);
+        else
+        {
+            Task[] taskArray = tasks.ToArray();
+            await Task.WhenAll(taskArray);
+        }
 
 #pragma warning disable CA1416
         if (SystemUtils.Os is not SystemUtils.RunningOs.Windows)
         {
-            Parallel.ForEach(executableFiles, executableFile =>
+            string[] executableFilesArray = executableFiles.ToArray();
+            Parallel.ForEach(executableFilesArray, executableFile =>
             {
                 if (string.IsNullOrEmpty(executableFile) || !File.Exists(executableFile))
                     throw new FileNotFoundException();

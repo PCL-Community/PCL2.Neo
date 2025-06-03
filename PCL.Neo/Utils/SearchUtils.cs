@@ -110,7 +110,7 @@ public static class SearchUtils
         {
             entry.Similarity = SearchSimilarityWeighted(entry.SearchSource, query);
             entry.AbsoluteRight = query.Split(" ").All((queryPart) => entry.SearchSource.Any((source) =>
-                source.Key.Replace(" ", "").Contains(queryPart, StringComparison.OrdinalIgnoreCase)));
+                source.Key.Replace(" ", "").IndexOf(queryPart, StringComparison.OrdinalIgnoreCase) >= 0));
         }
         // 按照相似度进行排序
         entries.Sort((left, right) =>

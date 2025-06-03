@@ -66,7 +66,12 @@ public class AuthCodeMode
 
     private static async Task<UserTokens> GetAuthTokenAsync(string code)
     {
-        var data = new Dictionary<string, string>(OAuthData.FormUrlReqData.AuthTokenData.Value) { ["code"] = code };
+        // 将IReadOnlyDictionary转换为Dictionary
+        var data = OAuthData.FormUrlReqData.AuthTokenData.Value.ToDictionary(
+            kvp => kvp.Key, 
+            kvp => kvp.Value
+        );
+        data["code"] = code;
 
         // TODO: 完成获取Auth Token的请求逻辑，替换临时返回值
         return new UserTokens("temp_access_token", "temp_refresh_token", 3600);

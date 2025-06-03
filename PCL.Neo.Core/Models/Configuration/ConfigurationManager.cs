@@ -14,7 +14,7 @@ public class ConfigurationManager : IConfigurationManager
 {
     private static readonly JsonSerializerOptions DefaultOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase, WriteIndented = true
     };
 
     /// <summary>
@@ -26,11 +26,11 @@ public class ConfigurationManager : IConfigurationManager
     public TResult? GetConfiguration<TResult>() where TResult : class, new()
     {
         try
-    {
-        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
-
-        if (attribute == null)
         {
+            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+
+            if (attribute == null)
+            {
                 return null;
             }
 
@@ -71,10 +71,10 @@ public class ConfigurationManager : IConfigurationManager
         where TResult : class, new()
     {
         try
-    {
-        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
-        if (attribute == null)
         {
+            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+            if (attribute == null)
+            {
                 return false;
             }
 
@@ -86,10 +86,10 @@ public class ConfigurationManager : IConfigurationManager
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-        }
+            }
 
-        var jsonContent = JsonSerializer.Serialize(config, options ?? DefaultOptions);
-            await File.WriteAllTextAsync(configPath, jsonContent);
+            var jsonContent = JsonSerializer.Serialize(config, options ?? DefaultOptions);
+            await FilePolyfill.WriteAllTextAsync(configPath, jsonContent);
             return true;
         }
         catch (Exception)
@@ -103,11 +103,11 @@ public class ConfigurationManager : IConfigurationManager
         where TResult : class, new()
     {
         try
-    {
-        var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
-
-        if (attribute == null)
         {
+            var attribute = typeof(TResult).GetCustomAttribute<ConfigurationInfoAttribute>();
+
+            if (attribute == null)
+            {
                 return false;
             }
 
@@ -122,7 +122,7 @@ public class ConfigurationManager : IConfigurationManager
             }
 
             var content = JsonSerializer.Serialize(config, options ?? DefaultOptions);
-            await File.WriteAllTextAsync(configPath, content);
+            await FilePolyfill.WriteAllTextAsync(configPath, content);
             return true;
         }
         catch (Exception)
@@ -209,7 +209,7 @@ public class ConfigurationManager : IConfigurationManager
     /// <typeparam name="TResult">配置类型</typeparam>
     /// <param name="config">配置对象</param>
     /// <param name="filePath">文件路径</param>
-    /// <param name="options">序列化选项</param>
+    /// <param name="options">JSON序列化选项</param>
     /// <returns>是否成功</returns>
     public async Task<bool> SaveToPath<TResult>(TResult config, string filePath, JsonSerializerOptions? options = null) 
         where TResult : class, new()
@@ -221,10 +221,10 @@ public class ConfigurationManager : IConfigurationManager
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-        }
+            }
 
-        var content = JsonSerializer.Serialize(config, options ?? DefaultOptions);
-            await File.WriteAllTextAsync(filePath, content);
+            var content = JsonSerializer.Serialize(config, options ?? DefaultOptions);
+            await FilePolyfill.WriteAllTextAsync(filePath, content);
             return true;
         }
         catch (Exception)
@@ -275,27 +275,28 @@ public class ConfigurationManager : IConfigurationManager
     {
         try
         {
-            var config = GetConfiguration<T>();
-            if (config == null)
-            {
-                return false;
-            }
-            
             var attribute = typeof(T).GetCustomAttribute<ConfigurationInfoAttribute>();
             if (attribute == null)
             {
                 return false;
             }
-            
+
+            // 获取配置路径
             string configPath = GetConfigPath<T>(attribute.FilePath);
-            string backupPath = $"{configPath}.{DateTime.Now:yyyyMMdd_HHmmss}.bak";
-            
-            var content = File.ReadAllText(configPath);
-            await File.WriteAllTextAsync(backupPath, content);
-            
+            if (!File.Exists(configPath))
+            {
+                return false;
+            }
+
+            // 创建备份文件名
+            string backupPath = $"{configPath}.{DateTime.Now:yyyyMMddHHmmss}.bak";
+
+            // 读取原文件内容并写入备份文件
+            string content = File.ReadAllText(configPath);
+            await FilePolyfill.WriteAllTextAsync(backupPath, content);
             return true;
         }
-        catch
+        catch (Exception)
         {
             return false;
         }

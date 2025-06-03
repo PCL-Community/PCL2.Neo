@@ -10,10 +10,11 @@ public static class OAuth
 {
     public static async Task<OAuthData.ResponseData.AccessTokenResponse> RefreshTokenAsync(string refreshToken)
     {
-        var authTokenData = new Dictionary<string, string>(OAuthData.FormUrlReqData.RefreshTokenData.Value)
-        {
-            ["refresh_token"] = refreshToken
-        };
+        var authTokenData = OAuthData.FormUrlReqData.RefreshTokenData.Value.ToDictionary(
+            kvp => kvp.Key,
+            kvp => kvp.Value
+        );
+        authTokenData["refresh_token"] = refreshToken;
 
         return await Net.SendHttpRequestAsync<OAuthData.ResponseData.AccessTokenResponse>(
             HttpMethod.Post,
@@ -21,7 +22,7 @@ public static class OAuth
             new FormUrlEncodedContent(authTokenData));
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.RequireData))]
+    [DynamicDependency("PublicConstructors", typeof(OAuthData.RequireData))]
     public static async Task<OAuthData.ResponseData.XboxResponse> GetXboxTokenAsync(string accessToken)
     {
         var jsonContent =
@@ -36,11 +37,12 @@ public static class OAuth
             jsonContent);
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(OAuthData.RequireData))]
+    [DynamicDependency("PublicConstructors", typeof(OAuthData.RequireData))]
     public static async Task<string> GetXstsTokenAsync(string xblToken)
     {
+        List<string> tokens = new List<string> { xblToken };
         var jsonContent =
-            new OAuthData.RequireData.XstsRequire(new OAuthData.RequireData.XstsRequire.PropertiesData([xblToken]));
+            new OAuthData.RequireData.XstsRequire(new OAuthData.RequireData.XstsRequire.PropertiesData(tokens));
 
         var response = await Net.SendHttpRequestAsync<OAuthData.ResponseData.XboxResponse>(
             HttpMethod.Post,

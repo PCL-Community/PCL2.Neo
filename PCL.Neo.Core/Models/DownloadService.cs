@@ -1,4 +1,8 @@
 using PCL.Neo.Core.Utils;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Models;
 
@@ -31,7 +35,8 @@ public class DownloadService
         int               maxRetries        = 3,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(uri);
+        if (uri == null)
+            throw new ArgumentNullException(nameof(uri));
 
         Console.WriteLine($"Downloading {localFilePath}...");
 
@@ -50,7 +55,7 @@ public class DownloadService
                 var fileStream = new FileStream(localFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
                 try
                 {
-                    await response.Content.CopyToAsync(fileStream, cancellationToken);
+                    await response.Content.CopyToAsync(fileStream);
                     response.EnsureSuccessStatusCode();
 
                     if (!string.IsNullOrEmpty(sha1))
@@ -74,7 +79,7 @@ public class DownloadService
                 }
                 catch
                 {
-                    await fileStream.DisposeAsync().ConfigureAwait(false);
+                    fileStream.Dispose();
                     throw;
                 }
             }

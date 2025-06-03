@@ -72,7 +72,7 @@ public class Downloader(int degreeOfParallelism = 8) : IDisposable
 
         try
         {
-            await receiptExecutor.Completion.WaitAsync(CancellationToken.None);
+            await receiptExecutor.Completion;
         }
         catch (OperationCanceledException) { }
     }

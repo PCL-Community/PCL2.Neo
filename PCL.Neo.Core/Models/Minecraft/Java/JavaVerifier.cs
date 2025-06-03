@@ -1,8 +1,11 @@
+using PCL.Neo.Core.Polyfill;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Models.Minecraft.Java;
 
@@ -153,7 +156,7 @@ public static class JavaVerifier
             
             process.Start();
             var output = await process.StandardOutput.ReadToEndAsync();
-            await process.WaitForExitAsync();
+            await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(process);
 
             // 检查签名状态
             var statusMatch = Regex.Match(output, @"Status\s*:\s*(\w+)");
@@ -230,7 +233,7 @@ public static class JavaVerifier
         // Java将版本信息输出到标准错误流
         var errorOutput = await process.StandardError.ReadToEndAsync();
         var standardOutput = await process.StandardOutput.ReadToEndAsync();
-        await process.WaitForExitAsync();
+        await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(process);
         
         return errorOutput + standardOutput;
     }
@@ -308,7 +311,6 @@ public static class JavaVerifier
     /// <returns>是否通过验证</returns>
     private static async Task<bool> VerifyJavaLanguageFeaturesAsync(string javaPath)
     {
-        // 创建一个简单的Java程序进行测试
         string tempDir = Path.Combine(Path.GetTempPath(), "JavaVerification_" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempDir);
         
@@ -322,7 +324,7 @@ public class Test {
 ";
         try
         {
-            await File.WriteAllTextAsync(javaFilePath, javaCode);
+            await FilePolyfill.WriteAllTextAsync(javaFilePath, javaCode);
             
             // 编译
             using (var compileProcess = new Process())
@@ -346,7 +348,7 @@ public class Test {
                 };
                 
                 compileProcess.Start();
-                await compileProcess.WaitForExitAsync();
+                await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(compileProcess);
                 
                 if (compileProcess.ExitCode != 0)
                 {
@@ -369,7 +371,7 @@ public class Test {
                 
                 runProcess.Start();
                 string output = await runProcess.StandardOutput.ReadToEndAsync();
-                await runProcess.WaitForExitAsync();
+                await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(runProcess);
                 
                 return output.Trim() == "JavaVerificationSuccess";
             }
@@ -421,8 +423,8 @@ public class Test {
                 "KrcAAbEAAAABAAoAAAAGAAEAAAABAAsACwAIAAEACQAAACUAAgAAAAAACbIAAnEAA7EAAAABAAoAAAAK" +
                 "AAIAAAADAAhAAg==");
             
-            await File.WriteAllTextAsync(manifestPath, manifestContent);
-            await File.WriteAllBytesAsync(classPath, classBytes);
+            await FilePolyfill.WriteAllTextAsync(manifestPath, manifestContent);
+            await FilePolyfill.WriteAllBytesAsync(classPath, classBytes);
             
             // 创建jar文件
             string jarPath = Path.Combine(tempDir, "test.jar");
@@ -447,7 +449,7 @@ public class Test {
                 };
                 
                 jarProcess.Start();
-                await jarProcess.WaitForExitAsync();
+                await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(jarProcess);
                 
                 if (jarProcess.ExitCode != 0 || !File.Exists(jarPath))
                 {
@@ -470,7 +472,7 @@ public class Test {
                 
                 runProcess.Start();
                 string output = await runProcess.StandardOutput.ReadToEndAsync();
-                await runProcess.WaitForExitAsync();
+                await PCL.Neo.Core.Polyfill.ProcessExtensions.WaitForExitAsync(runProcess);
                 
                 return output.Trim() == "JavaVerificationTest";
             }

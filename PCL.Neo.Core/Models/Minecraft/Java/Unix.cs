@@ -24,7 +24,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
 
             var searchTasks = new List<Task<IEnumerable<string>>>();
             foreach (string path in toSearchPaths.Where(Directory.Exists))
-                searchTasks.AddRange(SearchJavaExecutablesAsync(path));
+                searchTasks.Add(SearchJavaExecutablesAsync(path));
 
             var foundPaths = await Task.WhenAll(searchTasks);
             foreach (IEnumerable<string> foundPath in foundPaths)
@@ -43,28 +43,24 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
-            knowDirs.AddRange([
-                Path.Combine(homeDir, ".sdkman/candidates/java"),
-            ]);
+            knowDirs.Add(Path.Combine(homeDir, ".sdkman/candidates/java"));
+            
             if (platform is SystemUtils.RunningOs.Linux)
-                knowDirs.AddRange([
-                    "/usr/lib/jvm",
-                    "/usr/java",
-                    "/opt/java",
-                    "/opt/jdk",
-                    "/opt/jre",
-                    "/usr/local/java",
-                    "/usr/local/jdk",
-                    "/usr/local/jre",
-                    "/usr/local/opt",
-                ]);
+            {
+                knowDirs.Add("/usr/lib/jvm");
+                knowDirs.Add("/usr/java");
+                knowDirs.Add("/opt/java");
+                knowDirs.Add("/opt/jdk");
+                knowDirs.Add("/opt/jre");
+                knowDirs.Add("/usr/local/java");
+                knowDirs.Add("/usr/local/jdk");
+                knowDirs.Add("/usr/local/jre");
+                knowDirs.Add("/usr/local/opt");
+            }
             if (platform is SystemUtils.RunningOs.MacOs)
-                knowDirs.AddRange([
-                    // "/Library/Java/JavaVirtualMachines",
-                    // $"{homeDir}/Library/Java/JavaVirtualMachines",
-                    "/System/Library/Frameworks/JavaVM.framework/Versions", // Older macOS Java installs
-                    // "/opt/homebrew/opt/java/libexec", // Homebrew on Apple Silicon
-                ]);
+            {
+                knowDirs.Add("/System/Library/Frameworks/JavaVM.framework/Versions"); // Older macOS Java installs
+            }
             return knowDirs.ConvertAll(Path.GetFullPath);
         }
 
@@ -74,22 +70,27 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
             var knowDirs = new List<string>();
             if (platform is SystemUtils.RunningOs.MacOs)
             {
-                knowDirs.AddRange([
-                    "/usr/bin",
-                ]);
-                string[] javaVmDirs =
-                [
+                knowDirs.Add("/usr/bin");
+                
+                string[] javaVmDirs = new string[]
+                {
                     "/Library/Java/JavaVirtualMachines",
                     Path.Combine(homeDir, "/Library/Java/JavaVirtualMachines"),
                     "/opt/homebrew/opt/java/libexec",
-                ];
-                knowDirs.AddRange(from javaVmDir in javaVmDirs
-                    where Directory.Exists(javaVmDir)
-                    from subDir in Directory.GetDirectories(javaVmDir, "*", SearchOption.TopDirectoryOnly)
-                    select Path.Combine(subDir, "Contents", "Home", "bin")
-                    into binPath
-                    where Directory.Exists(binPath)
-                    select binPath);
+                };
+                
+                foreach (var javaVmDir in javaVmDirs)
+                {
+                    if (!Directory.Exists(javaVmDir))
+                        continue;
+                        
+                    foreach (var subDir in Directory.GetDirectories(javaVmDir, "*", SearchOption.TopDirectoryOnly))
+                    {
+                        var binPath = Path.Combine(subDir, "Contents", "Home", "bin");
+                        if (Directory.Exists(binPath))
+                            knowDirs.Add(binPath);
+                    }
+                }
             }
 
             return knowDirs.ConvertAll(Path.GetFullPath);
@@ -159,12 +160,9 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
             var javaExecutables = new List<string>();
             try
             {
-                var options = new EnumerationOptions
-                {
-                    RecurseSubdirectories = true, MaxRecursionDepth = 7, IgnoreInaccessible = true
-                };
-
-                var files = Directory.EnumerateFiles(basePath, "java", options);
+                // 在.NET Standard 2.0中，Directory.EnumerateFiles不支持EnumerationOptions
+                // 使用SearchOption.AllDirectories替代
+                var files = Directory.EnumerateFiles(basePath, "java", SearchOption.AllDirectories);
                 foreach (var file in files)
                 {
                     if (IsValidJavaExecutableAsync(file))

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using PCL.Neo.Core.Download;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
@@ -78,7 +82,7 @@ public class GameService
         var versionDir = Path.Combine(DefaultGameDirectory, "versions", versionId);
         Directory.CreateDirectory(versionDir);
         var versionJsonPath = Path.Combine(versionDir, $"{versionId}.json");
-        await File.WriteAllTextAsync(versionJsonPath, versionInfo.JsonData);
+        await FilePolyfill.WriteAllTextAsync(versionJsonPath, versionInfo.JsonData);
 
         // 下载资源文件
         await DownloadAssetsAsync(versionInfo, progressCallback);
@@ -113,7 +117,7 @@ public class GameService
         await DownloadReceipt.FastDownloadAsync(assetsIndexUrl, assetsIndexPath);
 
         // 解析assets索引文件
-        var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
+        var assetsIndexJson = await FilePolyfill.ReadAllTextAsync(assetsIndexPath);
         var assetsIndex = System.Text.Json.JsonSerializer.Deserialize<AssetIndex>(assetsIndexJson);
 
         if (assetsIndex?.Objects == null)

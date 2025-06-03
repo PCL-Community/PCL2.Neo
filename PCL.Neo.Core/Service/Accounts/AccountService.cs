@@ -1,6 +1,8 @@
 using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using PCL.Neo.Core.Service.Accounts.Storage;
 using System.Text.Json;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.Core.Service.Accounts
 {
@@ -42,7 +44,7 @@ namespace PCL.Neo.Core.Service.Accounts
             _jsonOptions = new JsonSerializerOptions
             {
                 WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
             };
             
             this.LogAccountInfo("账户服务已初始化");
@@ -80,7 +82,7 @@ namespace PCL.Neo.Core.Service.Accounts
             
             try
             {
-                var json = await File.ReadAllTextAsync(_accountsFilePath);
+                var json = await FilePolyfill.ReadAllTextAsync(_accountsFilePath);
                 _cachedAccounts = JsonSerializer.Deserialize<List<BaseAccount>>(json, _jsonOptions) ?? [];
                 this.LogAccountDebug($"已加载 {_cachedAccounts.Count} 个账户");
             }
@@ -117,7 +119,7 @@ namespace PCL.Neo.Core.Service.Accounts
             try
             {
                 var json = JsonSerializer.Serialize(_cachedAccounts, _jsonOptions);
-                await File.WriteAllTextAsync(_accountsFilePath, json);
+                await FilePolyfill.WriteAllTextAsync(_accountsFilePath, json);
                 this.LogAccountDebug($"已保存 {_cachedAccounts.Count} 个账户");
             }
             catch (Exception ex)
@@ -139,7 +141,7 @@ namespace PCL.Neo.Core.Service.Accounts
             
             try
             {
-                _selectedAccountUuid = await File.ReadAllTextAsync(_selectedAccountFilePath);
+                _selectedAccountUuid = await FilePolyfill.ReadAllTextAsync(_selectedAccountFilePath);
 
                 // 如果UUID为空或不存在对应账户，则清空选择
                 if (string.IsNullOrEmpty(_selectedAccountUuid) ||
@@ -178,7 +180,7 @@ namespace PCL.Neo.Core.Service.Accounts
                     return;
                 }
                 
-                await File.WriteAllTextAsync(_selectedAccountFilePath, _selectedAccountUuid);
+                await FilePolyfill.WriteAllTextAsync(_selectedAccountFilePath, _selectedAccountUuid);
                 this.LogAccountDebug($"已保存选中账户: {_selectedAccountUuid}");
             }
             catch (Exception ex)

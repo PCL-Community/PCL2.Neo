@@ -9,11 +9,26 @@ public record FileIntegrity(
     HashAlgorithm? HashAlgorithm = null,
     string Hash = "")
 {
-    private byte[] HashBytes => Convert.FromHexString(Hash);
+    private byte[] HashBytes => StringToByteArray(Hash);
+
+    // .NET Standard 2.0兼容的十六进制字符串转换方法
+    private static byte[] StringToByteArray(string hex)
+    {
+        if (string.IsNullOrEmpty(hex))
+            return Array.Empty<byte>();
+
+        int length = hex.Length;
+        byte[] bytes = new byte[length / 2];
+        for (int i = 0; i < length; i += 2)
+        {
+            bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+        }
+        return bytes;
+    }
 
     public async Task<bool> VerifyAsync(string filepath, CancellationToken token = default)
     {
-        await using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
         return await VerifyAsync(fs, token);
     }
 
@@ -36,7 +51,8 @@ public record FileIntegrity(
         var hasher = HashAlgorithm ?? SHA1.Create(); // default to sha1 if not specified
 
         stream.Seek(0, SeekOrigin.Begin);
-        return (await hasher.ComputeHashAsync(stream, token)).SequenceEqual(HashBytes);
+        byte[] hash = hasher.ComputeHash(stream);
+        return hash.SequenceEqual(HashBytes);
     }
 
     public bool Verify(string filepath) => VerifyAsync(filepath).Result;

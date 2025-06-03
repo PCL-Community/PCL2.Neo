@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game.Data;
 
-public partial class Arguments
+public class Arguments
 {
     [JsonPropertyName("game")] public List<object>? Game { get; set; } = new();
 
@@ -54,7 +54,7 @@ public partial class Arguments
         List<string> result = [];
         foreach (var arg in arguments)
         {
-            var match = CustomValueRegex().Match(arg);
+            var match = CustomValueRegex.Match(arg);
             if (!match.Success)
             {
                 result.Add(arg);
@@ -64,7 +64,7 @@ public partial class Arguments
             var key = match.Groups[1].Value;
             if (ArgumentsCustomValue.TryGetValue(key, out string? value))
             {
-                CustomValueRegex().Replace(arg, value);
+                CustomValueRegex.Replace(arg, value);
                 result.Add(arg);
             }
             else
@@ -103,6 +103,5 @@ public partial class Arguments
     public override string ToString() =>
         string.Join(" ", GameArguments);
 
-    [GeneratedRegex(@"\$\{([^}]+)\}")]
-    private static partial Regex CustomValueRegex();
+    private static readonly Regex CustomValueRegex = new Regex(@"\$\{([^}]+)\}", RegexOptions.Compiled);
 }

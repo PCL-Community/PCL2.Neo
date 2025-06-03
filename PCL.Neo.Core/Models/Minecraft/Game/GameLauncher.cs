@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.Core.Utils;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game
 {
@@ -460,7 +461,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             if (!Directory.Exists(logDir) || !Directory.GetFiles(logDir).Any())
             {
                 // 如果没有日志，创建一个空日志
-                await File.WriteAllTextAsync(filePath, "没有找到游戏日志");
+                await System.IO.FilePolyfill.WriteAllTextAsync(filePath, "没有找到游戏日志");
                 return;
             }
             
@@ -471,7 +472,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 
             if (string.IsNullOrEmpty(logFile))
             {
-                await File.WriteAllTextAsync(filePath, "没有找到游戏日志");
+                await System.IO.FilePolyfill.WriteAllTextAsync(filePath, "没有找到游戏日志");
                 return;
             }
             

@@ -2,7 +2,7 @@ using System.Text.RegularExpressions;
 
 namespace PCL.Neo.Core.Utils;
 
-public static partial class Uuid // TODO: implement different way of genereate uuid
+public static class Uuid // TODO: implement different way of genereate uuid
 {
     private const string DefaultUuid = "00000000-0000-0000-0000-000000000000";
 
@@ -18,7 +18,7 @@ public static partial class Uuid // TODO: implement different way of genereate u
     {
         return !string.IsNullOrEmpty(username) &&
                username.Length is >= 3 and <= 16 &&
-               ValidUsernameRegex().IsMatch(username);
+               ValidUsernameRegex.IsMatch(username);
     }
 
     // MurmurHash3算法实现
@@ -81,6 +81,5 @@ public static partial class Uuid // TODO: implement different way of genereate u
         }
     }
 
-    [GeneratedRegex("^[a-zA-Z0-9_]+$")]
-    private static partial Regex ValidUsernameRegex();
+    private static readonly Regex ValidUsernameRegex = new Regex("^[a-zA-Z0-9_]+$", RegexOptions.Compiled);
 }

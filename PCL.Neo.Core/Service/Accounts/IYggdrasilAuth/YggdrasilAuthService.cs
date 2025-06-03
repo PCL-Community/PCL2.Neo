@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using PCL.Neo.Core.Polyfill;
 
 namespace PCL.Neo.Core.Service.Accounts.IYggdrasilAuth;
 
@@ -16,8 +17,9 @@ public class YggdrasilAuthService : IYggdrasilAuthService
 {
     private readonly JsonSerializerOptions _jsonOptions = new()
     {
-        PropertyNamingPolicy   = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
+        // 避免使用JsonIgnoreCondition，因为在.NET Standard 2.0中可能有兼容性问题
+        WriteIndented = true
     };
 
     /// <inheritdoc />

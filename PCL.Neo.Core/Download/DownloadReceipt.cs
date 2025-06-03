@@ -65,22 +65,20 @@ public class DownloadReceipt
                         Directory.CreateDirectory(parentDir);
 
                     // copying file content
-                    await using var ns = await res.Content.ReadAsStreamAsync(token);
-                    await using var fs = new FileStream(
+                    using var ns = await res.Content.ReadAsStreamAsync();
+                    using var fs = new FileStream(
                         DestinationPath + ".tmp", // to ensure only properly downloaded file exists
                         FileMode.Create,
                         FileAccess.ReadWrite, FileShare.None);
                     await ns.CopyToAsync(
                         fs,
                         81920,
-                        new SynchronousProgress<long>(x =>
-                        {
-                            var origSize = Size;
-                            Size = x;
-                            OnDeltaSizeChanged?.Invoke(this, x - origSize);
-                            DownloadProgress?.Report((double)Size / TotalSize);
-                        }),
                         token);
+                        
+                    // 更新进度
+                    Size = fs.Length;
+                    OnDeltaSizeChanged?.Invoke(this, Size);
+                    DownloadProgress?.Report((double)Size / TotalSize);
 
                     if (Integrity is not null && !await Integrity.VerifyAsync(fs, token))
                         throw new FileIntegrityException("Failed to verify integrity");

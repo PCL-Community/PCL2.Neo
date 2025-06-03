@@ -1,5 +1,6 @@
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -216,17 +217,17 @@ public static class JavaSelector
             // 尝试获取厂商信息
             if (!string.IsNullOrEmpty(java.Implementor))
             {
-                if (java.Implementor.Contains("Oracle", StringComparison.OrdinalIgnoreCase))
+                if (java.Implementor.IndexOf("Oracle", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.Oracle;
-                else if (java.Implementor.Contains("Adopt", StringComparison.OrdinalIgnoreCase))
+                else if (java.Implementor.IndexOf("Adopt", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.AdoptOpenJDK;
-                else if (java.Implementor.Contains("Eclipse", StringComparison.OrdinalIgnoreCase))
+                else if (java.Implementor.IndexOf("Eclipse", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.AdoptiumEclipse;
-                else if (java.Implementor.Contains("Microsoft", StringComparison.OrdinalIgnoreCase))
+                else if (java.Implementor.IndexOf("Microsoft", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.Microsoft;
-                else if (java.Implementor.Contains("Amazon", StringComparison.OrdinalIgnoreCase))
+                else if (java.Implementor.IndexOf("Amazon", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.Amazon;
-                else if (java.Implementor.Contains("Azul", StringComparison.OrdinalIgnoreCase))
+                else if (java.Implementor.IndexOf("Azul", StringComparison.OrdinalIgnoreCase) >= 0)
                     vendor = JavaVerifier.JavaVendor.Azul;
             }
         }

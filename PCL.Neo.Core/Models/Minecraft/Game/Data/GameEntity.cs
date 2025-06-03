@@ -81,8 +81,8 @@ public record GameEntityInfo
                 return _isIndie.Value;
             }
 
-            _isIndie = Path.Exists(Path.Combine(GamePath, "saves"))
-                       && Path.Exists(Path.Combine(GamePath, "mods"));
+            _isIndie = File.Exists(Path.Combine(GamePath, "saves"))
+                       && File.Exists(Path.Combine(GamePath, "mods"));
 
             return _isIndie.Value;
         }
@@ -103,5 +103,13 @@ public class GameEntity
     {
         Entity = entityInfo;
         GameProcess.StartInfo = new ProcessStartInfo() { FileName = Entity.JarPath };
+    }
+
+    public bool CheckFiles()
+    {
+        if (string.IsNullOrEmpty(Entity.JarPath) || string.IsNullOrEmpty(Entity.GamePath))
+            return false;
+                
+        return File.Exists(Entity.JarPath) && Directory.Exists(Entity.GamePath);
     }
 }

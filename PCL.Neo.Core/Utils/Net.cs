@@ -1,5 +1,5 @@
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace PCL.Neo.Core.Utils;
 
@@ -23,7 +23,9 @@ public static class Net
             }
             else
             {
-                request.Content = JsonContent.Create(content);
+                // 在.NET Standard 2.0中没有JsonContent类，使用StringContent替代
+                var json = JsonSerializer.Serialize(content);
+                request.Content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             }
         }
 
@@ -38,8 +40,11 @@ public static class Net
         response.EnsureSuccessStatusCode();
 
         // 解析响应
-        var result = await response.Content.ReadFromJsonAsync<TResponse>().ConfigureAwait(false);
-        ArgumentNullException.ThrowIfNull(result);
+        var responseJson = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        var result = JsonSerializer.Deserialize<TResponse>(responseJson);
+        
+        if (result == null)
+            throw new ArgumentNullException(nameof(result), "API返回的结果无法解析为指定类型");
 
         return result;
     }

@@ -35,7 +35,7 @@ public class VersionManifestFile
 
     public static VersionManifestFile Parse(JsonObject json)
     {
-        var vmf = json.Deserialize<VersionManifestFile>() ??
+        var vmf = JsonSerializer.Deserialize<VersionManifestFile>(json.ToJsonString()) ??
                   throw new Exception($"{nameof(VersionManifestFile)} Deserialization returned null");
         vmf._rawVersionManifest = json;
         return vmf;

@@ -1,8 +1,17 @@
-using PCL.Neo.Core.Models.Minecraft.Game.Data;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
+using PCL.Neo.Core.Models.Minecraft.Game.Data;
+using PCL.Neo.Core.Utils;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game
 {
+    /// <summary>
+    /// 提供Minecraft版本信息相关的功能
+    /// </summary>
     public static class Versions
     {
         /// Minecraft版本清单API地址
@@ -30,7 +39,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 {
                     try
                     {
-                        var jsonContent = await File.ReadAllTextAsync(versionJsonPath);
+                        var jsonContent = await FilePolyfill.ReadAllTextAsync(versionJsonPath);
                         var versionInfo = JsonSerializer.Deserialize<VersionInfo>(jsonContent, new JsonSerializerOptions
                         {
                             PropertyNameCaseInsensitive = true
@@ -134,7 +143,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             {
                 try
                 {
-                    var jsonContent = await File.ReadAllTextAsync(versionJsonPath);
+                    var jsonContent = await FilePolyfill.ReadAllTextAsync(versionJsonPath);
                     var versionInfo = JsonSerializer.Deserialize<VersionInfo>(jsonContent, new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true

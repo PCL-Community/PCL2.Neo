@@ -30,16 +30,16 @@ public class Result<TOk, TError>
 
     public TResult Match<TResult>(Func<TOk, TResult> onSuccess, Func<TError, TResult> onFailure)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
-        ArgumentNullException.ThrowIfNull(onFailure);
+        if (onSuccess == null) throw new ArgumentNullException(nameof(onSuccess));
+        if (onFailure == null) throw new ArgumentNullException(nameof(onFailure));
 
         return IsSuccess ? onSuccess(_ok) : onFailure(_error);
     }
 
     public void Switch(Action<TOk> onSuccess, Action<TError> onFailure)
     {
-        ArgumentNullException.ThrowIfNull(onSuccess);
-        ArgumentNullException.ThrowIfNull(onFailure);
+        if (onSuccess == null) throw new ArgumentNullException(nameof(onSuccess));
+        if (onFailure == null) throw new ArgumentNullException(nameof(onFailure));
 
         if (IsSuccess)
         {
@@ -53,7 +53,7 @@ public class Result<TOk, TError>
 
     public Result<TNewSuccess, TError> Map<TNewSuccess>(Func<TOk, TNewSuccess> mapFunc)
     {
-        ArgumentNullException.ThrowIfNull(mapFunc);
+        if (mapFunc == null) throw new ArgumentNullException(nameof(mapFunc));
         return IsSuccess
             ? Result<TNewSuccess, TError>.Ok(mapFunc(_ok))
             : Result<TNewSuccess, TError>.Fail(_error);
@@ -61,7 +61,7 @@ public class Result<TOk, TError>
 
     public Result<TOk, TNewError> MapError<TNewError>(Func<TError, TNewError> mapFunc)
     {
-        ArgumentNullException.ThrowIfNull(mapFunc);
+        if (mapFunc == null) throw new ArgumentNullException(nameof(mapFunc));
         return IsFailure
             ? Result<TOk, TNewError>.Fail(mapFunc(_error))
             : Result<TOk, TNewError>.Ok(_ok);
@@ -70,7 +70,7 @@ public class Result<TOk, TError>
     public Result<TNewSuccess, TError> AndThen<TNewSuccess>(
         Func<TOk, Result<TNewSuccess, TError>> continuationFunc)
     {
-        ArgumentNullException.ThrowIfNull(continuationFunc);
+        if (continuationFunc == null) throw new ArgumentNullException(nameof(continuationFunc));
         return IsSuccess ? continuationFunc(_ok) : Result<TNewSuccess, TError>.Fail(_error);
     }
 

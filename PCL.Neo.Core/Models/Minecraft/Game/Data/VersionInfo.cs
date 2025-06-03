@@ -112,7 +112,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game.Data
         /// <summary>
         /// 存储原始的JSON数据
         /// </summary>
-        [JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public string? JsonData { get; set; }
     }
 

@@ -26,7 +26,7 @@ public class AssetIndexFile
 
     public static AssetIndexFile Parse(JsonObject json)
     {
-        var aif = json.Deserialize<AssetIndexFile>() ??
+        var aif = JsonSerializer.Deserialize<AssetIndexFile>(json.ToJsonString()) ??
                   throw new Exception($"{nameof(AssetIndexFile)} Deserialization returned null");
         aif._rawAssetIndex = json;
         return aif;

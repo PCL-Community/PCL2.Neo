@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using PCL.Neo.Core.Models.Minecraft.Game.Data;
 
 namespace PCL.Neo.Core.Service.Profiles
 {
@@ -37,7 +38,7 @@ namespace PCL.Neo.Core.Service.Profiles
             _jsonOptions = new JsonSerializerOptions
             {
                 WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
             };
         }
         
@@ -64,7 +65,7 @@ namespace PCL.Neo.Core.Service.Profiles
             
             try
             {
-                var json = await File.ReadAllTextAsync(_profilesFilePath);
+                var json = await FilePolyfill.ReadAllTextAsync(_profilesFilePath);
                 _cachedProfiles = JsonSerializer.Deserialize<List<GameProfile>>(json, _jsonOptions) ?? new List<GameProfile>();
             }
             catch (Exception ex)
@@ -87,7 +88,7 @@ namespace PCL.Neo.Core.Service.Profiles
             
             try
             {
-                var json = await File.ReadAllTextAsync(_profileTemplatesFilePath);
+                var json = await FilePolyfill.ReadAllTextAsync(_profileTemplatesFilePath);
                 _cachedTemplates = JsonSerializer.Deserialize<List<GameProfile>>(json, _jsonOptions) ?? CreateDefaultTemplates();
             }
             catch (Exception ex)
@@ -104,7 +105,7 @@ namespace PCL.Neo.Core.Service.Profiles
             try
             {
                 var json = JsonSerializer.Serialize(_cachedProfiles, _jsonOptions);
-                await File.WriteAllTextAsync(_profilesFilePath, json).ConfigureAwait(false);
+                await FilePolyfill.WriteAllTextAsync(_profilesFilePath, json).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -119,7 +120,7 @@ namespace PCL.Neo.Core.Service.Profiles
             try
             {
                 var json = JsonSerializer.Serialize(_cachedTemplates, _jsonOptions);
-                await File.WriteAllTextAsync(_profileTemplatesFilePath, json).ConfigureAwait(false);
+                await FilePolyfill.WriteAllTextAsync(_profileTemplatesFilePath, json).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

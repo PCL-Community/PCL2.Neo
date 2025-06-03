@@ -2,6 +2,7 @@ using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
 
 namespace PCL.Neo.Core;
 
@@ -16,15 +17,30 @@ public static class FileExtension
     /// <param name="fileStream">文件流</param>
     /// <param name="sha1">SHA-1</param>
     /// <returns>是否匹配</returns>
-    public static async Task<bool> CheckSha1(this FileStream fileStream, string sha1)
+    public static Task<bool> CheckSha1(this FileStream fileStream, string sha1)
     {
         using var sha1Provider = System.Security.Cryptography.SHA1.Create();
         fileStream.Position = 0; // 重置文件流位置
 
-        var computedHash       = await sha1Provider.ComputeHashAsync(fileStream).ConfigureAwait(false);
-        var computedHashString = Convert.ToHexStringLower(computedHash);
+        var computedHash = sha1Provider.ComputeHash(fileStream);
+        var computedHashString = ToHexStringLower(computedHash);
 
-        return string.Equals(computedHashString, sha1, StringComparison.OrdinalIgnoreCase);
+        return Task.FromResult(string.Equals(computedHashString, sha1, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// 将字节数组转换为小写十六进制字符串
+    /// </summary>
+    /// <param name="bytes">字节数组</param>
+    /// <returns>小写十六进制字符串</returns>
+    private static string ToHexStringLower(byte[] bytes)
+    {
+        var sb = new StringBuilder(bytes.Length * 2);
+        foreach (byte b in bytes)
+        {
+            sb.Append(b.ToString("x2"));
+        }
+        return sb.ToString();
     }
 
     /// <summary>
@@ -43,12 +59,20 @@ public static class FileExtension
 
         try
         {
-            var currentMode = File.GetUnixFileMode(path);
-            var newMode = currentMode
-                          | UnixFileMode.UserExecute
-                          | UnixFileMode.GroupExecute
-                          | UnixFileMode.OtherExecute;
-            File.SetUnixFileMode(path, newMode);
+            // 在.NET Standard 2.0中，UnixFileMode和相关方法不可用
+            // 使用Process启动chmod命令来设置权限
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "chmod",
+                    Arguments = $"+x \"{path}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+            process.Start();
+            process.WaitForExit();
         }
         catch (Exception e)
         {

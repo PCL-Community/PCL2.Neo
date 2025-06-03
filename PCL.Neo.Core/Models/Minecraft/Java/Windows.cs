@@ -8,54 +8,18 @@ namespace PCL.Neo.Core.Models.Minecraft.Java;
 /// </summary>
 public static class Windows
 {
-    private static readonly string[] _windowJavaSearchTerms = ["java",
-        "jdk",
-        "jbr",
-        "bin",
-        "env",
-        "环境",
-        "run",
-        "软件",
-        "jre",
-        "bin",
-        "mc",
-        "software",
-        "cache",
-        "temp",
-        "corretto",
-        "roaming",
-        "users",
-        "craft",
-        "program",
-        "世界",
-        "net",
-        "游戏",
-        "oracle",
-        "game",
-        "file",
-        "data",
-        "jvm",
-        "服务",
-        "server",
-        "客户",
-        "client",
-        "整合",
-        "应用",
-        "运行",
-        "前置",
-        "mojang",
-        "官启",
-        "新建文件夹",
-        "eclipse",
-        "microsoft",
-        "hotspot",
-        "idea",
-        "android",
-    ];
+    private static readonly string[] _windowJavaSearchTerms = new string[]
+    {
+        "java", "jdk", "jbr", "bin", "env", "环境", "run", "软件", "jre", "bin",
+        "mc", "software", "cache", "temp", "corretto", "roaming", "users", "craft",
+        "program", "世界", "net", "游戏", "oracle", "game", "file", "data", "jvm",
+        "服务", "server", "客户", "client", "整合", "应用", "运行", "前置", "mojang",
+        "官启", "新建文件夹", "eclipse", "microsoft", "hotspot", "idea", "android"
+    };
 
     public static async Task<ImmutableArray<JavaRuntime>> SearchJavaAsync()
     {
-        List<string> paths = [];
+        List<string> paths = new List<string>();
         // 获得环境变量
         string? environmentVariable = Environment.GetEnvironmentVariable("Path");
         if (environmentVariable != null)
@@ -91,8 +55,10 @@ public static class Windows
 
         var validPaths = paths.Where(x => !string.IsNullOrWhiteSpace(x) && !x.Contains("javapath_target_") && File.Exists(x))
             .Select(Path.GetDirectoryName).Distinct();
-        return [.. (await Task.WhenAll(validPaths.Select(static validPath => JavaRuntime.CreateJavaEntityAsync(validPath!))))
-        .Where(r => r is { Compability: not JavaCompability.Error })!];
+        
+        var tasks = validPaths.Select(static validPath => JavaRuntime.CreateJavaEntityAsync(validPath!));
+        var results = await Task.WhenAll(tasks);
+        return results.Where(r => r is { Compability: not JavaCompability.Error })!.ToImmutableArray();
     }
 
     private static void FetchJavaw(DirectoryInfo directory, ref List<string> results)

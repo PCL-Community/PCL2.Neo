@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using PCL.Neo.Core.Utils;
+using PCL.Neo.Core.Models;
 
 namespace PCL.Neo.Core.Service.Audio;
 
@@ -223,7 +224,7 @@ public class AudioService : IAudioService
         if (_isDisposed)
             return false;
         
-        volume = Math.Clamp(volume, 0.0f, 1.0f);
+        volume = PCL.Neo.Core.Models.MathExtensions.Clamp(volume, 0.0f, 1.0f);
         _currentVolume = volume;
         
         if (!_isPlaying || _currentProcess == null)
