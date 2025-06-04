@@ -1,3 +1,5 @@
+using PCL.Neo.WebApi.Services;
+using PCL.Neo.WebApi.Models;
 using PCL.Neo.Core.Models.Minecraft.Java;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,34 +14,23 @@ builder.Services.AddCors(options =>
     });
 });
 
+// 注册自定义服务
+builder.Services.AddSingleton<IJavaManager, JavaManager>();
+builder.Services.AddSingleton<IDoSomethingService, DoSomethingService>();
+
+// 添加控制器
+builder.Services.AddControllers();
+
 var app = builder.Build();
 
 app.UsePathBase("/PCL.Proto");
 app.UseCors();
 app.UseDefaultFiles(); // 自动寻找 index.html
 app.UseStaticFiles();
-
-IJavaManager javaManager = new JavaManager();
-await javaManager.JavaListInitAsync();
-
-// 示例函数：可以是任意逻辑
-void DoSomething(string module,string data)
-{
-    Console.WriteLine($"收到数据：{module} {data}，处理完成！");
-}
-
-app.MapPost("/api/do-something", (MyPayload payload) =>
-{
-    DoSomething(payload.module, payload.message);
-    return Results.Ok(new { success = true });
-});
-
-
-app.MapGet("/api/javalist", () => javaManager.JavaList);
-
 // 👉 所有未匹配的路由都返回 index.html（支持前端路由）
 app.MapFallbackToFile("index.html");
 
-app.Run();
+// Map controllers
+app.MapControllers();
 
-record MyPayload(string module, string message);
+app.Run();
