@@ -9,7 +9,7 @@ namespace PCL.Neo.Animations
     public record ScaleRate(double X, double Y);
 
     public class ScaleTransformScaleAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         ScaleRate begin,
         ScaleRate end,
         Easing easing,

@@ -9,7 +9,7 @@ namespace PCL.Neo.Animations
     public record Pos(double X, double Y);
 
     public class TranslateTransformAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         Pos begin,
         Pos end,
         Easing easing,

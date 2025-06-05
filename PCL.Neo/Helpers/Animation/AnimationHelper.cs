@@ -1,10 +1,4 @@
-using Avalonia;
 using Avalonia.Animation;
-using Avalonia.Animation.Easings;
-using Avalonia.Layout;
-using Avalonia.Media;
-using PCL.Neo.Animations;
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -17,27 +11,10 @@ public static class AnimationHelper
 
     public static AnimationChain Animate(this Animatable control)
     {
-        var ani = new AnimationChain(control) { IsLoop = false };
+        var ani = new AnimationChain(control);
         var hashCode = control.GetHashCode();
 
-        // cacel and remove exist animation
-        if (InAnimationChains.TryGetValue(hashCode, out var existingChain))
-        {
-            existingChain.Cancel();
-            InAnimationChains.TryRemove(hashCode, out _);
-        }
-
-        InAnimationChains.TryAdd(hashCode, ani);
-
-        return ani;
-    }
-
-    public static AnimationChain LoopAnimate(this Animatable control)
-    {
-        var ani = new AnimationChain(control) { IsLoop = true };
-        var hashCode = control.GetHashCode();
-
-        // cacel and remove exist animation
+        // cancel and remove existing animation
         if (InAnimationChains.TryGetValue(hashCode, out var existingChain))
         {
             existingChain.Cancel();
@@ -51,27 +28,24 @@ public static class AnimationHelper
 
     private static async Task RunAnimatin(AnimationChain chain)
     {
-        do
+        var tasks = new List<Task>();
+        foreach (var animation in chain.Animations)
         {
-            var tasks = new List<Task>();
-            foreach (var animation in chain.Animations)
+            if (chain.CancellationToken.IsCancellationRequested)
             {
-                if (chain.CancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                var task = animation.RunAsync();
-                tasks.Add(task);
-                if (animation.Wait == false)
-                {
-                    continue;
-                }
-
-                await Task.WhenAll(tasks);
-                tasks.Clear();
+                break;
             }
-        } while (!chain.CancellationToken.IsCancellationRequested && chain.IsLoop);
+
+            var task = animation.RunAsync();
+            tasks.Add(task);
+            if (animation.Wait == false)
+            {
+                continue;
+            }
+
+            await Task.WhenAll(tasks);
+            tasks.Clear();
+        }
 
 
         chain.IsComplete = true;
@@ -83,226 +57,4 @@ public static class AnimationHelper
 
         return chain;
     }
-
-    #region Fade
-
-    public static AnimationChain FadeTo(this AnimationChain control, double target, uint duration = 250, uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(Visual.OpacityProperty);
-        easing ??= new LinearEasing();
-        var ani = new OpacityAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-
-        return control;
-    }
-
-    public static AnimationChain FadeFromTo(this AnimationChain control, double begin, double target,
-        uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        easing ??= new LinearEasing();
-        var ani = new OpacityAnimation(new WeakReference<Animatable>(control.Control), begin, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-
-        return control;
-    }
-
-    #endregion
-
-    #region Scale
-
-    public static AnimationChain ScaleTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        var begX = control.Control.GetValue(ScaleTransform.ScaleXProperty);
-        var begY = control.Control.GetValue(ScaleTransform.ScaleYProperty);
-        var beg = new ScaleRate(begX, begY);
-
-        easing ??= new LinearEasing();
-
-        var ani = new ScaleTransformScaleAnimation(new WeakReference<Animatable>(control.Control), beg,
-            new ScaleRate(target, target), easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain ScaleFromTo(this AnimationChain control, double before, double target,
-        uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        easing ??= new LinearEasing();
-
-        var ani = new ScaleTransformScaleAnimation(new WeakReference<Animatable>(control.Control),
-            new ScaleRate(before, before),
-            new ScaleRate(target, target), easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain ScaleXTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(ScaleTransform.ScaleXProperty);
-        easing ??= new LinearEasing();
-
-        var ani = new ScaleTransformScaleXAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration),
-            TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-
-        return control;
-    }
-
-
-    public static AnimationChain ScaleYTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(ScaleTransform.ScaleYProperty);
-        easing ??= new LinearEasing();
-
-        var ani = new ScaleTransformScaleYAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration),
-            TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-
-        return control;
-    }
-
-    #endregion
-
-    #region Rotate
-
-    public static AnimationChain RotateTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0,
-        Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(RotateTransform.AngleProperty);
-        easing ??= new LinearEasing();
-
-        var ani = new RotateTransformAngleAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain RotateFromTo(this AnimationChain control, double begin, double end,
-        uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        easing ??= new LinearEasing();
-        var ani = new RotateTransformAngleAnimation(new WeakReference<Animatable>(control.Control), begin, end, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    #endregion
-
-    #region Translate
-
-    public static AnimationChain TranslateTo(this AnimationChain control, Pos target, uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        var begX = control.Control.GetValue(TranslateTransform.XProperty);
-        var begY = control.Control.GetValue(TranslateTransform.YProperty);
-
-        var beg = new Pos(begX, begY);
-
-        easing ??= new LinearEasing();
-
-        var ani = new TranslateTransformAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain TranslateXTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(TranslateTransform.XProperty);
-        easing ??= new LinearEasing();
-        var ani = new TranslateTransformXAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain TranslateYTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        var beg = control.Control.GetValue(TranslateTransform.YProperty);
-        easing ??= new LinearEasing();
-        var ani = new TranslateTransformYAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    #endregion
-
-    #region Margin
-
-    public static AnimationChain MarginXTo(this AnimationChain control, double target, uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        var cot = (Layoutable)control.Control;
-
-        var beg = cot.Margin;
-        var end = cot.HorizontalAlignment switch
-        {
-            HorizontalAlignment.Left =>
-                new Thickness(cot.Margin.Left + target, cot.Margin.Top, cot.Margin.Right, cot.Margin.Bottom),
-            HorizontalAlignment.Right =>
-                new Thickness(cot.Margin.Left, cot.Margin.Top, cot.Margin.Right - target, cot.Margin.Bottom),
-            _ => cot.Margin
-        };
-
-        easing ??= new LinearEasing();
-
-        var ani = new XAnimation(new WeakReference<Animatable>(control.Control), beg, end, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        control.Animations.Add(ani);
-        return control;
-    }
-
-    public static AnimationChain MarginYTo(this AnimationChain contorl, double target, uint duration = 250,
-        uint delay = 0, Easing? easing = null, bool wait = false)
-    {
-        var cot = (Layoutable)contorl.Control;
-
-        var beg = cot.Margin;
-        var end = cot.VerticalAlignment switch
-        {
-            VerticalAlignment.Top => new Thickness(cot.Margin.Left, cot.Margin.Top + target,
-                cot.Margin.Right, cot.Margin.Bottom),
-            VerticalAlignment.Bottom => new Thickness(cot.Margin.Left, cot.Margin.Top, cot.Margin.Right,
-                cot.Margin.Bottom - target),
-            _ => cot.Margin
-        };
-
-        easing ??= new LinearEasing();
-
-        var ani = new XAnimation(new WeakReference<Animatable>(contorl.Control), beg, end, easing,
-            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
-        contorl.Animations.Add(ani);
-        return contorl;
-    }
-
-    #endregion
 }

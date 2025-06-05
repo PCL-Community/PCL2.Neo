@@ -8,7 +8,7 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class XAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         Thickness begin,
         Thickness end,
         Easing easing,

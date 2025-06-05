@@ -132,19 +132,21 @@ namespace PCL.Neo.Controls
 
         private async Task AnimationErrorToLoadingAsync()
         {
-            // TODO: remake animation system
-            //_pathPickaxe.Animate().RotateTo(-20d, durationMs: 350, easing: new MyBackEaseIn()).RunAsync();
-            //_pathError.Animate().FadeTo(targetOpacity: 0d, durationMs: 100).ScaleTo(0.5d).RunAsync();
-
             await _pathPickaxe!.Animate()
-                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak)).RunAsync();
-            await _pathError!.Animate().FadeTo(1d, 100).ScaleFromTo(1d, 0.5d, 400).ScaleFromTo(1d, 0.5d, 100)
-                .ScaleFromTo(1d, 0.5d, 400).RunAsync();
+                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
+                .RunAsync();
+
+            await _pathError!.Animate()
+                .FadeTo(1d, 100)
+                .ScaleFromTo(1d, 0.5d, 100)
+                .ScaleFromTo(1d, 0.5d, 400)
+                .RunAsync();
             //_animation.CancelAndClear();
             //_animation.Animations.AddRange(
             //[
             //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
             //        before: 55d, after: -20d, easing: new MyBackEaseIn(EasePower.Weak)),
+
             //    new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100), before: 0d),
             //    new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100),
             //        before: 1d, after: 0.5d),
@@ -156,21 +158,21 @@ namespace PCL.Neo.Controls
 
         private async Task AnimationLoadingToErrorAsync()
         {
-            // TODO: remake animation system
-            //_pathPickaxe.Animate().RotateTo(55d, durationMs: 900, easing: new CubicEaseOut()).RunAsync();
-            //_pathError.Animate()
-            //    .FadeTo(targetOpacity: 1d, durationMs: 300)
-            //    .ScaleTo(1d, easing: new MyBackEaseOut())
-            //    .RunAsync();
+            await _pathPickaxe!.Animate()
+                .RotateTo(55d, duration: 900, easing: new CubicEaseOut())
+                .RunAsync();
 
-            await _pathPickaxe!.Animate().RotateTo(55d, duration: 900, easing: new CubicEaseOut()).RunAsync();
-            await _pathError!.Animate().FadeTo(1d, 300).ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
-                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut()).RunAsync();
+            await _pathError!.Animate()
+                .FadeTo(1d, 300)
+                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
+                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
+                .RunAsync();
             //_animation.CancelAndClear();
             //_animation.Animations.AddRange(
             //[
             //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(900),
             //        after: 55d, easing: new CubicEaseOut()),
+
             //    new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(300), after: 1d),
             //    new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
             //        before: 0.5d, after: 1d,
@@ -184,27 +186,28 @@ namespace PCL.Neo.Controls
         private async Task AnimationLoadingAsync()
         {
             // 循环动画，听说这里折磨龙猫很久(doge)
-            //_pathPickaxe.Animate()
-            //    .RotateTo(-20d, durationMs: 350, new MyBackEaseOut())
-            //    .RotateTo(55d, durationMs: 900, easing: new ElasticEaseOut())
-            //    .RotateTo(30d, durationMs: 180)
-            //    .RunAsync();
-            // TODO: implement loop animation
 
-            await _pathPickaxe!.LoopAnimate()
+            _ = _pathPickaxe!.Animate()
                 .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
-                .RotateFromTo(-20d, 30d, duration: 180).RunAsync();
-            await _pathLeft!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
-                .MarginXTo(-5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut()).RunAsync();
+                .RotateFromTo(-20d, 30d, duration: 180)
+                .RunAsync();
 
-            await _pathRight!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+            _ = _pathLeft!.Animate()
+                .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+                .MarginXTo(-5d, 180, easing: new CubicEaseOut())
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut())
+                .RunAsync();
+
+            _ = _pathRight!.Animate()
+                .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut()).RunAsync();
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut())
+                .RunAsync();
 
 
             //_animation.CancelAndClear();
+
             //_animation.Animations.AddRange(
             //[
             //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
@@ -213,6 +216,7 @@ namespace PCL.Neo.Controls
             //        before: 30d, after: 55d, easing: new ElasticEaseOut()),
             //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(180),
             //        before: -20d, after: 30d),
+
             //    new OpacityAnimation(new WeakReference<Animatable>(_pathLeft!),
             //        duration: TimeSpan.FromMilliseconds(100),
             //        delay: TimeSpan.FromMilliseconds(50), before: 1d,
@@ -223,6 +227,7 @@ namespace PCL.Neo.Controls
             //    new YAnimation(new WeakReference<Animatable>(this._pathLeft!), duration: TimeSpan.FromMilliseconds(180),
             //        value: -6d,
             //        easing: new CubicEaseOut()),
+
             //    new OpacityAnimation(new WeakReference<Animatable>(this._pathRight!),
             //        duration: TimeSpan.FromMilliseconds(100),
             //        delay: TimeSpan.FromMilliseconds(50),
@@ -234,6 +239,7 @@ namespace PCL.Neo.Controls
             //        duration: TimeSpan.FromMilliseconds(180), value: -6d,
             //        easing: new CubicEaseOut())
             //]);
+
             //await _animation.RunAsync();
             this._pathLeft!.Margin = new Thickness(7, 41, 0, 0);
             this._pathRight!.Margin = new Thickness(14, 41, 0, 0);

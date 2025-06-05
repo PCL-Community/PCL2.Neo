@@ -13,7 +13,7 @@ namespace PCL.Neo.Animations
     /// </summary>
     /// <param name="begin">请自行添加 <see cref="GetCurrentMargin"/></param>
     public class MarginAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         double begin,
         double end,
         Easing easing,

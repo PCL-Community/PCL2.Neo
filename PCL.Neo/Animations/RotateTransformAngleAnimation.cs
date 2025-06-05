@@ -7,7 +7,7 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class RotateTransformAngleAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         double begin,
         double end,
         Easing easing,

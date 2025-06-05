@@ -7,7 +7,7 @@ using System;
 namespace PCL.Neo.Animations
 {
     public class TranslateTransformYAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         double begin,
         double end,
         Easing easing,

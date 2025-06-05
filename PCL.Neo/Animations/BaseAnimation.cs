@@ -1,6 +1,5 @@
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;
-using Avalonia.Threading;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 namespace PCL.Neo.Animations
 {
     public abstract class BaseAnimation(
-        WeakReference<Animatable> control,
+        Animatable control,
         double begin,
         double end,
         Easing easing,
@@ -23,7 +22,7 @@ namespace PCL.Neo.Animations
         public bool Wait { get; } = wait;
 
         private readonly CancellationTokenSource _cancellationTokenSource = new();
-        private WeakReference<Animatable> Control { get; } = control;
+        private Animatable Control { get; } = control;
         protected TimeSpan Duration { get; } = duration;
         protected double? Begin { get; } = begin;
         protected double? End { get; } = end;
@@ -36,11 +35,7 @@ namespace PCL.Neo.Animations
         /// <inheritdoc />
         public async Task RunAsync()
         {
-            Control.TryGetTarget(out var target);
-            await Dispatcher.UIThread.InvokeAsync(async () =>
-            {
-                await AnimationBuilder().RunAsync(target, _cancellationTokenSource.Token);
-            });
+            await AnimationBuilder().RunAsync(Control, _cancellationTokenSource.Token);
         }
 
         /// <inheritdoc />
