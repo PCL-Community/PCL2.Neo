@@ -19,6 +19,7 @@ namespace PCL.Neo.Controls
         private Path? _pathLeft;
         private Path? _pathRight;
         private bool _hasErrorOccurred = false;
+        private AnimationChain[]? _animation;
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -135,6 +136,10 @@ namespace PCL.Neo.Controls
             //_pathPickaxe.Animate().RotateTo(-20d, durationMs: 350, easing: new MyBackEaseIn()).RunAsync();
             //_pathError.Animate().FadeTo(targetOpacity: 0d, durationMs: 100).ScaleTo(0.5d).RunAsync();
 
+            await _pathPickaxe!.Animate()
+                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak)).RunAsync();
+            await _pathError!.Animate().FadeTo(1d, 100).ScaleFromTo(1d, 0.5d, 400).ScaleFromTo(1d, 0.5d, 100)
+                .ScaleFromTo(1d, 0.5d, 400).RunAsync();
             //_animation.CancelAndClear();
             //_animation.Animations.AddRange(
             //[
@@ -158,6 +163,9 @@ namespace PCL.Neo.Controls
             //    .ScaleTo(1d, easing: new MyBackEaseOut())
             //    .RunAsync();
 
+            await _pathPickaxe!.Animate().RotateTo(55d, duration: 900, easing: new CubicEaseOut()).RunAsync();
+            await _pathError!.Animate().FadeTo(1d, 300).ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
+                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut()).RunAsync();
             //_animation.CancelAndClear();
             //_animation.Animations.AddRange(
             //[
@@ -183,16 +191,18 @@ namespace PCL.Neo.Controls
             //    .RunAsync();
             // TODO: implement loop animation
 
-            _pathPickaxe!.LoopAnimate().RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
+            await _pathPickaxe!.LoopAnimate()
+                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
-                .RotateFromTo(-20d, 30d, duration: 180);
-            _pathLeft!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+                .RotateFromTo(-20d, 30d, duration: 180).RunAsync();
+            await _pathLeft!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(-5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut());
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut()).RunAsync();
 
-            _pathRight!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+            await _pathRight!.LoopAnimate().FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut());
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut()).RunAsync();
+
 
             //_animation.CancelAndClear();
             //_animation.Animations.AddRange(

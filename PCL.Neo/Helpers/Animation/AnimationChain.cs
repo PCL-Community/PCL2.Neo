@@ -1,30 +1,35 @@
 using Avalonia.Animation;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using IAnimation = PCL.Neo.Animations.IAnimation;
 
 namespace PCL.Neo.Helpers.Animation
 {
-    public class AnimationChain(Animatable control, bool loop = false)
+    public class AnimationChain(Animatable control) : IAnimationChain, IDisposable
     {
-        internal Animatable Control { get; } = control;
-
-        internal List<IAnimation> Animations { get; } = [];
-
-        public bool IsLoop { get; } = loop;
-
-
-        public bool IsComplete { get; internal set; } = false;
+        public Animatable Control { get; init; } = control;
+        public List<IAnimation> Animations { get; } = [];
+        public bool IsLoop { get; init; }
+        public bool IsComplete { get; set; }
         public CancellationTokenSource CancellationToken { get; } = new();
 
         public void Cancel()
         {
             CancellationToken.Cancel();
+
+            foreach (var animation in Animations)
+            {
+                animation.Cancel();
+            }
+
+            Animations.Clear();
         }
 
-        public void Deconstruct(out Animatable Control)
+        /// <inheritdoc />
+        public void Dispose()
         {
-            Control = this.Control;
+            CancellationToken.Dispose();
         }
     }
 }

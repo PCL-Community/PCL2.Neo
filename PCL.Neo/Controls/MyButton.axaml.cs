@@ -45,7 +45,7 @@ public class MyButton : Button
             return;
         }
 
-        this.Animate().ScaleTo(0.955d, 80, easing: new CubicEaseOut());
+        await this.Animate().ScaleTo(0.955d, 80, easing: new CubicEaseOut()).RunAsync();
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
@@ -56,7 +56,7 @@ public class MyButton : Button
             return;
         }
 
-        this.Animate().ScaleTo(1d, 300, easing: new CubicEaseOut());
+        await this.Animate().ScaleTo(1d, 300, easing: new CubicEaseOut()).RunAsync();
     }
 
     public int Uuid = CoreUtils.GetUuid();

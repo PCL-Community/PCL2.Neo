@@ -1,11 +1,13 @@
 using Avalonia;
+using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input;
 using Avalonia.Media;
-using PCL.Neo.Helpers;
+using PCL.Neo.Animations.Easings;
+using PCL.Neo.Helpers.Animation;
 using PCL.Neo.Models;
 using PCL.Neo.Utils;
 using System;
@@ -40,8 +42,8 @@ public class MyIconButton : Button
         {
             return;
         }
-        // TODO: remake animation system
-        //await this.Animate().ScaleTo(0.8, durationMs: 400, easing: new QuadraticEaseOut()).RunAsync();
+
+        await this.Animate().ScaleTo(0.8, duration: 400, easing: new QuadraticEaseOut()).RunAsync();
     }
 
     protected override async void OnPointerReleased(PointerReleasedEventArgs e)
@@ -51,8 +53,8 @@ public class MyIconButton : Button
         {
             return;
         }
-        // TODO: remake animation system
-        //await this.Animate().ScaleTo(1d, durationMs: 250, easing: new MyBackEaseOut()).RunAsync();
+
+        await this.Animate().ScaleTo(1d, duration: 250, easing: new MyBackEaseOut()).RunAsync();
     }
 
     public int Uuid = CoreUtils.GetUuid();

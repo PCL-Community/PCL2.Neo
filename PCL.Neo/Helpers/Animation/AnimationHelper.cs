@@ -5,6 +5,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using PCL.Neo.Animations;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,14 +13,47 @@ namespace PCL.Neo.Helpers.Animation;
 
 public static class AnimationHelper
 {
-    public static AnimationChain Animate(this Animatable control) => new(control);
+    private static readonly ConcurrentDictionary<int, AnimationChain> InAnimationChains = new();
 
-    public static AnimationChain LoopAnimate(this Animatable control) => new(control);
+    public static AnimationChain Animate(this Animatable control)
+    {
+        var ani = new AnimationChain(control) { IsLoop = false };
+        var hashCode = control.GetHashCode();
 
-    public static async Task<AnimationChain> RunAsync(this AnimationChain chain)
+        // cacel and remove exist animation
+        if (InAnimationChains.TryGetValue(hashCode, out var existingChain))
+        {
+            existingChain.Cancel();
+            InAnimationChains.TryRemove(hashCode, out _);
+        }
+
+        InAnimationChains.TryAdd(hashCode, ani);
+
+        return ani;
+    }
+
+    public static AnimationChain LoopAnimate(this Animatable control)
+    {
+        var ani = new AnimationChain(control) { IsLoop = true };
+        var hashCode = control.GetHashCode();
+
+        // cacel and remove exist animation
+        if (InAnimationChains.TryGetValue(hashCode, out var existingChain))
+        {
+            existingChain.Cancel();
+            InAnimationChains.TryRemove(hashCode, out _);
+        }
+
+        InAnimationChains.TryAdd(hashCode, ani);
+
+        return ani;
+    }
+
+    private static async Task RunAnimatin(AnimationChain chain)
     {
         do
         {
+            var tasks = new List<Task>();
             foreach (var animation in chain.Animations)
             {
                 if (chain.CancellationToken.IsCancellationRequested)
@@ -28,28 +62,29 @@ public static class AnimationHelper
                 }
 
                 var task = animation.RunAsync();
-                if (animation.Wait)
+                tasks.Add(task);
+                if (animation.Wait == false)
                 {
-                    await task;
+                    continue;
                 }
+
+                await Task.WhenAll(tasks);
+                tasks.Clear();
             }
-        } while (chain.CancellationToken.IsCancellationRequested == false && chain.IsLoop);
+        } while (!chain.CancellationToken.IsCancellationRequested && chain.IsLoop);
 
 
         chain.IsComplete = true;
+    }
+
+    public static async Task<AnimationChain> RunAsync(this AnimationChain chain)
+    {
+        await RunAnimatin(chain);
 
         return chain;
     }
 
-    public static async Task<bool> RUnAsync(IEnumerable<AnimationChain> chains)
-    {
-        foreach (var chain in chains)
-        {
-            await chain.RunAsync();
-        }
-
-        return true;
-    }
+    #region Fade
 
     public static AnimationChain FadeTo(this AnimationChain control, double target, uint duration = 250, uint delay = 0,
         Easing? easing = null, bool wait = false)
@@ -62,8 +97,6 @@ public static class AnimationHelper
 
         return control;
     }
-
-    #region Fade
 
     public static AnimationChain FadeFromTo(this AnimationChain control, double begin, double target,
         uint duration = 250,
@@ -78,6 +111,10 @@ public static class AnimationHelper
 
         return control;
     }
+
+    #endregion
+
+    #region Scale
 
     public static AnimationChain ScaleTo(this AnimationChain control, double target, uint duration = 250,
         uint delay = 0,
@@ -97,9 +134,21 @@ public static class AnimationHelper
         return control;
     }
 
-    #endregion
+    public static AnimationChain ScaleFromTo(this AnimationChain control, double before, double target,
+        uint duration = 250,
+        uint delay = 0,
+        Easing? easing = null, bool wait = false)
+    {
+        easing ??= new LinearEasing();
 
-    #region Scale
+        var ani = new ScaleTransformScaleAnimation(new WeakReference<Animatable>(control.Control),
+            new ScaleRate(before, before),
+            new ScaleRate(target, target), easing,
+            TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
+
+        control.Animations.Add(ani);
+        return control;
+    }
 
     public static AnimationChain ScaleXTo(this AnimationChain control, double target, uint duration = 250,
         uint delay = 0,
@@ -147,13 +196,7 @@ public static class AnimationHelper
         var ani = new RotateTransformAngleAnimation(new WeakReference<Animatable>(control.Control), beg, target, easing,
             TimeSpan.FromMilliseconds(duration), TimeSpan.FromMilliseconds(delay), wait);
 
-        var task = ani.RunAsync();
-
-        if (wait)
-        {
-            task.Wait();
-        }
-
+        control.Animations.Add(ani);
         return control;
     }
 

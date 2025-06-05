@@ -199,4 +199,10 @@ public partial class HomeViewModel : ViewModelBase
             throw;
         }
     }
+
+    [RelayCommand]
+    private void TestButtonAni()
+    {
+        Console.WriteLine("Test");
+    }
 }
