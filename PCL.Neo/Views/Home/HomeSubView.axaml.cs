@@ -20,11 +20,11 @@ public partial class HomeSubView : UserControl
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        //this.TestLoading.State = MyLoading.LoadingState.Loading;
+        this.TestLoading.State = MyLoading.LoadingState.Loading;
     }
 
     private void Button2_OnClick(object? sender, RoutedEventArgs e)
     {
-        //this.TestLoading.State = MyLoading.LoadingState.Error;
+        this.TestLoading.State = MyLoading.LoadingState.Error;
     }
 }

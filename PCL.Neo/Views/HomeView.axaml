@@ -186,8 +186,8 @@
                     <!-- 内容区 - 可以放新闻或游戏信息 -->
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Spacing="15">
-                            <!-- 游戏版本卡片 -->
-                            <!--<Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
+                             <!--游戏版本卡片--> 
+                            <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                    CornerRadius="6"
                                    Padding="15">
                                 <Grid>
@@ -214,7 +214,7 @@
                                 </Grid>
                             </Border>
                             
-                            --><!-- 内存设置卡片 --><!--
+                             <!--内存设置卡片--> 
                             <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                    CornerRadius="6"
                                    Padding="15">
@@ -249,7 +249,7 @@
                                                  FontWeight="SemiBold"/>
                                     </Grid>
                                 </Grid>
-                            </Border>-->
+                            </Border>
                             <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                     CornerRadius="6"
                                     Padding="15">
@@ -280,11 +280,6 @@
                                            HorizontalAlignment="Stretch"
                                            Height="20" Width="20"
                                            Source="{Binding ShowImageBitmap}"/>
-                                    <pc:MyButton Content="Test"
-                                                 Width="80" Height="40"
-                                                 HorizontalAlignment="Center"
-                                                 VerticalAlignment="Bottom"
-                                                 Command="{Binding TestButtonAniCommand}"/>
                                     
                                 </Grid>
                             </Border>

@@ -43,10 +43,10 @@
                 <Run Text="图标？" />
             </pc:MyButton>
 			
-            <!--<pc:MyLoading
+            <pc:MyLoading
                 Height="150"
                 Name="TestLoading"
-                Width="150" />-->
+                Width="150" />
             <pc:MyButton
                 Command="{Binding NavigateToDownloadModCommand}"
                 Height="50"
