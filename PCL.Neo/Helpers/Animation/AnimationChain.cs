@@ -11,6 +11,8 @@ namespace PCL.Neo.Helpers.Animation
         internal Animatable Control { get; } = control;
         internal List<IAnimation> Animations { get; } = [];
         public bool IsComplete { get; internal set; }
+
+        internal bool IsLoop { get; init; }
         internal CancellationTokenSource CancellationToken { get; } = new();
 
         public void Cancel()

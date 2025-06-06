@@ -31,7 +31,7 @@ namespace PCL.Neo.Controls
 
             SetPseudoClasses();
             RefreshText();
-            StartAnimation();
+            RefreshState();
         }
 
         public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<MyLoading, string>(
@@ -89,43 +89,35 @@ namespace PCL.Neo.Controls
                 SetValue(StateProperty, value);
                 SetPseudoClasses();
                 RefreshText();
+                RefreshState();
             }
         }
 
-        private void StartAnimation()
+        private void RefreshState()
         {
             Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                while (true)
+                var currentState = State;
+                switch (currentState)
                 {
-                    var currentState = State;
-                    switch (currentState)
-                    {
-                        case LoadingState.Loading:
-                            if (_hasErrorOccurred)
-                            {
-                                await AnimationErrorToLoadingAsync();
-                            }
+                    case LoadingState.Loading:
+                        if (_hasErrorOccurred)
+                        {
+                            await AnimationErrorToLoadingAsync();
+                        }
 
-                            _hasErrorOccurred = false;
-                            await AnimationLoadingAsync();
-                            break;
+                        _hasErrorOccurred = false;
+                        await AnimationLoadingAsync();
+                        break;
 
-                        case LoadingState.Error:
-                            if (!_hasErrorOccurred)
-                            {
-                                _hasErrorOccurred = true;
-                                await AnimationLoadingToErrorAsync();
-                                break;
-                            }
+                    case LoadingState.Error:
+                        if (!_hasErrorOccurred)
+                        {
+                            _hasErrorOccurred = true;
+                            await AnimationLoadingToErrorAsync();
+                        }
 
-                            await Task.Delay(100);
-                            break;
-
-                        default:
-                            await Task.Delay(100);
-                            break;
-                    }
+                        break;
                 }
             });
         }
@@ -187,22 +179,22 @@ namespace PCL.Neo.Controls
         {
             // 循环动画，听说这里折磨龙猫很久(doge)
 
-            _ = _pathPickaxe!.Animate()
+            _ = _pathPickaxe!.LoopAnimate()
                 .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
-                .RotateFromTo(-20d, 30d, duration: 180)
+                .RotateFromTo(-20d, 30d, duration: 180, wait: true)
                 .RunAsync();
 
-            _ = _pathLeft!.Animate()
+            _ = _pathLeft!.LoopAnimate()
                 .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(-5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut())
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
                 .RunAsync();
 
-            _ = _pathRight!.Animate()
+            _ = _pathRight!.LoopAnimate()
                 .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
                 .MarginXTo(5d, 180, easing: new CubicEaseOut())
-                .MarginYTo(-6d, 180, easing: new CubicEaseOut())
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
                 .RunAsync();
 
 
