@@ -48,6 +48,7 @@ public static class AnimationHelper
         var tasks = new List<Task>();
         do
         {
+            tasks.Clear();
             foreach (var animation in chain.Animations)
             {
                 if (chain.CancellationToken.IsCancellationRequested)

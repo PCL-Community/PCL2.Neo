@@ -9,6 +9,19 @@ namespace PCL.Neo.Helpers.Animation
 {
     public static class AnimationExtensions
     {
+        #region Helper
+
+        public static AnimationChain Wait(this AnimationChain chain, uint delay)
+        {
+            var ani = new WaitAnimation(chain.Control, chain.Control.GetValue(Visual.OpacityProperty),
+                new LinearEasing(), TimeSpan.Zero, TimeSpan.FromMilliseconds(delay), wait: true);
+            chain.Animations.Add(ani);
+
+            return chain;
+        }
+
+        #endregion
+
         #region Fade
 
         public static AnimationChain FadeTo(this AnimationChain control, double target, uint duration = 250,

@@ -18,8 +18,7 @@ namespace PCL.Neo.Controls
         private Path? _pathError;
         private Path? _pathLeft;
         private Path? _pathRight;
-        private bool _hasErrorOccurred = false;
-        private AnimationChain[]? _animation;
+        private bool _hasErrorOccurred;
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -95,7 +94,7 @@ namespace PCL.Neo.Controls
 
         private void RefreshState()
         {
-            Dispatcher.UIThread.InvokeAsync(async () =>
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var currentState = State;
                 switch (currentState)
@@ -103,18 +102,18 @@ namespace PCL.Neo.Controls
                     case LoadingState.Loading:
                         if (_hasErrorOccurred)
                         {
-                            await AnimationErrorToLoadingAsync();
+                            AnimationErrorToLoading();
                         }
 
                         _hasErrorOccurred = false;
-                        await AnimationLoadingAsync();
+                        AnimationLoading();
                         break;
 
                     case LoadingState.Error:
                         if (!_hasErrorOccurred)
                         {
                             _hasErrorOccurred = true;
-                            await AnimationLoadingToErrorAsync();
+                            AnimationLoadingToError();
                         }
 
                         break;
@@ -122,119 +121,59 @@ namespace PCL.Neo.Controls
             });
         }
 
-        private async Task AnimationErrorToLoadingAsync()
+        private void AnimationErrorToLoading()
         {
-            await _pathPickaxe!.Animate()
+            _ = _pathPickaxe!.Animate()
                 .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RunAsync();
 
-            await _pathError!.Animate()
+            _ = _pathError!.Animate()
                 .FadeTo(1d, 100)
-                .ScaleFromTo(1d, 0.5d, 100)
-                .ScaleFromTo(1d, 0.5d, 400)
+                .ScaleFromTo(1d, 1.2d, 100, wait: true)
+                .ScaleTo(0.0d, 400, wait: true)
                 .RunAsync();
-            //_animation.CancelAndClear();
-            //_animation.Animations.AddRange(
-            //[
-            //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
-            //        before: 55d, after: -20d, easing: new MyBackEaseIn(EasePower.Weak)),
-
-            //    new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100), before: 0d),
-            //    new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(100),
-            //        before: 1d, after: 0.5d),
-            //    new ScaleTransformScaleYAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
-            //        before: 1d, after: 0.5d)
-            //]);
-            //await _animation.RunAsync();
         }
 
-        private async Task AnimationLoadingToErrorAsync()
+        private void AnimationLoadingToError()
         {
-            await _pathPickaxe!.Animate()
+            _ = _pathPickaxe!.Animate()
                 .RotateTo(55d, duration: 900, easing: new CubicEaseOut())
                 .RunAsync();
 
-            await _pathError!.Animate()
+            _ = _pathError!.Animate()
                 .FadeTo(1d, 300)
-                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
-                .ScaleFromTo(0.5d, 1d, 400, easing: new MyBackEaseOut())
+                .ScaleTo(1.05d, 400, easing: new MyBackEaseOut(), wait: true)
+                .ScaleTo(1d, 400, easing: new MyBackEaseOut(), wait: true)
                 .RunAsync();
-            //_animation.CancelAndClear();
-            //_animation.Animations.AddRange(
-            //[
-            //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(900),
-            //        after: 55d, easing: new CubicEaseOut()),
-
-            //    new OpacityAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(300), after: 1d),
-            //    new ScaleTransformScaleXAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
-            //        before: 0.5d, after: 1d,
-            //        easing: new MyBackEaseOut()),
-            //    new ScaleTransformScaleYAnimation(this._pathError!, duration: TimeSpan.FromMilliseconds(400),
-            //        before: 0.5d, after: 1d, easing: new MyBackEaseOut())
-            //]);
-            //await _animation.RunAsync();
         }
 
-        private async Task AnimationLoadingAsync()
+        private void AnimationLoading()
         {
             // 循环动画，听说这里折磨龙猫很久(doge)
-
+            // From Whitecat346: same, really torture for me too
             _ = _pathPickaxe!.LoopAnimate()
                 .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
                 .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
                 .RotateFromTo(-20d, 30d, duration: 180, wait: true)
                 .RunAsync();
 
+
             _ = _pathLeft!.LoopAnimate()
-                .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+                .FadeFromTo(1d, 0d, duration: 100, delay: 280, easing: new LinearEasing())
                 .MarginXTo(-5d, 180, easing: new CubicEaseOut())
                 .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
+                .Wait(1050)
                 .RunAsync();
 
             _ = _pathRight!.LoopAnimate()
-                .FadeFromTo(1d, 0d, duration: 100, easing: new LinearEasing())
+                .FadeFromTo(1d, 0d, duration: 100, delay: 280, easing: new LinearEasing())
                 .MarginXTo(5d, 180, easing: new CubicEaseOut())
                 .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
+                .Wait(1050)
                 .RunAsync();
 
-
-            //_animation.CancelAndClear();
-
-            //_animation.Animations.AddRange(
-            //[
-            //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(350),
-            //        before: 55d, after: -20d, easing: new MyBackEaseIn(EasePower.Weak)),
-            //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(900),
-            //        before: 30d, after: 55d, easing: new ElasticEaseOut()),
-            //    new RotateTransformAngleAnimation(this._pathPickaxe!, duration: TimeSpan.FromMilliseconds(180),
-            //        before: -20d, after: 30d),
-
-            //    new OpacityAnimation(new WeakReference<Animatable>(_pathLeft!),
-            //        duration: TimeSpan.FromMilliseconds(100),
-            //        delay: TimeSpan.FromMilliseconds(50), before: 1d,
-            //        after: 0d),
-            //    new XAnimation(new WeakReference<Animatable>(this._pathLeft!), duration: TimeSpan.FromMilliseconds(180),
-            //        value: -5d,
-            //        easing: new CubicEaseOut()),
-            //    new YAnimation(new WeakReference<Animatable>(this._pathLeft!), duration: TimeSpan.FromMilliseconds(180),
-            //        value: -6d,
-            //        easing: new CubicEaseOut()),
-
-            //    new OpacityAnimation(new WeakReference<Animatable>(this._pathRight!),
-            //        duration: TimeSpan.FromMilliseconds(100),
-            //        delay: TimeSpan.FromMilliseconds(50),
-            //        before: 1d, after: 0d),
-            //    new XAnimation(new WeakReference<Animatable>(this._pathRight !),
-            //        duration: TimeSpan.FromMilliseconds(180), value: 5d,
-            //        easing: new CubicEaseOut()),
-            //    new YAnimation(new WeakReference<Animatable>(this._pathRight!),
-            //        duration: TimeSpan.FromMilliseconds(180), value: -6d,
-            //        easing: new CubicEaseOut())
-            //]);
-
-            //await _animation.RunAsync();
-            this._pathLeft!.Margin = new Thickness(7, 41, 0, 0);
-            this._pathRight!.Margin = new Thickness(14, 41, 0, 0);
+            _pathLeft!.Margin = new Thickness(7, 41, 0, 0);
+            _pathRight!.Margin = new Thickness(14, 41, 0, 0);
         }
 
         private void SetPseudoClasses()
