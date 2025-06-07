@@ -79,7 +79,6 @@
     <Folder Include="Views\SubPage\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PCL.CompositionScroll\PCL.CompositionScroll.csproj" />
     <ProjectReference Include="..\PCL.Neo.Core\PCL.Neo.Core.csproj" />
   </ItemGroup>
 
