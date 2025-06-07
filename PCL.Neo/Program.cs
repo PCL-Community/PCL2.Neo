@@ -1,6 +1,7 @@
 using System;
 using Avalonia;
 using Avalonia.Media;
+using System.Text;
 
 namespace PCL.Neo
 {
@@ -12,6 +13,8 @@ namespace PCL.Neo
         [STAThread]
         public static void Main(string[] args)
         {
+            Console.OutputEncoding = Encoding.UTF8;
+
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
             // Othre Initialize
