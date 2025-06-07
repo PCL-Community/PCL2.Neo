@@ -13,7 +13,7 @@ public static class SystemUtils
     {
         Windows,
         Linux,
-        MacOs,
+        MacOS,
         Unknown
     }
 
@@ -22,7 +22,7 @@ public static class SystemUtils
         : RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
             ? RunningOs.Linux
             : RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-                ? RunningOs.MacOs
+                ? RunningOs.MacOS
                 : RunningOs.Unknown;
 
     public static string ToMajangApiName(this RunningOs os)
@@ -31,8 +31,8 @@ public static class SystemUtils
         {
             RunningOs.Windows => "windows",
             RunningOs.Linux => "linux",
-            RunningOs.MacOs => "macos",
-            RunningOs.Unknown => "unknow", // TODO: not konw is this right
+            RunningOs.MacOS => "macos",
+            RunningOs.Unknown => "unknown", // TODO: not konw is this right
             _ => throw new ArgumentOutOfRangeException(nameof(os), os, null)
         };
     }
@@ -73,7 +73,7 @@ public static class SystemUtils
                     Architecture.X86 => "linux-i386",
                     _ => "unknown"
                 },
-                RunningOs.MacOs => Architecture switch
+                RunningOs.MacOS => Architecture switch
                 {
                     Architecture.X64 => "mac-os",
                     Architecture.Arm64 => "mac-os-arm64",

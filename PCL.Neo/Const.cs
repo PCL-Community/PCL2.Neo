@@ -35,7 +35,7 @@ public static class Const
     {
         Windows,
         Linux,
-        MacOs,
+        MacOS,
         Unknown
     }
 
@@ -60,7 +60,7 @@ public static class Const
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                _os = RunningOs.MacOs;
+                _os = RunningOs.MacOS;
             }
             else
             {

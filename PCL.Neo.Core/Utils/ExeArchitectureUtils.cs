@@ -56,7 +56,7 @@ public static class ExeArchitectureUtils
         {
             SystemUtils.RunningOs.Windows => ReadPeHeader(path),
             SystemUtils.RunningOs.Linux => ReadElfHeader(path),
-            SystemUtils.RunningOs.MacOs => ReadMachOHeader(path),
+            SystemUtils.RunningOs.MacOS => ReadMachOHeader(path),
             _ => ExeArchitecture.Unknown
         };
     }
@@ -166,9 +166,9 @@ public static class ExeArchitectureUtils
             {
                 SystemUtils.RunningOs.Windows when SystemUtils.Architecture is Architecture.X64 or Architecture.Arm64 =>
                     JavaCompability.UnderTranslation,
-                SystemUtils.RunningOs.MacOs when SystemUtils.Architecture is Architecture.Arm64 &&
+                SystemUtils.RunningOs.MacOS when SystemUtils.Architecture is Architecture.Arm64 &&
                                                  arch is ExeArchitecture.X64 => JavaCompability.UnderTranslation,
-                SystemUtils.RunningOs.MacOs when arch is ExeArchitecture.FatFile => JavaCompability.Yes,
+                SystemUtils.RunningOs.MacOS when arch is ExeArchitecture.FatFile => JavaCompability.Yes,
                 SystemUtils.RunningOs.Linux => JavaCompability.No,
                 SystemUtils.RunningOs.Unknown => JavaCompability.Unknown,
                 _ => JavaCompability.Unknown

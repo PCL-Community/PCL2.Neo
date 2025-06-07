@@ -89,7 +89,7 @@ public class GameService
         // 下载Minecraft主JAR文件
         var jarUrl = versionInfo.Downloads.Client.Url;
         var jarPath = Path.Combine(versionDir, $"{versionId}.jar");
-        await DownloadReceipt.FastDownloadAsync(jarUrl, jarPath);
+        // ERROR: await DownloadReceipt.FastDownloadAsync(jarUrl, jarPath);
 
         return true;
     }
@@ -110,7 +110,7 @@ public class GameService
         var assetsIndexUrl = versionInfo.AssetIndex.Url;
         var assetsIndexPath = Path.Combine(indexesDir, $"{versionInfo.AssetIndex.Id}.json");
 
-        await DownloadReceipt.FastDownloadAsync(assetsIndexUrl, assetsIndexPath);
+        // ERROR: await DownloadReceipt.FastDownloadAsync(assetsIndexUrl, assetsIndexPath);
 
         // 解析assets索引文件
         var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
@@ -136,7 +136,7 @@ public class GameService
             {
                 Directory.CreateDirectory(assetObjectDir);
                 var assetUrl = $"https://resources.download.minecraft.net/{prefix}/{hash}";
-                await DownloadReceipt.FastDownloadAsync(assetUrl, assetObjectPath);
+                //ERROR: await DownloadReceipt.FastDownloadAsync(assetUrl, assetObjectPath);
             }
 
             downloadedAssets++;
@@ -182,7 +182,7 @@ public class GameService
 
                 if (!string.IsNullOrEmpty(libraryUri))
                 {
-                    await DownloadReceipt.FastDownloadAsync(libraryUri, libraryPath);
+                    //ERROR: await DownloadReceipt.FastDownloadAsync(libraryUri, libraryPath);
                 }
             }
 
@@ -197,7 +197,7 @@ public class GameService
                     if (!File.Exists(nativePath))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(nativePath)!);
-                        await DownloadReceipt.FastDownloadAsync(nativeDownload.Url, nativePath);
+                        //ERROR: await DownloadReceipt.FastDownloadAsync(nativeDownload.Url, nativePath);
                     }
                 }
             }

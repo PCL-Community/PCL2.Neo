@@ -17,7 +17,7 @@
 - `AudioOptions.cs` - 音频选项配置类
 - `AudioService.cs` - 跨平台基础实现类
 - `WindowsAudioService.cs` - Windows平台特定实现
-- `MacOsAudioService.cs` - macOS平台特定实现
+- `MacOSAudioService.cs` - macOS平台特定实现
 - `LinuxAudioService.cs` - Linux平台特定实现
 - `AudioServiceFactory.cs` - 音频服务工厂类，负责创建适合当前平台的服务实例
 
@@ -84,7 +84,7 @@ audioService.Dispose();
 - 通过waveOutSetVolume实现系统级音量控制
 - 通过状态监控确保准确的播放完成事件
 
-### macOS (MacOsAudioService)
+### macOS (MacOSAudioService)
 
 - 使用macOS原生的afplay命令播放音频
 - 通过SIGSTOP和SIGCONT信号控制播放暂停/继续
@@ -123,4 +123,4 @@ audioService.Dispose();
 - 所有音频服务实现都实现了 `IDisposable` 接口，使用完毕后应当调用 `Dispose()` 方法释放资源
 - 音频服务默认会创建临时文件夹用于存储从流中读取的音频数据，可通过 `AudioOptions` 配置路径
 - 如有日志需求，可通过 `AudioOptions.EnableLogging` 启用日志输出
-- 基类 `AudioService` 已具备基本的跨平台能力，但平台特定实现提供了更优的性能和功能 
+- 基类 `AudioService` 已具备基本的跨平台能力，但平台特定实现提供了更优的性能和功能

@@ -9,13 +9,13 @@ namespace PCL.Neo.Core.Service.Audio;
 /// <summary>
 /// macOS平台特定的音频服务实现，使用原生命令进行音频控制
 /// </summary>
-public class MacOsAudioService : AudioService
+public class MacOSAudioService : AudioService
 {
     /// <summary>
     /// 构造函数
     /// </summary>
     /// <param name="options">音频选项</param>
-    public MacOsAudioService(AudioOptions? options = null) : base(options)
+    public MacOSAudioService(AudioOptions? options = null) : base(options)
     {
     }
 
@@ -39,11 +39,11 @@ public class MacOsAudioService : AudioService
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            
+
             process.Start();
             string output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
-            
+
             return output.Trim();
         }
         catch (Exception ex)
@@ -52,7 +52,7 @@ public class MacOsAudioService : AudioService
             return string.Empty;
         }
     }
-    
+
     /// <summary>
     /// 执行AppleScript
     /// </summary>
@@ -91,7 +91,7 @@ public class MacOsAudioService : AudioService
                     },
                     EnableRaisingEvents = true
                 };
-                
+
                 process.Exited += (sender, args) =>
                 {
                     OnPlaybackFinished(this);
@@ -120,7 +120,7 @@ public class MacOsAudioService : AudioService
                     }
                     catch { /* 忽略错误 */ }
                 });
-                
+
                 return true;
             });
         }
@@ -143,7 +143,7 @@ public class MacOsAudioService : AudioService
         {
             if (_currentProcess == null || _currentProcess.HasExited)
                 return false;
-            
+
             try
             {
                 LogInfo("macOS暂停播放");
@@ -172,7 +172,7 @@ public class MacOsAudioService : AudioService
         {
             if (_currentProcess == null || _currentProcess.HasExited)
                 return false;
-            
+
             try
             {
                 LogInfo("macOS继续播放");
@@ -198,7 +198,7 @@ public class MacOsAudioService : AudioService
         {
             if (_currentProcess == null)
                 return true;
-                
+
             try
             {
                 LogInfo("macOS停止播放");
@@ -234,7 +234,7 @@ public class MacOsAudioService : AudioService
                 // 将0-1范围的音量映射到macOS的0-100范围
                 int osVolume = (int)(volume * 100);
                 LogInfo($"设置macOS系统音量: {osVolume}%");
-                
+
                 // 使用AppleScript设置系统音量
                 string script = $"set volume output volume {osVolume}";
                 ExecuteAppleScript(script);
@@ -247,4 +247,4 @@ public class MacOsAudioService : AudioService
             }
         });
     }
-} 
+}

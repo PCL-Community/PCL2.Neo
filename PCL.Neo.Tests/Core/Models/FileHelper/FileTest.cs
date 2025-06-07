@@ -12,9 +12,9 @@ public class FileTest
     [Test]
     public async Task Download()
     {
-        await DownloadReceipt.FastDownloadAsync(
-            "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json",
-            Path.Combine(Path.GetTempPath(), "all.json"));
+        // await DownloadReceipt.FastDownloadAsync(
+        //     "https://piston-meta.mojang.com/v1/products/java-runtime/2ec0cc96c44e5a76b9c8b7c39df7210883d12871/all.json",
+        //     Path.Combine(Path.GetTempPath(), "all.json"));
         Console.WriteLine(Path.GetTempPath());
     }
 

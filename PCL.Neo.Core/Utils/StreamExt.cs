@@ -3,7 +3,7 @@ namespace PCL.Neo.Core.Utils;
 public static class StreamExt
 {
     // https://gist.github.com/dalexsoto/9fd3c5bdbe9f61a717d47c5843384d11
-    public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize,
+    public static async Task CopyToAsync(this Stream source, Stream destination, long bufferSize,
         IProgress<long>? progress = null, CancellationToken cancellationToken = default)
     {
         if (bufferSize < 0)
@@ -19,10 +19,10 @@ public static class StreamExt
 
         var buffer = new byte[bufferSize];
         long totalBytesRead = 0;
-        int bytesRead;
+        long bytesRead;
         while ((bytesRead = await source.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) != 0)
         {
-            await destination.WriteAsync(buffer.AsMemory(0, bytesRead), cancellationToken).ConfigureAwait(false);
+            await destination.WriteAsync(buffer.AsMemory(0, (int)bytesRead), cancellationToken).ConfigureAwait(false);
             totalBytesRead += bytesRead;
             progress?.Report(totalBytesRead);
         }

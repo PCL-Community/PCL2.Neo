@@ -24,4 +24,16 @@
       <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Download\Minercraft\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Download\Minercraft\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Download\Minercraft\**" />
+    </ItemGroup>
+
 </Project>
