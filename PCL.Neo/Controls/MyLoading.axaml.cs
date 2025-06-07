@@ -4,12 +4,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
-using Avalonia.Media;
 using Avalonia.Threading;
-using PCL.Neo.Animations;
 using PCL.Neo.Animations.Easings;
-using PCL.Neo.Helpers;
-using System;
+using PCL.Neo.Helpers.Animation;
 using System.Threading.Tasks;
 
 namespace PCL.Neo.Controls
@@ -17,17 +14,11 @@ namespace PCL.Neo.Controls
     [PseudoClasses(":loading", ":error")]
     public class MyLoading : TemplatedControl
     {
-        private AnimationHelper _animation;
         private Path? _pathPickaxe;
         private Path? _pathError;
         private Path? _pathLeft;
         private Path? _pathRight;
-        private bool _hasErrorOccurred = false;
-
-        public MyLoading()
-        {
-            _animation = new();
-        }
+        private bool _hasErrorOccurred;
 
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
@@ -39,7 +30,7 @@ namespace PCL.Neo.Controls
 
             SetPseudoClasses();
             RefreshText();
-            StartAnimation();
+            RefreshState();
         }
 
         public static readonly StyledProperty<string> TextProperty = AvaloniaProperty.Register<MyLoading, string>(
@@ -85,9 +76,9 @@ namespace PCL.Neo.Controls
             Error
         }
 
-        public static readonly StyledProperty<LoadingState> StateProperty = AvaloniaProperty.Register<MyLoading, LoadingState>(
-            nameof(State),
-            LoadingState.Loading);
+        public static readonly StyledProperty<LoadingState> StateProperty =
+            AvaloniaProperty.Register<MyLoading, LoadingState>(
+                nameof(State));
 
         public LoadingState State
         {
@@ -97,114 +88,104 @@ namespace PCL.Neo.Controls
                 SetValue(StateProperty, value);
                 SetPseudoClasses();
                 RefreshText();
+                RefreshState();
             }
         }
 
-        private void StartAnimation()
+        private void RefreshState()
         {
-            Dispatcher.UIThread.InvokeAsync(async () =>
+            Dispatcher.UIThread.InvokeAsync(() =>
             {
-                while (true)
+                var currentState = State;
+                switch (currentState)
                 {
-                    var currentState = State;
-                    switch (currentState)
-                    {
-                        case LoadingState.Loading:
-                            if (_hasErrorOccurred)
-                            {
-                                await AnimationErrorToLoadingAsync();
-                            }
-                            _hasErrorOccurred = false;
-                            await AnimationLoadingAsync();
-                            break;
-                        case LoadingState.Error:
-                            if (!_hasErrorOccurred)
-                            {
-                                _hasErrorOccurred = true;
-                                await AnimationLoadingToErrorAsync();
-                                break;
-                            }
-                            await Task.Delay(100);
-                            break;
-                        default:
-                            await Task.Delay(100);
-                            break;
-                    }
+                    case LoadingState.Loading:
+                        if (_hasErrorOccurred)
+                        {
+                            AnimationErrorToLoading();
+                        }
+
+                        _hasErrorOccurred = false;
+                        AnimationLoading();
+                        break;
+
+                    case LoadingState.Error:
+                        if (!_hasErrorOccurred)
+                        {
+                            _hasErrorOccurred = true;
+                            AnimationLoadingToError();
+                        }
+
+                        break;
                 }
             });
         }
 
-        private async Task AnimationErrorToLoadingAsync()
+        private void AnimationErrorToLoading()
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange(
-            [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(350), 55d, -20d, new MyBackEaseIn(EasePower.Weak)),
-                new OpacityAnimation(this._pathError!, TimeSpan.FromMilliseconds(100), 0d),
-                new ScaleTransformScaleXAnimation(this._pathError!, TimeSpan.FromMilliseconds(100), 1d, 0.5d),
-                new ScaleTransformScaleYAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 1d, 0.5d)
-            ]);
-            await _animation.RunAsync();
+            _ = _pathPickaxe!.Animate()
+                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
+                .RunAsync();
+
+            _ = _pathError!.Animate()
+                .FadeTo(1d, 100)
+                .ScaleFromTo(1d, 1.2d, 100, wait: true)
+                .ScaleTo(0.0d, 400, wait: true)
+                .RunAsync();
         }
 
-        private async Task AnimationLoadingToErrorAsync()
+        private void AnimationLoadingToError()
         {
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange(
-            [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(900), 55d, new CubicEaseOut()),
-                new OpacityAnimation(this._pathError!, TimeSpan.FromMilliseconds(300), 1d),
-                new ScaleTransformScaleXAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 0.5d, 1d, new MyBackEaseOut()),
-                new ScaleTransformScaleYAnimation(this._pathError!, TimeSpan.FromMilliseconds(400), 0.5d, 1d, new MyBackEaseOut())
-            ]);
-            await _animation.RunAsync();
+            _ = _pathPickaxe!.Animate()
+                .RotateTo(55d, duration: 900, easing: new CubicEaseOut())
+                .RunAsync();
+
+            _ = _pathError!.Animate()
+                .FadeTo(1d, 300)
+                .ScaleTo(1.05d, 400, easing: new MyBackEaseOut(), wait: true)
+                .ScaleTo(1d, 400, easing: new MyBackEaseOut(), wait: true)
+                .RunAsync();
         }
 
-        private async Task AnimationLoadingAsync()
+        private void AnimationLoading()
         {
             // 循环动画，听说这里折磨龙猫很久(doge)
-            _animation.CancelAndClear();
-            _animation.Animations.AddRange(
-            [
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(350), 55d, -20d, new MyBackEaseIn(EasePower.Weak)),
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(900), 30d, 55d, new ElasticEaseOut()),
-                new RotateTransformAngleAnimation(this._pathPickaxe!, TimeSpan.FromMilliseconds(180), -20d, 30d),
-                new OpacityAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(50), 1d, 0d),
-                new XAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(180), -5d, new CubicEaseOut()),
-                new YAnimation(this._pathLeft!, TimeSpan.FromMilliseconds(180), -6d, new CubicEaseOut()),
-                new OpacityAnimation(this._pathRight!, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(50), 1d, 0d),
-                new XAnimation(this._pathRight!, TimeSpan.FromMilliseconds(180), 5d, new CubicEaseOut()),
-                new YAnimation(this._pathRight!, TimeSpan.FromMilliseconds(180), -6d, new CubicEaseOut()),
-            ]);
-            await _animation.RunAsync();
-            this._pathLeft!.Margin = new Thickness(7,41,0,0);
-            this._pathRight!.Margin = new Thickness(14,41,0,0);
+            // From Whitecat346: same, really torture for me too
+            _ = _pathPickaxe!.LoopAnimate()
+                .RotateFromTo(55d, -20d, duration: 350, easing: new MyBackEaseIn(EasePower.Weak))
+                .RotateFromTo(30d, 55d, duration: 900, easing: new ElasticEaseOut())
+                .RotateFromTo(-20d, 30d, duration: 180, wait: true)
+                .RunAsync();
+
+
+            _ = _pathLeft!.LoopAnimate()
+                .FadeFromTo(1d, 0d, duration: 100, delay: 280, easing: new LinearEasing())
+                .MarginXTo(-5d, 180, easing: new CubicEaseOut())
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
+                .Wait(1050)
+                .RunAsync();
+
+            _ = _pathRight!.LoopAnimate()
+                .FadeFromTo(1d, 0d, duration: 100, delay: 280, easing: new LinearEasing())
+                .MarginXTo(5d, 180, easing: new CubicEaseOut())
+                .MarginYTo(-6d, 180, easing: new CubicEaseOut(), wait: true)
+                .Wait(1050)
+                .RunAsync();
+
+            _pathLeft!.Margin = new Thickness(7, 41, 0, 0);
+            _pathRight!.Margin = new Thickness(14, 41, 0, 0);
         }
 
         private void SetPseudoClasses()
         {
             PseudoClasses.Remove(":loading");
             PseudoClasses.Remove(":error");
-            if (State == LoadingState.Loading)
-            {
-                PseudoClasses.Set(":loading", true);
-            }
-            else
-            {
-                PseudoClasses.Set(":error", true);
-            }
+            PseudoClasses.Set(State == LoadingState.Loading ? ":loading" : ":error", true);
         }
 
         private void RefreshText()
         {
-            if (State == LoadingState.Loading)
-            {
-                this.Text = TextLoading;
-            }
-            else
-            {
-                this.Text = TextError;
-            }
+            this.Text = State == LoadingState.Loading ? TextLoading : TextError;
         }
     }
 }

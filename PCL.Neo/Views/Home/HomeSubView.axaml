@@ -42,6 +42,7 @@
                 </InlineUIContainer>
                 <Run Text="图标？" />
             </pc:MyButton>
+			
             <pc:MyLoading
                 Height="150"
                 Name="TestLoading"

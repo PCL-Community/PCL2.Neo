@@ -34,4 +34,4 @@ namespace PCL.Neo.Animations.Easings
         BounceEaseOut,
         BounceEaseInOut
     }
-} 
+}

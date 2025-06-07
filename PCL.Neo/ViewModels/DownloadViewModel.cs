@@ -1,7 +1,3 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Services;
@@ -11,27 +7,22 @@ using System.Threading.Tasks;
 namespace PCL.Neo.ViewModels;
 
 [DefaultSubViewModel(typeof(DownloadGameViewModel))]
-public partial class DownloadViewModel : ViewModelBase
+public partial class DownloadViewModel(NavigationService navigationService) : ViewModelBase
 {
-    private readonly INavigationService _navigationService;
+    public NavigationService NavigationService { get; } = navigationService;
 
     [ObservableProperty] private string _message = "I am from DownloadViewModel";
-
-    public DownloadViewModel(INavigationService navigationService)
-    {
-        _navigationService = navigationService;
-    }
 
     [RelayCommand]
     private async Task NavigateToDownloadGame()
     {
-        await _navigationService.GotoAsync<DownloadGameViewModel>();
+        await NavigationService.GotoAsync<DownloadGameViewModel>();
     }
 
     [RelayCommand]
     private async Task NavigateToDownloadMod()
     {
-        await _navigationService.GotoAsync<DownloadModViewModel>();
+        await NavigationService.GotoAsync<DownloadModViewModel>();
     }
 
     [RelayCommand]

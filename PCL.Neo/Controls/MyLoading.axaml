@@ -5,7 +5,7 @@
     <Design.PreviewWith>
         <controls:MyLoading
             Height="150"
-            State="Error"
+            State="Loading"
             Width="150" />
     </Design.PreviewWith>
 

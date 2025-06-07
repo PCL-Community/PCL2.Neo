@@ -3,13 +3,11 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Rendering.Composition;
 using Avalonia.Rendering.Composition.Animations;
 using PCL.Neo.Animations;
 using PCL.Neo.Animations.Easings;
-using PCL.Neo.Controls;
 using PCL.Neo.Helpers;
 using PCL.Neo.Services;
 using PCL.Neo.ViewModels;
@@ -31,6 +29,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+#if DEBUG
+        this.AttachDevTools(); // 附加开发者工具
+#endif
 
         NavBackgroundBorder.PointerPressed += (i, e) =>
         {
@@ -66,7 +68,7 @@ public partial class MainWindow : Window
         {
             LeftNavigationControlBorder.Width = LeftNavigationControl!.Bounds.Width;
 
-            LeftNavigationControl!.SizeChanged += (_, args) =>
+            LeftNavigationControl!.SizeChanged += (_compositor, args) =>
             {
                 if (args.WidthChanged)
                     LeftNavigationControlBorder.Width = args.NewSize.Width;
@@ -98,7 +100,6 @@ public partial class MainWindow : Window
                 }
             };
         }
-
         GridRoot.Opacity = 0; // 在此处初始化透明度，不然将闪现
         this.Loaded += (_, _) => AnimationIn();
     }
