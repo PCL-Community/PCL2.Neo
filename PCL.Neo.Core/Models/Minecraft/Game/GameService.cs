@@ -87,9 +87,9 @@ public class GameService
         await DownloadLibrariesAsync(versionInfo, progressCallback);
 
         // 下载Minecraft主JAR文件
-        var jarUrl = versionInfo.Downloads.Client.Url;
-        var jarPath = Path.Combine(versionDir, $"{versionId}.jar");
-        // ERROR: await DownloadReceipt.FastDownloadAsync(jarUrl, jarPath);
+        var jarUrl     = versionInfo.Downloads.Client.Url;
+        var jarPath    = Path.Combine(versionDir, $"{versionId}.jar");
+        await new Downloader([new Downloader.DownloadTask(jarUrl, jarPath)]).Run().WaitAsync();
 
         return true;
     }
@@ -110,7 +110,7 @@ public class GameService
         var assetsIndexUrl = versionInfo.AssetIndex.Url;
         var assetsIndexPath = Path.Combine(indexesDir, $"{versionInfo.AssetIndex.Id}.json");
 
-        // ERROR: await DownloadReceipt.FastDownloadAsync(assetsIndexUrl, assetsIndexPath);
+        await new Downloader([new Downloader.DownloadTask(assetsIndexUrl, assetsIndexPath)]).Run().WaitAsync();
 
         // 解析assets索引文件
         var assetsIndexJson = await File.ReadAllTextAsync(assetsIndexPath);
@@ -136,7 +136,7 @@ public class GameService
             {
                 Directory.CreateDirectory(assetObjectDir);
                 var assetUrl = $"https://resources.download.minecraft.net/{prefix}/{hash}";
-                //ERROR: await DownloadReceipt.FastDownloadAsync(assetUrl, assetObjectPath);
+                await new Downloader([new Downloader.DownloadTask(assetUrl, assetUrl)]).Run().WaitAsync();
             }
 
             downloadedAssets++;
@@ -182,7 +182,7 @@ public class GameService
 
                 if (!string.IsNullOrEmpty(libraryUri))
                 {
-                    //ERROR: await DownloadReceipt.FastDownloadAsync(libraryUri, libraryPath);
+                    await new Downloader([new Downloader.DownloadTask(libraryUri, libraryPath)]).Run().WaitAsync();
                 }
             }
 
@@ -197,7 +197,7 @@ public class GameService
                     if (!File.Exists(nativePath))
                     {
                         Directory.CreateDirectory(Path.GetDirectoryName(nativePath)!);
-                        //ERROR: await DownloadReceipt.FastDownloadAsync(nativeDownload.Url, nativePath);
+                        await new Downloader([new Downloader.DownloadTask(nativeDownload.Url, nativePath)]).Run().WaitAsync();
                     }
                 }
             }

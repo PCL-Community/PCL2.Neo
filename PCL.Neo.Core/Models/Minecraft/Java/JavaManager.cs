@@ -230,7 +230,7 @@ public sealed partial class JavaManager : IJavaManager
                     Console.WriteLine(
                         $"下载进度：已下载{value.Item1}/总文件数{value.Item2}")); // TODO)) 后续这个 progress 可以设置成在 UI 上显示
             var fetchedJavaDir = await FetchJavaOnline(SystemUtils.Platform, neo2SysDir.FullName,
-                MojangJavaVersion.Α, progress, cts.Token);
+                MojangJavaVersion.A, progress, cts.Token);
             if (fetchedJavaDir != null)
             {
                 var runtime = await JavaRuntime.CreateJavaEntityAsync(fetchedJavaDir, true);

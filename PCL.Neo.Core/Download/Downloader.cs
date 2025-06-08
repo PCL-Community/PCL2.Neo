@@ -38,8 +38,10 @@ namespace PCL.Neo.Core.Download
         {
             _tasks = tasks;
             _concurrency = concurrency;
+
             var  len   = _tasks.Length;
             long total = 0;
+
             for (var i = 0; i < len; i++)
             {
                 if (_tasks[i].End == -1)
@@ -66,20 +68,36 @@ namespace PCL.Neo.Core.Download
 
                 if (delta > 0)
                 {
+                    if (delta > task.End - task.Start + 1)
+                    {
+                        _rangedTasks.Enqueue(new DownloadTask(task.Url, task.Destination, task.Start, task.End));
+                        delta -= task.End - task.Start + 1;
+                        continue;
+                    }
                     present = delta + task.Start;
-                    _rangedTasks.Enqueue(new DownloadTask(task.Url, task.Destination,task.Start, present - 1));
+                    _rangedTasks.Enqueue(new DownloadTask(task.Url, task.Destination, task.Start, present - 1)); 
                 }
+
                 while (present + _perTask <= task.End + 1)
                 {
                     _rangedTasks.Enqueue(new DownloadTask(task.Url, task.Destination,present, present + _perTask - 1));
                     present += _perTask;
                     delta   =  0;
                 }
+
                 if (present + _perTask >= task.End)
                 {
                     _rangedTasks.Enqueue(new DownloadTask(task.Url, task.Destination, present, task.End));
                     delta  = _perTask - (task.End - present + 1);
                 }
+            }
+
+            // create target storage directory
+            var destDir = Path.GetDirectoryName(_tasks[0].Destination);
+            if (!Directory.Exists(destDir))
+            {
+                ArgumentException.ThrowIfNullOrEmpty(destDir, nameof(destDir));
+                Directory.CreateDirectory(destDir);
             }
         }
 
@@ -296,7 +314,6 @@ namespace PCL.Neo.Core.Download
                         stream = new FileStream(task.Destination, FileMode.OpenOrCreate, FileAccess.Write);
                     }
                     inputStream.CopyTo(stream);
-                    Thread.Sleep(50);
                     inputStream.Close();
                     File.Delete(tempFilePath);
                 }

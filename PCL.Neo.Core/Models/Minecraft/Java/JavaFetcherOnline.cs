@@ -119,7 +119,7 @@ public sealed partial class JavaManager
                 {
                     try
                     {
-                        // ERROR:
+                        // ERROR: TODO: i cant understand this codes...
                         // await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
                         //     localFilePath + ".lzma", sha1Lzma, cancellationToken);
                         // await using var fs = lzmaFs.DecompressLzma(localFilePath);
@@ -148,6 +148,8 @@ public sealed partial class JavaManager
                 }, cancellationToken));
             }
             else ;
+            // TODO: i cant understand this codes...
+
             //ERROR: tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
         }
 
