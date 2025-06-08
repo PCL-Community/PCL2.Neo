@@ -21,4 +21,8 @@
     <ProjectReference Include="..\PCL.Neo\PCL.Neo.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Utils\Logger\" />
+  </ItemGroup>
+
 </Project>
