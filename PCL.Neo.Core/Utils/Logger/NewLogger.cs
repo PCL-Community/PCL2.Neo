@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Serilog;
 using System.Text.RegularExpressions;
 
@@ -5,7 +6,6 @@ namespace PCL.Neo.Core.Utils.Logger;
 
 public sealed partial class NewLogger : IDisposable
 {
-    private readonly LoggerConfiguration _configuration = new();
     private readonly Serilog.Core.Logger _logger;
 
     public event LogDelegate.OnAssertLogEvent? OnAssertLogEvent;
@@ -26,40 +26,6 @@ public sealed partial class NewLogger : IDisposable
         None
     }
 
-    private static int GetNextAppLogNumber(string targetFilePath)
-    {
-        var logFIles = Directory.GetFiles(targetFilePath, "log-*-*.log");
-        int maxRunNumber = 0;
-        var today = DateTime.Now.ToString("yyyyMMdd");
-
-        foreach (var logFIle in logFIles)
-        {
-            var fileName = Path.GetFileName(logFIle);
-            var logDate = LogFileRegex().Match(fileName).Groups["date"].Value;
-            var parts = fileName.Split('-');
-
-            if (logDate.Equals(today, StringComparison.OrdinalIgnoreCase))
-            {
-                if (parts.Length >= 2 && parts[0].Equals("log", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (int.TryParse(parts[1], out int runNumber))
-                    {
-                        if (runNumber > maxRunNumber)
-                        {
-                            maxRunNumber = runNumber;
-                        }
-                    }
-                }
-            }
-        }
-
-#if DEBUG
-        Console.WriteLine("The max number is: " + maxRunNumber);
-#endif
-
-        return maxRunNumber + 1;
-    }
-
     public NewLogger(string targetLogDir)
     {
         if (Directory.Exists(targetLogDir) == false)
@@ -67,32 +33,33 @@ public sealed partial class NewLogger : IDisposable
             Directory.CreateDirectory(targetLogDir);
         }
 
-        var currentLogNum = GetNextAppLogNumber(targetLogDir);
-        var filePath = Path.Combine(targetLogDir, $"log-{currentLogNum}-.log");
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Const.PathWithoutName)
+            .AddJsonFile("appsettings.json")
+            .Build();
 
-#if DEBUG
-        Console.WriteLine(currentLogNum);
-        Console.WriteLine(filePath);
-#endif
-
-        _logger = _configuration
-            .MinimumLevel.Information()
-            .WriteTo.Async(co =>
-                co.Console(
-                    outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
-            .WriteTo.Async(fi =>
-                fi.File(filePath,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 10,
-                    rollOnFileSizeLimit: true,
-                    outputTemplate:
-                    "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
-                    shared: true,
-                    fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB limit
-                    buffered: false, // bucause shared is true, so the must is false
-                    flushToDiskInterval: TimeSpan.FromSeconds(5)))
+        _logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
             .CreateLogger();
+
+        //_logger = new LoggerConfiguration()
+        //    .MinimumLevel.Information()
+        //    .WriteTo.Async(co =>
+        //        co.Console(
+        //            outputTemplate:
+        //            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"))
+        //    .WriteTo.Async(fi =>
+        //        fi.File(filePath,
+        //            rollingInterval: RollingInterval.Day,
+        //            retainedFileCountLimit: 10,
+        //            rollOnFileSizeLimit: true,
+        //            outputTemplate:
+        //            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}",
+        //            shared: true,
+        //            fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB limit
+        //            buffered: false, // bucause shared is true, so the must is false
+        //            flushToDiskInterval: TimeSpan.FromSeconds(5)))
+        //    .CreateLogger();
 
         Log.Logger = _logger;
     }
