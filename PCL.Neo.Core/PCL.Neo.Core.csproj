@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,13 +16,9 @@
         <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
     </ItemGroup>
 
-
-    <ItemGroup>
-      <Folder Include="Utils\" />
-    </ItemGroup>
-
     <ItemGroup>
       <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+      <PackageReference Include="Uuids" Version="2.0.0" />
     </ItemGroup>
 
 </Project>
