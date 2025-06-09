@@ -35,7 +35,7 @@ public sealed partial class NewLogger : IDisposable
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Const.PathWithoutName)
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile("loggersettings.json")
             .Build();
 
         _logger = new LoggerConfiguration()
