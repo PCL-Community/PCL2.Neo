@@ -280,6 +280,8 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             {
                 foreach (Library library in versionInfo.Libraries)
                 {
+                    if (library.Name.Split(":").Last().StartsWith("natives")) continue;
+
                     if (library.Downloads?.Artifact?.Path != null)
                     {
                         classpaths.Add(Path.Combine(options.MinecraftDirectory, "libraries", library.Downloads!.Artifact!.Path!)); // 不用担心空格问题
