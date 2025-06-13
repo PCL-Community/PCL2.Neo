@@ -2,6 +2,7 @@ using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game
 {
@@ -329,9 +330,9 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 {
                     foreach (var arg in versionInfo.Arguments.Game)
                     {
-                        if (arg is string strArg)
+                        if (arg is JsonElement jsonElement && jsonElement.ValueKind == JsonValueKind.String)
                         {
-                            string processedArg = strArg
+                            string processedArg = jsonElement.GetString()
                                 .Replace("${auth_player_name}", options.Username)
                                 .Replace("${version_name}", options.VersionId)
                                 .Replace("${game_directory}", QuotePath(options.GameDirectory))
