@@ -237,7 +237,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         /// <summary>
         /// 构建游戏启动命令
         /// </summary>
-        private string BuildLaunchCommand(LaunchOptions options, VersionInfo versionInfo)
+        public string BuildLaunchCommand(LaunchOptions options, VersionInfo versionInfo)
         {
             var args = new List<string>();
 
@@ -286,7 +286,8 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                     }
                 }
             }
-            classpaths.Add(Path.Combine(options.GameDirectory, options.VersionId));
+
+            classpaths.Add(Path.Combine(options.GameDirectory, options.VersionId + ".jar")); // 客户端本体
             args.Add(string.Join(SystemUtils.Os == SystemUtils.RunningOs.Windows ? ';' : ':', classpaths));
 
             // 客户端类型
