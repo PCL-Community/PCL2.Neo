@@ -1,7 +1,7 @@
 using PCL.Neo.Core.Models.Minecraft.Game.Data;
 using PCL.Neo.Core.Utils;
 using System.Diagnostics;
-using System.Text;
+using PCL.Neo.Core.Utils.Logger;
 
 namespace PCL.Neo.Core.Models.Minecraft.Game
 {
@@ -15,7 +15,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         /// <summary>
         /// Minecraft根目录
         /// </summary>
-        public string MinecraftDirectory { get; set; } = string.Empty;
+        public string MinecraftRootDirectory { get; set; } = string.Empty;
 
         /// <summary>
         /// 游戏数据目录
@@ -96,6 +96,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
     public class GameLauncher
     {
         private readonly GameService _gameService;
+        private McLogFIleLogger _gameLogger;
 
         public GameLauncher(GameService gameService)
         {
@@ -111,26 +112,32 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             if (string.IsNullOrEmpty(options.VersionId))
                 throw new ArgumentException("版本ID不能为空");
 
+
             if (string.IsNullOrEmpty(options.JavaPath))
                 throw new ArgumentException("Java路径不能为空");
 
+
             // 确保目录存在
-            string mcDir = options.MinecraftDirectory;
+            string mcDir = options.MinecraftRootDirectory;
             if (string.IsNullOrEmpty(mcDir))
                 mcDir = GameService.DefaultGameDirectory;
+
 
             string gameDir = options.GameDirectory;
             if (string.IsNullOrEmpty(gameDir))
                 gameDir = mcDir;
 
+
             // 确保目录存在
             Directory.CreateDirectory(mcDir);
             Directory.CreateDirectory(gameDir);
+
 
             // 获取版本信息
             var versionInfo = await Versions.GetVersionByIdAsync(mcDir, options.VersionId);
             if (versionInfo == null)
                 throw new Exception($"找不到版本 {options.VersionId}");
+
 
             // 解析继承关系（如果有）
             if (!string.IsNullOrEmpty(versionInfo.InheritsFrom))
@@ -139,9 +146,11 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 if (parentInfo == null)
                     throw new Exception($"找不到父版本 {versionInfo.InheritsFrom}");
 
+
                 // 合并版本信息
                 versionInfo = MergeVersionInfo(versionInfo, parentInfo);
             }
+
 
             // 构建启动命令
             var commandArgs = BuildLaunchCommand(options, versionInfo);
@@ -161,20 +170,26 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 }
             };
 
+
             // 设置环境变量
             foreach (var env in options.EnvironmentVariables)
             {
                 process.StartInfo.EnvironmentVariables[env.Key] = env.Value;
             }
 
+
             // 启动进程
             process.Start();
 
+
             // 记录日志（异步）
-            _ = LogProcessOutputAsync(process);
+            var gameLogDir = Path.Combine(options.GameDirectory, "logs");
+            _gameLogger = new McLogFIleLogger(gameLogDir, process);
+            _gameLogger.Start();
 
             return process;
         }
+
 
         /// <summary>
         /// 合并版本信息（处理继承关系）
@@ -192,6 +207,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 JsonData = child.JsonData
             };
 
+
             // 从父版本继承属性
             merged.MinecraftArguments = child.MinecraftArguments ?? parent.MinecraftArguments;
             merged.Arguments = child.Arguments ?? parent.Arguments;
@@ -200,14 +216,18 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             merged.Assets = child.Assets ?? parent.Assets;
             merged.JavaVersion = child.JavaVersion ?? parent.JavaVersion;
 
+
             // 合并下载信息
             merged.Downloads = child.Downloads ?? parent.Downloads;
+
 
             // 合并库文件（子版本优先）
             var libraries = new List<Library>();
 
+
             if (parent.Libraries != null)
                 libraries.AddRange(parent.Libraries);
+
 
             if (child.Libraries != null)
             {
@@ -224,15 +244,18 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                         }
                     }
 
+
                     // 不存在则添加
                     if (!exists)
                         libraries.Add(lib);
                 }
             }
 
+
             merged.Libraries = libraries;
             return merged;
         }
+
 
         /// <summary>
         /// 构建游戏启动命令
@@ -241,9 +264,11 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         {
             var args = new List<string>();
 
+
             // JVM参数
             args.Add($"-Xmx{options.MaxMemoryMB}M");
             args.Add($"-Xms{options.MinMemoryMB}M");
+
 
             // 标准JVM参数
             args.Add("-XX:+UseG1GC");
@@ -265,13 +290,16 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             args.Add("-XX:+PerfDisableSharedMem");
             args.Add("-XX:MaxTenuringThreshold=1");
 
+
             // 设置natives路径
-            string nativesDir = Path.Combine(options.MinecraftDirectory, "versions", options.VersionId, "natives");
+            string nativesDir = Path.Combine(options.MinecraftRootDirectory, "versions", options.VersionId, "natives");
             EnsureDirectoryExists(nativesDir);
+
 
             args.Add($"-Djava.library.path={QuotePath(nativesDir)}");
             args.Add($"-Dminecraft.launcher.brand=PCL.Neo");
             args.Add($"-Dminecraft.launcher.version=1.0.0");
+
 
             // 类路径
             args.Add("-cp");
@@ -282,7 +310,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 {
                     if (library.Downloads?.Artifact?.Path != null)
                     {
-                        classpaths.Add(Path.Combine(options.MinecraftDirectory, "libraries", library.Downloads!.Artifact!.Path!)); // 不用担心空格问题
+                        classpaths.Add(Path.Combine(options.MinecraftRootDirectory, "libraries", library.Downloads!.Artifact!.Path!)); // 不用担心空格问题
                     }
                 }
             }
@@ -309,7 +337,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                     .Replace("${auth_player_name}", options.Username)
                     .Replace("${version_name}", options.VersionId)
                     .Replace("${game_directory}", QuotePath(options.GameDirectory))
-                    .Replace("${assets_root}", QuotePath(Path.Combine(options.MinecraftDirectory, "assets")))
+                    .Replace("${assets_root}", QuotePath(Path.Combine(options.MinecraftRootDirectory, "assets")))
                     .Replace("${assets_index_name}", versionInfo.AssetIndex?.Id ?? "legacy")
                     .Replace("${auth_uuid}", options.UUID)
                     .Replace("${auth_access_token}", options.AccessToken)
@@ -332,7 +360,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                                 .Replace("${auth_player_name}", options.Username)
                                 .Replace("${version_name}", options.VersionId)
                                 .Replace("${game_directory}", QuotePath(options.GameDirectory))
-                                .Replace("${assets_root}", QuotePath(Path.Combine(options.MinecraftDirectory, "assets")))
+                                .Replace("${assets_root}", QuotePath(Path.Combine(options.MinecraftRootDirectory, "assets")))
                                 .Replace("${assets_index_name}", versionInfo.AssetIndex?.Id ?? "legacy")
                                 .Replace("${auth_uuid}", options.UUID)
                                 .Replace("${auth_access_token}", options.AccessToken)
@@ -354,7 +382,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 args.Add("--gameDir");
                 args.Add(QuotePath(options.GameDirectory));
                 args.Add("--assetsDir");
-                args.Add(QuotePath(Path.Combine(options.MinecraftDirectory, "assets")));
+                args.Add(QuotePath(Path.Combine(options.MinecraftRootDirectory, "assets")));
                 args.Add("--assetIndex");
                 args.Add(versionInfo.AssetIndex?.Id ?? "legacy");
                 args.Add("--uuid");
@@ -381,19 +409,19 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             }
 
             // 添加额外的游戏参数
-            if (options.ExtraGameArgs != null && options.ExtraGameArgs.Count > 0)
+            if (options.ExtraGameArgs is { Count: > 0 })
             {
                 args.AddRange(options.ExtraGameArgs);
             }
 
             // 拼接所有参数
-            return string.Join(" ", args);
+            return string.Join(' ', args);
         }
 
         /// <summary>
         /// 确保目录存在
         /// </summary>
-        private void EnsureDirectoryExists(string path)
+        private static void EnsureDirectoryExists(string path)
         {
             if (!Directory.Exists(path))
             {
@@ -404,90 +432,21 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         /// <summary>
         /// 为路径加上引号（如果包含空格）
         /// </summary>
-        private string QuotePath(string path)
+        private static string QuotePath(string path)
         {
             // 统一路径分隔符为当前系统的分隔符
             path = path.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
 
             // 如果路径包含空格，则加上引号
-            if (path.Contains(" "))
-            {
-                return $"\"{path}\"";
-            }
-            return path;
-        }
-
-        /// <summary>
-        /// 记录进程输出
-        /// </summary>
-        private async Task LogProcessOutputAsync(Process process)
-        {
-            var logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "logs");
-            EnsureDirectoryExists(logDir);
-
-            string logFile = Path.Combine(logDir, $"game_{DateTime.Now:yyyyMMdd_HHmmss}.log");
-
-            using (var writer = new StreamWriter(logFile, false, Encoding.UTF8))
-            {
-                writer.WriteLine($"PCL.Neo Game Log - {DateTime.Now}");
-                writer.WriteLine("---------------------------------------------");
-
-                try
-                {
-                    string? line;
-                    while ((line = await process.StandardOutput.ReadLineAsync()) != null)
-                    {
-                        await writer.WriteLineAsync($"[STDOUT] {line}");
-                        await writer.FlushAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await writer.WriteLineAsync($"[ERROR] Error reading standard output: {ex.Message}");
-                }
-
-                try
-                {
-                    string? line;
-                    while ((line = await process.StandardError.ReadLineAsync()) != null)
-                    {
-                        await writer.WriteLineAsync($"[STDERR] {line}");
-                        await writer.FlushAsync();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    await writer.WriteLineAsync($"[ERROR] Error reading standard error: {ex.Message}");
-                }
-            }
+            return path.Contains(' ') ? $"\"{path}\"" : path;
         }
 
         /// <summary>
         /// 导出游戏日志
         /// </summary>
-        public async Task ExportGameLogsAsync(string filePath)
+        public void ExportGameLogsAsync(string filePath)
         {
-            var logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "PCL.Neo", "logs");
-            if (!Directory.Exists(logDir) || !Directory.GetFiles(logDir).Any())
-            {
-                // 如果没有日志，创建一个空日志
-                await File.WriteAllTextAsync(filePath, "没有找到游戏日志");
-                return;
-            }
-
-            // 获取最新的日志文件
-            var logFile = Directory.GetFiles(logDir, "game_*.log")
-                .OrderByDescending(f => File.GetCreationTime(f))
-                .FirstOrDefault();
-
-            if (string.IsNullOrEmpty(logFile))
-            {
-                await File.WriteAllTextAsync(filePath, "没有找到游戏日志");
-                return;
-            }
-
-            // 复制日志
-            File.Copy(logFile, filePath, true);
+            _gameLogger.Export(filePath);
         }
     }
 }
