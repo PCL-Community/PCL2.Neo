@@ -19,7 +19,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
             toSearchPaths.UnionWith(GetOsDirsToSearch(platform));
             if (CheckJavaHome() is { } javaHome) toSearchPaths.Add(javaHome);
             if (CheckWithWhichJava() is { } whichJava) validPaths.Add(whichJava);
-            // if (platform is SystemUtils.RunningOs.MacOs) toSearchPaths.UnionWith(GetJavaHomesFromLibexec());
+            // if (platform is SystemUtils.RunningOs.MacOS) toSearchPaths.UnionWith(GetJavaHomesFromLibexec());
             validPaths.UnionWith(GetKnownDirsWithoutSearch(platform));
 
             var searchTasks = new List<Task<IEnumerable<string>>>();
@@ -58,7 +58,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
                     "/usr/local/jre",
                     "/usr/local/opt",
                 ]);
-            if (platform is SystemUtils.RunningOs.MacOs)
+            if (platform is SystemUtils.RunningOs.MacOS)
                 knowDirs.AddRange([
                     // "/Library/Java/JavaVirtualMachines",
                     // $"{homeDir}/Library/Java/JavaVirtualMachines",
@@ -72,7 +72,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Java
         {
             var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var knowDirs = new List<string>();
-            if (platform is SystemUtils.RunningOs.MacOs)
+            if (platform is SystemUtils.RunningOs.MacOS)
             {
                 knowDirs.AddRange([
                     "/usr/bin",

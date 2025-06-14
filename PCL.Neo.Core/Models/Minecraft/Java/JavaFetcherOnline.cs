@@ -21,11 +21,11 @@ public sealed partial class JavaManager
     /// <param name="Value">获取表示平台的字符串</param>
     public sealed record MojangJavaVersion(string Value)
     {
-        public static readonly MojangJavaVersion Α = new("java-runtime-alpha");
-        public static readonly MojangJavaVersion Β = new("java-runtime-beta");
-        public static readonly MojangJavaVersion Δ = new("java-runtime-delta");
-        public static readonly MojangJavaVersion Γ = new("java-runtime-gamma");
-        public static readonly MojangJavaVersion Γs = new("java-runtime-gamma-snapshot");
+        public static readonly MojangJavaVersion A      = new("java-runtime-alpha");
+        public static readonly MojangJavaVersion Β      = new("java-runtime-beta");
+        public static readonly MojangJavaVersion Δ      = new("java-runtime-delta");
+        public static readonly MojangJavaVersion Γ      = new("java-runtime-gamma");
+        public static readonly MojangJavaVersion Γs     = new("java-runtime-gamma-snapshot");
         public static readonly MojangJavaVersion Legacy = new("jre-legacy");
     }
 
@@ -119,20 +119,21 @@ public sealed partial class JavaManager
                 {
                     try
                     {
-                        await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
-                            localFilePath + ".lzma", sha1Lzma, cancellationToken);
-                        await using var fs = lzmaFs.DecompressLzma(localFilePath);
-                        if (fs is null)
-                        {
-                            Console.WriteLine("outStream 为空");
-                            return;
-                        }
-
-                        if (!await new FileIntegrity { Hash = sha1Raw }.VerifyAsync(fs, cancellationToken))
-                        {
-                            Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
-                            return;
-                        }
+                        // ERROR: TODO: i cant understand this codes...
+                        // await using var lzmaFs = await DownloadReceipt.FastDownloadAsStreamAsync(urlLzma,
+                        //     localFilePath + ".lzma", sha1Lzma, cancellationToken);
+                        // await using var fs = lzmaFs.DecompressLzma(localFilePath);
+                        // if (fs is null)
+                        // {
+                        //     Console.WriteLine("outStream 为空");
+                        //     return;
+                        // }
+                        //
+                        // if (!await new FileIntegrity { Hash = sha1Raw }.VerifyAsync(fs, cancellationToken))
+                        // {
+                        //     Console.WriteLine("解压后的文件SHA-1与源提供的不匹配");
+                        //     return;
+                        // }
                     }
                     catch (Exception e)
                     {
@@ -146,8 +147,10 @@ public sealed partial class JavaManager
                     }
                 }, cancellationToken));
             }
-            else
-                tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
+            else ;
+            // TODO: i cant understand this codes...
+
+            //ERROR: tasks.Add(DownloadReceipt.FastDownloadAsync(urlRaw, localFilePath, sha1Raw, cancellationToken));
         }
 
         if (progress != null)
@@ -178,7 +181,7 @@ public sealed partial class JavaManager
 #pragma warning restore CA1416
         var targetFolder = SystemUtils.Os switch
         {
-            SystemUtils.RunningOs.MacOs => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
+            SystemUtils.RunningOs.MacOS => Path.Combine(destinationFolder, "jre.bundle/Contents/Home/bin"),
             SystemUtils.RunningOs.Linux => Path.Combine(destinationFolder, "bin"),
             SystemUtils.RunningOs.Windows => Path.Combine(destinationFolder, "bin"),
             _ => throw new ArgumentOutOfRangeException()
