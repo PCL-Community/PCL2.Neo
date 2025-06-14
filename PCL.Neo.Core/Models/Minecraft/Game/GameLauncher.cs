@@ -145,7 +145,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             }
 
             // 构建启动命令
-            var commandArgs = BuildLaunchCommand(options, versionInfo);
+            List<string> commandArgs = BuildLaunchCommand(options, versionInfo);
 
             // 创建进程
             var process = new Process
@@ -153,7 +153,6 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = options.JavaPath,
-                    Arguments = commandArgs,
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -161,6 +160,11 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
                     WorkingDirectory = gameDir
                 }
             };
+
+            foreach (string arg in commandArgs)
+            {
+                process.StartInfo.ArgumentList.Add(arg);
+            }
 
             // 设置环境变量
             foreach (var env in options.EnvironmentVariables)
@@ -238,7 +242,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
         /// <summary>
         /// 构建游戏启动命令
         /// </summary>
-        public string BuildLaunchCommand(LaunchOptions options, VersionInfo versionInfo)
+        private List<string> BuildLaunchCommand(LaunchOptions options, VersionInfo versionInfo)
         {
             var args = new List<string>();
 
@@ -391,7 +395,7 @@ namespace PCL.Neo.Core.Models.Minecraft.Game
             }
 
             // 拼接所有参数
-            return string.Join(" ", args);
+            return args;
         }
 
         /// <summary>
