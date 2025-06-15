@@ -1,13 +1,13 @@
-using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using PCL.Neo.Core.Models;
+using PCL.Neo.Helpers;
 using PCL.Neo.Services;
-using PCL.Neo.Core.Models.Minecraft.Java;
+using PCL.Neo.Utils;
 using PCL.Neo.ViewModels;
 using PCL.Neo.ViewModels.Download;
 using PCL.Neo.ViewModels.Home;
@@ -18,6 +18,7 @@ using PCL.Neo.ViewModels.Job;
 using PCL.Neo.Core.Service.Accounts;
 using PCL.Neo.Core.Service.Accounts.MicrosoftAuth;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using PCL.Neo.ViewModels.Setup;
 

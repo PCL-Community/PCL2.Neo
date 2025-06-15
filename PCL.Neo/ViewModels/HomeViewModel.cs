@@ -1,14 +1,14 @@
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PCL.Neo.Models.User;
 using PCL.Neo.Services;
 using PCL.Neo.ViewModels.Home;
-using System;
-using System.Threading.Tasks;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using SkiaSharp;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace PCL.Neo.ViewModels;
 
@@ -198,5 +198,11 @@ public partial class HomeViewModel : ViewModelBase
             Console.WriteLine(e);
             throw;
         }
+    }
+
+    [RelayCommand]
+    private void TestButtonAni()
+    {
+        Console.WriteLine("Test");
     }
 }

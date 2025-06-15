@@ -25,10 +25,10 @@ public class LogEntry
 
 public partial class LogViewModel : ViewModelBase
 {
-    private readonly PCL.Neo.Core.Models.Minecraft.Game.GameLauncher _gameLauncher;
-    private readonly StorageService _storageService;
-    private ObservableCollection<LogEntry> _logEntriesCollection = new ObservableCollection<LogEntry>();
-    
+    private readonly GameLauncher                   _gameLauncher;
+    private readonly StorageService                 _storageService;
+    private          ObservableCollection<LogEntry> _logEntriesCollection = [];
+
     [ObservableProperty]
     private ReadOnlyObservableCollection<LogEntry> _logEntries;
     
@@ -43,8 +43,8 @@ public partial class LogViewModel : ViewModelBase
     
     [ObservableProperty]
     private string _statusMessage = string.Empty;
-    
-    public LogViewModel(PCL.Neo.Core.Models.Minecraft.Game.GameLauncher gameLauncher, StorageService storageService)
+
+    public LogViewModel(GameLauncher gameLauncher, StorageService storageService)
     {
         _gameLauncher = gameLauncher;
         _storageService = storageService;
@@ -69,20 +69,17 @@ public partial class LogViewModel : ViewModelBase
                 if (logFiles.Length > 0)
                 {
                     // 找到最新的日志文件
-                    string latestLog = logFiles.OrderByDescending(f => File.GetCreationTime(f)).First();
-                    
+                    string latestLog = logFiles.OrderByDescending(File.GetCreationTime).First();
+
                     // 读取日志文件内容
                     var lines = File.ReadAllLines(latestLog);
                     foreach (var line in lines)
                     {
                         bool isError = line.Contains("[STDERR]") || line.Contains("[ERROR]");
-                        string message = line;
-                        
+
                         _logEntriesCollection.Add(new LogEntry
                         {
-                            Timestamp = DateTime.Now,
-                            Message = message,
-                            IsError = isError
+                            Timestamp = DateTime.Now, Message = line, IsError = isError
                         });
                     }
                     

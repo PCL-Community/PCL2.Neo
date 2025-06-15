@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:PCL.Neo.ViewModels"
+             xmlns:pc="using:PCL.Neo.Controls"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="PCL.Neo.Views.HomeView"
              x:DataType="vm:HomeViewModel">
@@ -185,7 +186,7 @@
                     <!-- 内容区 - 可以放新闻或游戏信息 -->
                     <ScrollViewer Grid.Row="1">
                         <StackPanel Spacing="15">
-                            <!-- 游戏版本卡片 -->
+                             <!--游戏版本卡片--> 
                             <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                    CornerRadius="6"
                                    Padding="15">
@@ -213,7 +214,7 @@
                                 </Grid>
                             </Border>
                             
-                            <!-- 内存设置卡片 -->
+                             <!--内存设置卡片--> 
                             <Border Background="{DynamicResource SystemControlBackgroundAltHighBrush}"
                                    CornerRadius="6"
                                    Padding="15">
@@ -261,7 +262,12 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-
+									
+                                    <pc:MyLoading
+                                        Height="150"
+                                        Name="TestLoading"
+                                        State="Loading"
+                                        Width="150" />
                                     
                                     <Button Grid.Column="0"
                                             Content="图片"
@@ -274,6 +280,7 @@
                                            HorizontalAlignment="Stretch"
                                            Height="20" Width="20"
                                            Source="{Binding ShowImageBitmap}"/>
+                                    
                                 </Grid>
                             </Border>
                         </StackPanel>

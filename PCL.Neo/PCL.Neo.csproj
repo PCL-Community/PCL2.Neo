@@ -21,6 +21,14 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <AvaloniaXaml Remove="Views\MainPage\**" />
+    <AvaloniaXaml Remove="Views\SubPage\**" />
+    <Compile Remove="Views\MainPage\**" />
+    <Compile Remove="Views\SubPage\**" />
+    <EmbeddedResource Remove="Views\MainPage\**" />
+    <EmbeddedResource Remove="Views\SubPage\**" />
+    <None Remove="Views\MainPage\**" />
+    <None Remove="Views\SubPage\**" />
       <AvaloniaXaml Remove="Models\Minecraft\**" />
       <Compile Remove="Models\Minecraft\**" />
       <EmbeddedResource Remove="Models\Minecraft\**" />
@@ -39,6 +47,7 @@
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.3.0.6" />
     <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
@@ -75,6 +84,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Models\Minecraft\Game\Data\" />
+    <Folder Include="Models\Minecraft\Java\" />
+    <Folder Include="Models\Minecraft\Mod\" />
     <Folder Include="Views\MainPage\" />
     <Folder Include="Views\SubPage\" />
   </ItemGroup>

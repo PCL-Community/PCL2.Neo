@@ -1,23 +1,15 @@
 using Avalonia;
-using Avalonia.Animation;
-using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using PCL.Neo.Helpers;
-using System;
 
 namespace PCL.Neo.Controls
 {
     public class MyCard : ContentControl
     {
         private Border? _borderMain;
-        private AnimationHelper _animation;
 
-        public MyCard()
-        {
-            _animation = new();
-        }
         protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
         {
             base.OnApplyTemplate(e);
@@ -27,7 +19,6 @@ namespace PCL.Neo.Controls
         protected override void OnSizeChanged(SizeChangedEventArgs e)
         {
             base.OnSizeChanged(e);
-
         }
 
         public static readonly StyledProperty<string> TitleProperty = AvaloniaProperty.Register<MyCard, string>(
@@ -50,7 +41,6 @@ namespace PCL.Neo.Controls
 
         private void HeightAnimation()
         {
-
         }
     }
 }
